@@ -22,9 +22,9 @@ phyFiles <- list.files("raw_physical_data", full=TRUE)
 phy <- adply(phyFiles, 1, function(file) {
   
   # read the data
-   d <- read.table(file, sep="\t", skip=10, header=TRUE, fileEncoding="ISO-8859-1", stringsAsFactors=FALSE, quote="\"", check.names=FALSE, encoding="UTF-8", na.strings="9999.99")
+  d <- read.table(file, sep="\t", skip=10, header=TRUE, fileEncoding="ISO-8859-1", stringsAsFactors=FALSE, quote="\"", check.names=FALSE, encoding="UTF-8", na.strings="9999.99")
   
-
+  
   # clean names
   head <- names(d)
   head <- str_replace(head, "\\(.*\\)", "")
@@ -42,22 +42,21 @@ phy <- adply(phyFiles, 1, function(file) {
   dd <- str_sub(date,4,5)
   dd <- as.numeric(dd)
   yy <- str_sub(date,7,8)
-  date_plus <- str_c(mm,as.character(dd+1),yy, sep="/")
-
+  dateNextDay <- str_c(mm,as.character(dd+1),yy, sep="/")
+  
   # shift by one day when we cross midnight
   d$hour <- as.numeric(str_sub(d$time,1,2))
-  d$date <- ifelse(d$hour >= 18 & d$hour <= 23, date, date_plus)
+  d$date <- ifelse(d$hour >= 18 & d$hour <= 23, date, dateNextDay)
   d$dateTime <- str_c(d$date, d$time, sep=" ")
   d$dateTime <- as.POSIXct(strptime(d$dateTime, format="%m/%d/%y %H:%M:%OS", tz="UTC"))
-
-   #shift all physical data back 3 hours
-   d$dateTime <- d$dateTime - 3 * 3600
-   
-   #code in a transect number
-   #this is not robust for all physical data but is necessary here
-   print(dd)
-   d$transect <- dd-14
-   
+  
+  # shift all physical data back 3 hours
+  d$dateTime <- d$dateTime - 3 * 3600
+  
+  # code in a transect number
+  # this is not robust for all physical data but is necessary here
+  d$transect <- dd-14
+  
   # reformat the lat and long in decimal degrees
   to.dec <- function(x) {
     # split in degree, minute, second
@@ -70,43 +69,15 @@ phy <- adply(phyFiles, 1, function(file) {
     dec <- as.numeric(pieces[,1]) + as.numeric(pieces[,2]) / 60 + as.numeric(pieces[,3]) / 3600
     # orient the coordinate
     ifelse(orientation %in% c("S", "W"), -dec, dec)
-
+    
     return(dec)
   }
   d$lat <- to.dec(d$lat)
   d$long <- to.dec(d$long)
   
-   # TODO detect up and down casts and number them - use turning points?? other options?
-   depths <- as.ts(d$depth)
-   depth_avg <- decaverage(depths, order=16, times=3) #tested options between 10-20, correct number after order=14. use order between 16-20 for robustness
-   TP <- turnpoints(-extract(depth_avg, component="filtered"))
-   surface <- which(TP$peaks)
-   depth <- which(TP$pits)
-   TP <- rbind(data.frame(tp=surface, pos="U"),data.frame(tp=depth, pos="D"))
-   #sort using arrange() in plyr
-   TP <- arrange(TP, tp)
-   
-   #initialize
-   d$down.up <- NA
-   d$cast <- NA
-   
-  # code in downcast or upcast, and cast number. IT WORKS!! yay
-   d$down.up[1:(TP$tp[1]-1)] <- as.character(TP$pos[1])
-   d$cast[1:(TP$tp[1]-1)] <- 1
-   for (i in rep(1:(nrow(TP)-1))){
-     start <- TP$tp[i]
-     end <- TP$tp[i+1]-1
-     d$down.up[start:end] <- as.character(TP$pos[i+1])
-     d$cast[start:end] <- floor(i/2)+1
-   }
-   last <- TP$tp[nrow(TP)]
-   d$down.up[last:nrow(d)] <- ifelse(TP$pos[nrow(TP)]=="U","D","U")
-   d$cast[last:nrow(d)] <- ceiling(nrow(TP)/2)
-   
-   
   # keep only interesting data
-  d <- d[,c("dateTime", "depth", "lat", "long", "temp", "salinity", "fluoro", "oxygen", "irrandiance", "vol.imaged", "heading","transect", "cast", "down.up")]
-
+  d <- d[,c("dateTime", "depth", "lat", "long", "temp", "salinity", "fluoro", "oxygen", "irrandiance", "vol.imaged", "heading", "transect")]
+  
   # write it as a CSV file
   # outFile <- basename(str_replace(file, "txt", "csv"))
   # outFile <- str_c("data/", outFile)
@@ -119,19 +90,57 @@ phy <- adply(phyFiles, 1, function(file) {
 # remove adply crap
 phy <- phy[,-1]
 
+# Detect up and down casts and number them
+phy <- ddply(phy, ~transect, function(d) {
+  # detect up and down casts by smoothing the depth profile and finding the turning points
+  # smooth depths
+  order <- 100
+  # tested options between 10-20, correct number after order=14. use order between 16-20 for robustness
+  depth_avg <- decaverage(-d$depth, times=3, weights=c(seq(1, order), order+1, seq(order, 1, -1)))
+  # plot(depth_avg)
+  depth_avg <- as.numeric(extract(depth_avg, component="filtered"))
+  # detect turning points
+  TP <- suppressWarnings(turnpoints(depth_avg))
+  
+  # NB: if we were assigning a different number of every up and down cast we would do it like that
+  # castNb <- cumsum(TP$peaks | TP$pits)
+  # castType <- castNb %% 2
+  # but we don't do this here
+  
+  # number casts; a cast is everything between two turns (either at the surface or at depth)
+  # detect wether the first turn is at the surface or at depth
+  turnAtSurface <- which(TP$peaks)
+  turnAtDepth <- which(TP$pits)
+  firstTurn <- c("surface", "depth")[which.min(c(turnAtSurface[1], turnAtDepth[1]))]
+  
+  # separate up and down casts
+  castAbsNb <- cumsum(TP$peaks | TP$pits)
+  castType <- castAbsNb %% 2 + 1
+  
+  # assign cast numbers and types based on the first turn
+  if (firstTurn == "surface") {
+    # when the first turn is at the surface, we started at depths and we warn to number our casts between turns at depth (i.e. pits)
+    d$cast <- cumsum(TP$pits) + 1
+    # and we start with an upcast
+    d$down.up <- c("up", "down")[castType]
+  } else {
+    # and the contrary when the first turn is at depth
+    # NB: this is the most common scenario
+    d$cast <- cumsum(TP$peaks) + 1     
+    d$down.up <- c("down", "up")[castType]
+  }
+  
+  return(d) 
+}, .progress="text")
 
-
+# visualize
+# ggplot(data=phy) + geom_path(aes(x=long, y=-depth, colour=as.factor(cast), linetype=factor(down.up))) + facet_grid(transect ~.) 
 
 # save it as text
 write.csv(phy, "data/phy.csv", row.names=FALSE)
 
 # }
 
-#visualize
-ggplot(data=phy) + geom_point(aes(x=long, y=depth, colour=as.factor(cast), shape=factor(down.up))) + facet_grid(transect ~.,) 
-#the problem here is that transect 2 is split up into two because there were two data files.
-#TODO: if one transect is separated into two ... join them first and then calculate the downcasts/upcasts. 
-#How to 
 
 ##{ Biological data -------------------------------------------------------
 
@@ -370,4 +379,3 @@ bin by time
 decide which is best
 
 # }
-
