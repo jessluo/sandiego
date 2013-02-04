@@ -5,8 +5,6 @@ This is the data processing and analysis code for data from a cruise in the Sout
 (nicknamed San Diego) using the _In Situ_ Ichthyoplankton Imaging System (ISIIS; Cowen and Guigand 2008).
 The cruise took place on 15 October 2010 - 17 October 2010, and is part of Jessica Luo's Ph.D Dissertation. 
 
-All data and analysis (c) 2013 Jessica Luo / Cowen Lab. All rights reserved.
-
 ###Contact:
 Jessica Y Luo  
 PhD Candidate  
