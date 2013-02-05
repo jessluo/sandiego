@@ -334,65 +334,61 @@ write.csv(bio, "data/bio.csv", row.names=FALSE)
 
 ##{ Joining physical and biological data ----------------------------------
 
-# bin bio and phy data on ~20 frames (because of app)
+# start from scratch just to be sure
+bio <- read.csv("data/bio.csv", colClasses=c(dateTime="POSIXct"), stringsAsFactors=FALSE)
+phy <- read.csv("data/phy.csv", colClasses=c(dateTime="POSIXct"), stringsAsFactors=FALSE)
+
+# subset the physical data to match where the biological data was recorded
+# TODO generalize the subseting of data (actually there should not be any subseting at all in the end ;) )
+# which biological downcasts have all the data?
+dc <- unique(bio$cast.bio[which(bio$group=="Hydromedusae" & bio$transect==2)])
+# select those downcasts
+phy <- phy[which(phy$down.up=="down" & phy$transect==2 & phy$cast %in% dc),]
+bio <- bio[which(bio$transect==2 & bio$cast.bio %in% dc),]
+
+# Bin bio and physical data by time, on ~ 20 frames
+# appendicularians are looked for every 20 frames and we want all bins to (potentially) have appendicularian counts
+# once this binning is done we can compute true abundances (count * subsampling rate) and finally bin over larger scale bins
+
 # round to the nearest second
-bio$dateTimer <- round_any(bio$dateTime, 1)
-phy$dateTimer <- round_any(phy$dateTime, 1)
+# TODO is that enough? 1 second is 17 frames only...
+bio$dateTimeB1 <- round_any(bio$dateTime, 1)
+phy$dateTimeB1 <- round_any(phy$dateTime, 1)
 
 # compute total abundance in each time bin
-bio <- ddply(bio, ~dateTimer+taxon, function(x){
-  countsum <- sum(x$count)
-  return(data.frame(x[,names(x) != "count"],"count"=countsum))
+bioB1 <- ddply(bio, ~ transect + cast.bio + dateTimeB1 + group + taxon + sub, function(x){
+  return(c(count=sum(x$count)))
 }, .progress="text")
+# scale that count by the subsetting interval
+bioB1$abund <- bioB1$count * bioB1$sub
 
 # compute average/total of physical properties in each time bin
-phy <- ddply(phy, ~dateTimer, function(x){
-  # TODO make this shorter
-  depth <- mean(x$depth, na.rm=TRUE)
-  lat <- mean(x$lat, na.rm=TRUE)
-  long <- mean(x$long, na.rm=TRUE)
-  temp <- mean(x$temp, na.rm=TRUE)
-  salinity <- mean(x$salinity, na.rm=TRUE)
-  fluoro <- mean(x$fluoro, na.rm=TRUE)
-  oxygen <- mean(x$oxygen, na.rm=TRUE)
-  irradiance <- mean(x$irradiance, na.rm=TRUE)
-  # vol.imaged <- sum(x$vol.imaged, na.rm=TRUE)
-  heading <- mean(x$heading, na.rm=TRUE)
-  return(data.frame(x[,names(x) %in% c("dateTimer", "transect", "cast", "down.up")], depth, lat, long, temp, salinity, fluoro, oxygen, irradiance, heading))
+phyB1 <- ddply(phy, ~ transect + cast + down.up + dateTimeB1, function(x){
+  # means of columns that are numbers
+  means <- colMeans(x[,llply(phy, class) == "numeric"])
+  # TODO should add sum of vol.imaged when that works
+  return(means)
 }, .progress="text")
 
-write.csv(bio, "troubleshoot/bioOneSecBin.csv", row.names=FALSE)
-write.csv(phy, "troubleshoot/phyOneSecBin.csv", row.names=FALSE)
-
-
-# select some downcasts
-physel <- phy[which(phy$down.up=="down" & phy$transect==2),]
-# which downcasts have all the data?
-dc <- unique(bio$cast[which(bio$group=="Hydromedusae" & bio$transect==2)])
-physel <- physel[which(physel$cast %in% dc),]
-
 # join bio and phy data by time, take the physical data as a reference
-# matching for each taxon
-# TODO could avoid ddply
-data <- ddply(bio, ~taxon, function(b){
-  d <- join(physel, b, by="dateTimer", type="left")
-  d$count[is.na(d$count)] <- 0
-  d$taxon <- b$taxon[1]
+# make sure we create zeros for species absent in each bin
+d <- ddply(bioB1[,c("dateTimeB1", "group", "taxon", "abund")], ~ taxon, function(b, p=phyB1){
+  # join physical data and counts for this taxon
+  d <- join(p, b, type="left", by="dateTimeB1")
+  # when a taxon is not present in a bin, all columns corresponding to the biological data will contain NA
+  # make sure they contain a zero adbuncance for this taxon instead
   d$group <- b$group[1]
+  d$taxon <- b$taxon[1]
+  d$abund[is.na(d$abund)] <- 0
   return(d)
 }, .progress="text")
 
-# TODO think about selecting a better variable name for this than "data"
+# reorder the data by time, just to be cleaner
+d <- arrange(d, dateTimeB1, group, taxon)
 
-data <- data[,-which(names(data)=="dateTime")]
-# maybe then change the column name of dateTimer to dateTime
+# write that data set
+write.csv(d, "data/full_bin1.csv", row.names=FALSE)
 
-# can take out irradiance too, all values are NA (strange?)
-data <- data[,-which(names(data)=="irradiance")]
-# remove row.names column
-data <- data[,-1]
-
-write.csv(data, "troubleshoot/joinedData.csv", row.names=FALSE)
 # }
 
 ##{ Binning the data ------------------------------------------------------
