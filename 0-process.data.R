@@ -313,12 +313,14 @@ bio <- rbind.fill(solT, siphT, cteT, appT, hT)
 # shift the time by 3 hours
 bio$dateTime <- bio$dateTime - 3 * 3600
 
-bio <- rename(bio, c("downcast"="cast"))
+# change the name of casts and do not mix it with the cast number defined by the physics just yet
+# they should be the same but we never know
+bio <- rename(bio, c("downcast"="cast.bio"))
 
 # check
 head(bio)
 unique(bio$transect)
-unique(bio$cast)
+unique(bio$cast.bio)
 unique(bio$group)
 unique(bio$taxon)
 range(bio$dateTime)
