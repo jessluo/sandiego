@@ -369,6 +369,9 @@ phy <- ddply(phy, ~dateTimer, function(x){
   return(data.frame(x[,names(x) %in% c("dateTimer", "transect", "cast", "down.up")], depth, lat, long, temp, salinity, fluoro, oxygen, irradiance, heading))
 }, .progress="text")
 
+write.csv(bio, "troubleshoot/bioOneSecBin.csv", row.names=FALSE)
+write.csv(phy, "troubleshoot/phyOneSecBin.csv", row.names=FALSE)
+
 
 # select some downcasts
 physel <- phy[which(phy$down.up=="down" & phy$transect==2),]
@@ -381,7 +384,7 @@ physel <- physel[which(physel$cast %in% dc),]
 # TODO could avoid ddply
 data <- ddply(bio, ~taxon, function(b){
   d <- join(physel, b, by="dateTimer", type="left")
-  d$count <- d$count[is.na(d$count)] <- 0
+  d$count[is.na(d$count)] <- 0
   d$taxon <- b$taxon[1]
   d$group <- b$group[1]
   return(d)
@@ -394,10 +397,10 @@ data <- data[,-which(names(data)=="dateTime")]
 
 # can take out irradiance too, all values are NA (strange?)
 data <- data[,-which(names(data)=="irradiance")]
-
 # remove row.names column
 data <- data[,-1]
 
+write.csv(data, "troubleshoot/joinedData.csv", row.names=FALSE)
 # }
 
 ##{ Binning the data ------------------------------------------------------
@@ -407,7 +410,7 @@ data <- data[,-1]
 # 1 meter depth bins are probably the minimum
 data$depthbin <- round_any(data$depth, 1)
 
-data2 <- ddply(data, ~depthbin+taxon+group+cast+down.up, function(x){
+data <- ddply(data, ~depthbin+taxon+group+cast+down.up, function(x){
   # total abundance
   count <- sum(x$count)
   
@@ -425,15 +428,17 @@ data2 <- ddply(data, ~depthbin+taxon+group+cast+down.up, function(x){
   
   # sample size
   binBy <- nrow(x)
-  # so assuming 17 frames per second and field of view of 13cm x 13 cm x 45 cm, ISIIS images 0.1293 m^3/s. 
-  # so equivalent time to image 1 m^3 is 7.735 sec. equivalent to 131.5 frames.
-  # so how to do density ...?
-  # density <- count / 
-  
+
   return(data.frame(count, lat, long, dateTime, binBy, temp, salinity, fluoro, oxygen, heading, sub=x$sub[1]))
 }, .progress="text")
 
-#bin by time
+# so assuming 17 frames per second and field of view of 13cm x 13 cm x 45 cm, ISIIS images 0.1293 m^3/s. 
+# so equivalent time to image 1 m^3 is 7.735 sec. equivalent to 131.5 frames.
+# physical and biological data is already binned at 1 sec intervals. 
+# so if you divide by binBy, then you will get counts per 0.1293 m^3. So just multiply by the inverse and get counts per m^3.
+data$density <- data$count / data$binBy * 7.735
+
+write.csv(data, "troubleshoot/binnedData.csv", row.names=FALSE)
 
 #decide which is best
 
