@@ -152,11 +152,13 @@ write.csv(phy, "data/phy.csv", row.names=FALSE)
 
 bioData <- "raw_biological_data"
 
-# Solmaris
-solFiles <- list.files(bioData, pattern="Solmaris", full=TRUE)
-sol <- adply(solFiles, 1, read.csv, stringsAsFactors=TRUE)
+# NB: The data files for various groups have to be read separately because the format and convention change between each group
 
-# identify transects (the index corresponding to the different files)
+# SOLMARIS
+solFiles <- list.files(bioData, pattern="Solmaris", full=TRUE)
+sol <- adply(solFiles, 1, read.csv, stringsAsFactors=FALSE)
+
+# identify transects (based on the day number)
 sol$X1 <- solFiles[sol$X1]
 sol$X1 <- str_replace(sol$X1, bioData, "")
 sol$transect <- as.numeric(str_sub(sol$X1, 4, 5)) - 14
@@ -165,7 +167,7 @@ sol$transect <- as.numeric(str_sub(sol$X1, 4, 5)) - 14
 sol$dateTime <- as.POSIXct(str_c(sol$date, " ", sprintf("%02i",sol$hour), ":", sprintf("%02i",sol$min), ":", sprintf("%02i",sol$sec), ".", sol$s.1000), tz="UTC")
 
 # convert to the tall format
-sol <- sol[,!names(sol) %in% c("X1", "date", "hour", "min", "sec", "s.1000")]
+sol <- sol[ , ! names(sol) %in% c("X1", "date", "hour", "min", "sec", "s.1000")]
 solT <- melt(sol, id.vars=c("transect", "downcast", "dateTime"), variable.name="taxon", value.name="count")
 solT$taxon <- as.character(solT$taxon)
 solT$group <- "Solmaris"
@@ -176,11 +178,11 @@ solT <- solT[solT$count != 0,]
 solT$sub <- 5
 
 
-# Siphonophores
+# SIPHONOPHORES
 siphFiles <- list.files(bioData, pattern="Siphonophores", full=TRUE)
-siph <- adply(siphFiles, 1, read.csv)
+siph <- adply(siphFiles, 1, read.csv, stringsAsFactors=FALSE)
 
-# identify transects (the index corresponding to the different files)
+# identify transects (based on the day number)
 siph$X1 <- siphFiles[siph$X1]
 siph$X1 <- str_replace(siph$X1, bioData, "")
 siph$transect <- as.numeric(str_sub(siph$X1, 4, 5)) - 14
@@ -197,9 +199,8 @@ siph <- siph[,-which(str_detect(names(siph), "_wotail"))]
 # give siphonophore taxa meaningful names
 siph <- rename(siph, c("Type1"="Diphyidae", "Type2"="Sphaeronectes", "Type3"="Physonect", "Type4"="Prayidae", "Type5"="Lilyopsis"))
 
-
 # convert to the tall format
-siph <- siph[,!names(siph) %in% c("X1", "date", "hour", "min", "sec", "s.1000")]
+siph <- siph[ , ! names(siph) %in% c("X1", "date", "hour", "min", "sec", "s.1000")]
 siphT <- melt(siph, id.vars=c("transect", "downcast", "dateTime"), variable.name="taxon", value.name="count")
 siphT$taxon <- as.character(siphT$taxon)
 siphT$group <- "Siphonophores"
@@ -210,7 +211,7 @@ siphT <- siphT[siphT$count != 0,]
 siphT$sub <- 1
 
 
-# Ctenophores
+# CTENOPHORES
 cteFiles <- list.files(bioData, pattern="Ctenophores", full=TRUE)
 cteT <- adply(cteFiles, 1, function(file){
   d <- read.csv(file, stringsAsFactors=FALSE)
@@ -231,7 +232,7 @@ cteT <- adply(cteFiles, 1, function(file){
   downcast <- as.numeric(downcast)
   d$downcast <- downcast
   
-  # keep only the columns of interest
+  # add a reorder columns
   d$group <- "Ctenophores"
   d <- rename(d, c("species"="taxon"))
   d <- d[, c("downcast", "dateTime", "group", "taxon")]
@@ -242,7 +243,8 @@ cteT <- adply(cteFiles, 1, function(file){
 
 # correct spelling on one taxon
 cteT$taxon[which(cteT$taxon=="Ocyropsis maciluta")] <- "Ocyropsis maculata"
-# identify transects (the index corresponding to the different files)
+
+# identify transects (based on the day number)
 cteT$X1 <- cteFiles[cteT$X1]
 cteT$X1 <- str_replace(cteT$X1, bioData, "")
 cteT$transect <- as.numeric(str_sub(cteT$X1, 4, 5)) - 14
@@ -252,10 +254,12 @@ cteT <- cteT[,-1]
 cteT$sub <- 1
 
 
-# Hydro + Doliolids + Apps
+# HYDRO + DOLIOLIDS + APPS
 hFiles <- list.files(bioData, pattern=glob2rx("*Hydromedusae*csv"), full=TRUE)
 h <- adply(hFiles, 1, function(file) {
   d <- read.csv(file, stringsAsFactors=FALSE)
+
+  # homogenise taxa names
   names(d) <- tolower(names(d))
   
   # missing values (blanks) are actually 0
@@ -294,16 +298,17 @@ hT <- hT[hT$count != 0,]
 # extract the appendicularians
 appT <- hT[hT$taxon=="appendicularians",]
 appT$group <- "Tunicates"
-
 hT <- hT[! hT$taxon %in% c("appendicularians", "app.in.hse"),]
+
+# add the group identification
 hT$group <- ifelse(hT$taxon == "doliolids", "Tunicates", "Hydromedusae")
 
 # add subsampling interval
-# (Hydromedusae were looked for in every frame)
+# Hydromedusae were looked for in every frame
 hT$sub <- 1
-# (Appendicularians were looked for in 1 fifth of a frame, every 20 frames)
+# Appendicularians were looked for in 1 fifth of a frame, every 20 frames
 appT$sub <- 100
-# (except Appendicularians in downcast 1 of transect 1, looked for in one fifth of a frame, every 10 frames)
+# except Appendicularians in downcast 1 of transect 1, looked for in one fifth of a frame, every 10 frames
 appT$sub[which(appT$transect == 1 & appT$downcast == 1)] <- 50
 
 
