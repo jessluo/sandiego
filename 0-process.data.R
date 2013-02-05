@@ -376,7 +376,7 @@ d <- ddply(bioB1[,c("dateTimeB1", "group", "taxon", "abund")], ~ taxon, function
   # join physical data and counts for this taxon
   d <- join(p, b, type="left", by="dateTimeB1")
   # when a taxon is not present in a bin, all columns corresponding to the biological data will contain NA
-  # make sure they contain a zero adbuncance for this taxon instead
+  # make sure they contain a zero abundance for this taxon instead
   d$group <- b$group[1]
   d$taxon <- b$taxon[1]
   d$abund[is.na(d$abund)] <- 0
@@ -396,37 +396,34 @@ write.csv(d, "data/full_bin1.csv", row.names=FALSE)
 # 1 meter depth change traveling down at 10 degrees ~ 5.75 of distance covered, and traveling at 2.5 m/s that is 2.304 sec. which is approx 39 images
 # traveling at 5 degrees, distances are doubled, so integrating over 78 images
 # 1 meter depth bins are probably the minimum
-data$depthbin <- round_any(data$depth, 1)
+d <- read.csv("data/full_bin1", colClasses=c(dateTimeB1="POSIXct"), stringsAsFactors=FALSE)
 
-data <- ddply(data, ~depthbin+taxon+group+cast+down.up, function(x){
+d$depthbin <- round_any(d$depth, 1)
+
+d <- ddply(d[,c("transect", "cast", "down.up", "dateTimeB1", "lat", "long", "temp", "salinity", "fluoro", "oxygen", "heading", "group", "taxon", "abund", "depthbin")], ~depthbin + taxon + group + transect + cast + down.up, function(x){
+  # means of columns that are numbers
+  means <- colMeans(x[,llply(d, class) == "numeric"]) #syntax error here?
+  d2 <- data.frame(means)
+  
+  # mean of the time in which the binning occurs
+  d2$dateTime <- mean(x$dateTimeB1)
+  
   # total abundance
-  count <- sum(x$count)
-  
-  # location
-  lat <- mean(x$lat)
-  long <- mean(x$long)
-  dateTime <- mean(x$dateTimer)
-  
-  # physical data
-  temp <- mean (x$temp)
-  salinity <- mean(x$salinity)
-  fluoro <- mean(x$fluoro)
-  oxygen <- mean(x$oxygen)
-  heading <- mean(x$heading)
+  d2$abund <- sum(x$abund)
   
   # sample size
-  binBy <- nrow(x)
+  d2$binBy <- nrow(x)
 
-  return(data.frame(count, lat, long, dateTime, binBy, temp, salinity, fluoro, oxygen, heading, sub=x$sub[1]))
+  return(d2)
 }, .progress="text")
 
 # so assuming 17 frames per second and field of view of 13cm x 13 cm x 45 cm, ISIIS images 0.1293 m^3/s. 
 # so equivalent time to image 1 m^3 is 7.735 sec. equivalent to 131.5 frames.
 # physical and biological data is already binned at 1 sec intervals. 
 # so if you divide by binBy, then you will get counts per 0.1293 m^3. So just multiply by the inverse and get counts per m^3.
-data$density <- data$count / data$binBy * 7.735
+d$density <- d$abund / d$binBy * 7.735
 
-write.csv(data, "troubleshoot/binnedData.csv", row.names=FALSE)
+write.csv(d, "data/depth_bin1.csv", row.names=FALSE)
 
 #decide which is best
 
