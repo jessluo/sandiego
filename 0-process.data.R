@@ -402,23 +402,31 @@ data <- data[,-1]
 # 1 meter depth bins are probably the minimum
 data$depthbin <- round_any(data$depth, 1)
 
-data2 <- ddply(data, ~depthbin+taxon, function(x){
+data2 <- ddply(data, ~depthbin+taxon+group+cast+down.up, function(x){
+  # total abundance
   count <- sum(x$count)
+  
+  # location
   lat <- mean(x$lat)
   long <- mean(x$long)
+  dateTime <- mean(x$dateTimer)
+  
+  # physical data
   temp <- mean (x$temp)
   salinity <- mean(x$salinity)
   fluoro <- mean(x$fluoro)
   oxygen <- mean(x$oxygen)
   heading <- mean(x$heading)
-  binBy <- nrow(x$dateTimer)
-  dateTime <- mean(x$dateTimer)
+  
+  # sample size
+  binBy <- nrow(x)
   # so assuming 17 frames per second and field of view of 13cm x 13 cm x 45 cm, ISIIS images 0.1293 m^3/s. 
   # so equivalent time to image 1 m^3 is 7.735 sec. equivalent to 131.5 frames.
   # so how to do density ...?
   # density <- count / 
-  return(data.frame("cast"=x$cast, "down.up"=x$down.up, dateTime, binBy, "depth"=x$depthbin, lat, long, temp, salinity, fluoro, oxygen, heading, "taxon"=x$taxon, "group"=x$group, "sub"=x$sub, count))
-  }, .progress="text")
+  
+  return(data.frame(count, lat, long, dateTime, binBy, temp, salinity, fluoro, oxygen, heading, sub=x$sub[1]))
+}, .progress="text")
 
 #bin by time
 
