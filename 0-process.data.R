@@ -12,6 +12,8 @@ library("ggplot2")
 # setup R to keep decimal seconds in the times
 options("digits.secs"=3)
 
+# create the final data repository
+dir.create("data", showWarnings=FALSE)
 
 ##{ Physical data ---------------------------------------------------------
 
