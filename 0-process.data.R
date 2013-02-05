@@ -80,6 +80,7 @@ phy <- adply(phyFiles, 1, function(file) {
   # keep only interesting data
   d <- d[,c("dateTime", "depth", "lat", "long", "temp", "salinity", "fluoro", "oxygen", "irrandiance", "heading", "transect")]
   # NB: can keep vol.imaged in the future, but it is all zeros here
+  # TODO typo in irraNdiance
   
   return(d)
   
