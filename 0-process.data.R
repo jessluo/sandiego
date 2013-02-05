@@ -373,6 +373,7 @@ physel <- physel[which(physel$cast %in% dc),]
 
 # join bio and phy data by time, take the physical data as a reference
 # matching for each taxon
+# TODO could avoid ddply
 data <- ddply(bio, ~taxon, function(b){
   d <- join(physel, b, by="dateTimer", type="left")
   d$count <- d$count[is.na(d$count)] <- 0
@@ -381,7 +382,7 @@ data <- ddply(bio, ~taxon, function(b){
   return(d)
 }, .progress="text")
 
-# think about selecting a better variable name for this than "data"
+# TODO think about selecting a better variable name for this than "data"
 
 data <- data[,-which(names(data)=="dateTime")]
 # maybe then change the column name of dateTimer to dateTime
@@ -391,6 +392,7 @@ data <- data[,-which(names(data)=="irradiance")]
 
 # remove row.names column
 data <- data[,-1]
+
 # }
 
 ##{ Binning the data ------------------------------------------------------
