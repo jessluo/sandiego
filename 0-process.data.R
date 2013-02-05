@@ -76,7 +76,8 @@ phy <- adply(phyFiles, 1, function(file) {
   d$long <- to.dec(d$long)
   
   # keep only interesting data
-  d <- d[,c("dateTime", "depth", "lat", "long", "temp", "salinity", "fluoro", "oxygen", "irrandiance", "vol.imaged", "heading", "transect")]
+  d <- d[,c("dateTime", "depth", "lat", "long", "temp", "salinity", "fluoro", "oxygen", "irrandiance", "heading", "transect")]
+  # can keep vol.imaged in the future, but it is all zeros here
   
   # write it as a CSV file
   # outFile <- basename(str_replace(file, "txt", "csv"))
@@ -89,6 +90,10 @@ phy <- adply(phyFiles, 1, function(file) {
 
 # remove adply crap
 phy <- phy[,-1]
+
+#there is still an issue here with the numbering of the casts. in transect 2, the first minute and a half of data is at the surface and it is marked as an upcast. 
+#brute force method of removal -- as a temporary fix so I can do the joining. think of a better way to detect this and remove the data
+phy <- phy[-which(phy$transect==2)[1:184],]
 
 # Detect up and down casts and number them
 phy <- ddply(phy, ~transect, function(d) {
@@ -141,7 +146,6 @@ write.csv(phy, "data/phy.csv", row.names=FALSE)
 
 # }
 
-
 ##{ Biological data -------------------------------------------------------
 
 bioData <- "raw_biological_data"
@@ -156,7 +160,7 @@ sol$X1 <- str_replace(sol$X1, bioData, "")
 sol$transect <- as.numeric(str_sub(sol$X1, 4, 5)) - 14
 
 # create a true date+time column
-sol$dateTime <- as.POSIXct(str_c(sol$date, " ", sprintf("%02i",sol$hour), ":", sprintf("%02i",sol$min), ":", sprintf("%02i",sol$sec), ".", sol$s.1000))
+sol$dateTime <- as.POSIXct(str_c(sol$date, " ", sprintf("%02i",sol$hour), ":", sprintf("%02i",sol$min), ":", sprintf("%02i",sol$sec), ".", sol$s.1000), tz="UTC")
 
 # convert to the tall format
 sol <- sol[,!names(sol) %in% c("X1", "date", "hour", "min", "sec", "s.1000")]
@@ -180,7 +184,7 @@ siph$X1 <- str_replace(siph$X1, bioData, "")
 siph$transect <- as.numeric(str_sub(siph$X1, 4, 5)) - 14
 
 # create a true date+time column
-siph$dateTime <- as.POSIXct(str_c(siph$date, " ", sprintf("%02i",siph$hour), ":", sprintf("%02i",siph$min), ":", sprintf("%02i",siph$sec), ".", siph$s.1000))
+siph$dateTime <- as.POSIXct(str_c(siph$date, " ", sprintf("%02i",siph$hour), ":", sprintf("%02i",siph$min), ":", sprintf("%02i",siph$sec), ".", siph$s.1000), tz="UTC")
 
 # combine with and without tail
 siph$Type1 <- siph$Type1 + siph$Type1_wotail
@@ -215,7 +219,7 @@ cteT <- adply(cteFiles, 1, function(file){
   # recompute the time
   # the record contains the time of the first frame in the stack and the frame number within the stack
   # there are 300 frames in a stack and they represent a time of 17.375 seconds
-  d$dateTime <- as.POSIXct(str_c(d$year, "-", sprintf("%02i",d$month), "-", sprintf("%02i",d$date), " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec)))
+  d$dateTime <- as.POSIXct(str_c(d$year, "-", sprintf("%02i",d$month), "-", sprintf("%02i",d$date), " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec)), tz="UTC")
   d$dateTime <- d$dateTime + 17.375 * d$x.300 / 300
   
   # extract downcast number
@@ -264,7 +268,7 @@ h <- adply(hFiles, 1, function(file) {
   # shift by one day when we cross midnight
   d$day <- ifelse(d$hour >= 18 & d$hour <= 23, day, day+1)
   # convert that into POSIXct
-  d$dateTime <- as.POSIXct(str_c("2010-10-", d$day, " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec), ".", d$s.1000))
+  d$dateTime <- as.POSIXct(str_c("2010-10-", d$day, " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec), ".", d$s.1000), tz="UTC")
   # remove extraneous date columns
   d <- d[,!names(d) %in% c("day", "hour", "min", "sec", "s.1000")]
   
@@ -320,11 +324,12 @@ unique(bio$count)
 count(bio$count)
 
 # save it, just in case
-write.csv(bio, "bio.csv", row.names=FALSE)
+write.csv(bio, "data/bio.csv", row.names=FALSE)
 
 # }
 
 # Question: when reading phy data, how to read dateTime as R time format instead of a string?
+# answer: have to convert with POSIXct() every time
 
 ##{ Joining physical and biological data ----------------------------------
 
@@ -336,7 +341,7 @@ phy$dateTimer <- round_any(phy$dateTime, 1)
 bio <- ddply(bio, ~dateTimer+taxon, function(x){
   countsum <- sum(x$count)
   return(data.frame(x[,names(x) != "count"],"count"=countsum))
-})
+} .progress="text")
 
 phy <- ddply(phy, ~dateTimer, function(x){
   depth <- mean(x$depth, na.rm=TRUE)
@@ -347,35 +352,67 @@ phy <- ddply(phy, ~dateTimer, function(x){
   fluoro <- mean(x$fluoro, na.rm=TRUE)
   oxygen <- mean(x$oxygen, na.rm=TRUE)
   irradiance <- mean(x$irradiance, na.rm=TRUE)
-  vol.imaged <- sum(x$vol.imaged, na.rm=TRUE)
+  # vol.imaged <- sum(x$vol.imaged, na.rm=TRUE)
   heading <- mean(x$heading, na.rm=TRUE)
-  return(data.frame(x[,names(x) %in% c("dateTimer", "transect", "cast", "down.up")], depth, lat, long, temp, salinity, fluoro, oxygen, irradiance, vol.imaged, heading))
+  return(data.frame(x[,names(x) %in% c("dateTimer", "transect", "cast", "down.up")], depth, lat, long, temp, salinity, fluoro, oxygen, irradiance, heading))
 }, .progress="text")
 
 
 # select some downcasts
-phy_all <- phy
-phy <- phy[which(phy$down.up=="D" & phy$transect==2),]
+physel <- phy[which(phy$down.up=="down" & phy$transect==2),]
 # which downcasts have all the data?
 dc <- unique(bio$cast[which(bio$group=="Hydromedusae" & bio$transect==2)])
-dc <- sort(dc, FALSE) #these are the groups we are using
-phy <- phy[which(phy$cast %in% dc),]
-#yes technically this works BUT the downcasts are ordered wrong because the physical data was broken apart
+physel <- physel[which(physel$cast %in% dc),]
 
-# join bio and phy data by time
+# join bio and phy data by time, take the physical data as a reference
+# matching for each taxon
+data <- ddply(bio, ~taxon, function(b){
+  d <- join(physel, b, by="dateTimer", type="left")
+  d$count <- d$count[is.na(d$count)] <- 0
+  d$taxon <- b$taxon[1]
+  d$group <- b$group[1]
+  return(d)
+}, .progress="text")
 
-data <- join(phy, bio)
-#take the physical data as a reference and fill the missing counts with 0 (see join options)
+# think about selecting a better variable name for this than "data"
 
+data <- data[,-which(names(data)=="dateTime")]
+# maybe then change the column name of dateTimer to dateTime
+
+# can take out irradiance too, all values are NA (strange?)
+data <- data[,-which(names(data)=="irradiance")]
+
+# remove row.names column
+data <- data[,-1]
 # }
 
-
 ##{ Binning the data ------------------------------------------------------
+# what is a reasonable depth to bin by? 1 meter?
+# 1 meter depth change traveling down at 10 degrees ~ 5.75 of distance covered, and traveling at 2.5 m/s that is 2.304 sec. which is approx 39 images
+# traveling at 5 degrees, distances are doubled, so integrating over 78 images
+# 1 meter depth bins are probably the minimum
+data$depthbin <- round_any(data$depth, 1)
 
-bin by depth
+data2 <- ddply(data, ~depthbin+taxon, function(x){
+  count <- sum(x$count)
+  lat <- mean(x$lat)
+  long <- mean(x$long)
+  temp <- mean (x$temp)
+  salinity <- mean(x$salinity)
+  fluoro <- mean(x$fluoro)
+  oxygen <- mean(x$oxygen)
+  heading <- mean(x$heading)
+  binBy <- nrow(x$dateTimer)
+  dateTime <- mean(x$dateTimer)
+  # so assuming 17 frames per second and field of view of 13cm x 13 cm x 45 cm, ISIIS images 0.1293 m^3/s. 
+  # so equivalent time to image 1 m^3 is 7.735 sec. equivalent to 131.5 frames.
+  # so how to do density ...?
+  # density <- count / 
+  return(data.frame("cast"=x$cast, "down.up"=x$down.up, dateTime, binBy, "depth"=x$depthbin, lat, long, temp, salinity, fluoro, oxygen, heading, "taxon"=x$taxon, "group"=x$group, "sub"=x$sub, count))
+  }, .progress="text")
 
-bin by time
+#bin by time
 
-decide which is best
+#decide which is best
 
 # }
