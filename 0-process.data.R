@@ -350,10 +350,8 @@ bio <- bio[which(bio$transect==2 & bio$cast.bio %in% dc),]
 # appendicularians are looked for every 20 frames and we want all bins to (potentially) have appendicularian counts
 # once this binning is done we can compute true abundances (count * subsampling rate) and finally bin over larger scale bins
 
-# round to the nearest second
-# TODO is that enough? 1 second is 17 frames only...
-bio$dateTimeB1 <- round_any(bio$dateTime, 1)
-phy$dateTimeB1 <- round_any(phy$dateTime, 1)
+bio$dateTimeB1 <- round_any(bio$dateTime, 1.2)
+phy$dateTimeB1 <- round_any(phy$dateTime, 1.2)
 
 # compute total abundance in each time bin
 bioB1 <- ddply(bio, ~ transect + cast.bio + dateTimeB1 + group + taxon + sub, function(x){
