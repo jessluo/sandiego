@@ -91,8 +91,8 @@ phy <- adply(phyFiles, 1, function(file) {
 # remove adply crap
 phy <- phy[,-1]
 
-#there is still an issue here with the numbering of the casts. in transect 2, the first minute and a half of data is at the surface and it is marked as an upcast. 
-#brute force method of removal -- as a temporary fix so I can do the joining. think of a better way to detect this and remove the data
+# there is still an issue here with the numbering of the casts. in transect 2, the first minute and a half of data is at the surface and it is marked as an upcast. 
+# brute force method of removal -- as a temporary fix so I can do the joining. think of a better way to detect this and remove the data
 phy <- phy[-which(phy$transect==2)[1:184],]
 
 # Detect up and down casts and number them
