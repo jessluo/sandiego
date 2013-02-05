@@ -79,12 +79,7 @@ phy <- adply(phyFiles, 1, function(file) {
   
   # keep only interesting data
   d <- d[,c("dateTime", "depth", "lat", "long", "temp", "salinity", "fluoro", "oxygen", "irrandiance", "heading", "transect")]
-  # can keep vol.imaged in the future, but it is all zeros here
-  
-  # write it as a CSV file
-  # outFile <- basename(str_replace(file, "txt", "csv"))
-  # outFile <- str_c("data/", outFile)
-  # write.csv(d, file=outFile, row.names=FALSE) 
+  # NB: can keep vol.imaged in the future, but it is all zeros here
   
   return(d)
   
@@ -336,9 +331,6 @@ count(bio$count)
 write.csv(bio, "data/bio.csv", row.names=FALSE)
 
 # }
-
-# Question: when reading phy data, how to read dateTime as R time format instead of a string?
-# answer: have to convert with POSIXct() every time
 
 ##{ Joining physical and biological data ----------------------------------
 
