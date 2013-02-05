@@ -303,8 +303,8 @@ hT$group <- ifelse(hT$taxon == "doliolids", "Tunicates", "Hydromedusae")
 hT$sub <- 1
 # (Appendicularians were looked for in 1 fifth of a frame, every 20 frames)
 appT$sub <- 100
-# (except Appendicularians in downcast 1, looked for in one fifth of a frame, every 10 frames)
-appT$sub[which(appT$downcast == 1)] <- 50
+# (except Appendicularians in downcast 1 of transect 1, looked for in one fifth of a frame, every 10 frames)
+appT$sub[which(appT$transect == 1 & appT$downcast == 1)] <- 50
 
 
 # put all the data together
