@@ -194,7 +194,7 @@ siph$Type2 <- siph$Type2 + siph$Type2_wotail
 siph$Type3 <- siph$Type3 + siph$Type3_wotail
 siph <- siph[,-which(str_detect(names(siph), "_wotail"))]
 
-#give siphonophore taxa meaningful names
+# give siphonophore taxa meaningful names
 siph <- rename(siph, c("Type1"="Diphyidae", "Type2"="Sphaeronectes", "Type3"="Physonect", "Type4"="Prayidae", "Type5"="Lilyopsis"))
 
 
@@ -240,7 +240,7 @@ cteT <- adply(cteFiles, 1, function(file){
   return(d)
 })
 
-#correct spelling on one taxon
+# correct spelling on one taxon
 cteT$taxon[which(cteT$taxon=="Ocyropsis maciluta")] <- "Ocyropsis maculata"
 # identify transects (the index corresponding to the different files)
 cteT$X1 <- cteFiles[cteT$X1]
@@ -282,7 +282,7 @@ h <- h[,!names(h) %in% c("muat", "lemu", "spko", "si.2.eu", "nabi", "agel", "coo
 # and the stuff that's added by adply
 h <- h[,!names(h) %in% c("X1")]
 
-#give hydromedusae meaningful names
+# give hydromedusae meaningful names
 h <- rename(h, c("h2"="h2_Haliscera", "h3"="h3_Cunina", "h5a"="h5_Liriope", "h6"="h6_Solmundella", "h7"="h7_Rhopalonema", "h7."="h7_Pegantha", "h9"="h9_Aglaura", "h9."="h9_Arctapodema", "h10"="h10_Pegantha", "h11"="h11_Haliscera","h14"="h14_Pegantha", "annatiara"="Annatiara", "r4.aegina"="r4_Aegina", "r5"="r5_Eutonia"))
 
 # convert to the tall format
@@ -340,12 +340,15 @@ write.csv(bio, "data/bio.csv", row.names=FALSE)
 bio$dateTimer <- round_any(bio$dateTime, 1)
 phy$dateTimer <- round_any(phy$dateTime, 1)
 
+# compute total abundance in each time bin
 bio <- ddply(bio, ~dateTimer+taxon, function(x){
   countsum <- sum(x$count)
   return(data.frame(x[,names(x) != "count"],"count"=countsum))
-} .progress="text")
+}, .progress="text")
 
+# compute average/total of physical properties in each time bin
 phy <- ddply(phy, ~dateTimer, function(x){
+  # TODO make this shorter
   depth <- mean(x$depth, na.rm=TRUE)
   lat <- mean(x$lat, na.rm=TRUE)
   long <- mean(x$long, na.rm=TRUE)
