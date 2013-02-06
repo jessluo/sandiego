@@ -80,7 +80,13 @@ phy <- adply(phyFiles, 1, function(file) {
   d$long <- to.dec(d$long)
   
   # keep only interesting data
-  d <- d[,c("dateTime", "depth", "lat", "long", "temp", "salinity", "fluoro", "oxygen", "irrandiance", "heading", "transect")]
+  # also keep horizontal and vertical velocity in water, as well as pitch
+  # rename horizontal velocity in water column name
+  names(d)[which(names(d)=="horizontal.vel.in.water")] <- "horizontal.vel"
+  
+  # TODO: fill 0's with NAs in horizontal/vertical velocity and pitch
+
+  d <- d[,c("dateTime", "depth", "lat", "long", "temp", "salinity", "fluoro", "oxygen", "irrandiance", "heading", "horizontal.vel", "vertical.vel", "pitch", "transect")]
   # NB: can keep vol.imaged in the future, but it is all zeros here
   # TODO typo in irraNdiance
   
