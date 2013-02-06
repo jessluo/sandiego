@@ -10,6 +10,7 @@ library("stringr")
 library("reshape2")
 library("pastecs")
 library("ggplot2")
+library("timeSeries")
 
 # setup R to keep decimal seconds in the times
 options("digits.secs"=3)
@@ -120,7 +121,11 @@ phy[49417:49428,]
 phy[49418:49427,]
 phy <- phy[-c(49418:49427),]
 
-# TODO the depth gets stuck from time to time and that results in jumps afterwards. Remove those stuck points and reinterpolate the depth linarly using time.
+# the depth gets stuck from time to time and that results in jumps afterwards. Remove those stuck points and reinterpolate the depth linarly using time.
+# assign the depths in which the difference before the previous depth is 0 to be NA
+phy$depth[which(diff(phy$depth)==0)+1] <- NA
+# interpolates using the interpNA() function in the package timeSeries, which calls the approx() function
+phy$depth <- interpNA(phy$depth, method="linear")
 
 # irradiance looks funny, all negative
 ggplot(data=phy) + geom_histogram(aes(x=irradiance)) + facet_wrap(~transect)
