@@ -366,6 +366,7 @@ phyB1 <- ddply(phy, ~ transect + cast + down.up + dateTimeB1, function(x){
   # means of columns that are numbers
   means <- colMeans(x[,llply(phy, class) == "numeric"])
   # TODO should add sum of vol.imaged when that works
+  # compute time elapsed 
   return(means)
 }, .progress="text")
 
@@ -390,40 +391,42 @@ write.csv(d, "data/full_bin1.csv", row.names=FALSE)
 
 # }
 
-##{ Binning the data ------------------------------------------------------
+##{ Binning the data by depth ---------------------------------------------
+
+d <- read.csv("data/full_bin1", colClasses=c(dateTimeB1="POSIXct"), stringsAsFactors=FALSE)
+
 # what is a reasonable depth to bin by? 1 meter?
 # 1 meter depth change traveling down at 10 degrees ~ 5.75 of distance covered, and traveling at 2.5 m/s that is 2.304 sec. which is approx 39 images
 # traveling at 5 degrees, distances are doubled, so integrating over 78 images
 # 1 meter depth bins are probably the minimum
-d <- read.csv("data/full_bin1", colClasses=c(dateTimeB1="POSIXct"), stringsAsFactors=FALSE)
 
-d$depthbin <- round_any(d$depth, 1)
+d$depthB2 <- round_any(d$depth, 1)
 
-d <- ddply(d[,c("transect", "cast", "down.up", "dateTimeB1", "lat", "long", "temp", "salinity", "fluoro", "oxygen", "heading", "group", "taxon", "abund", "depthbin")], ~depthbin + taxon + group + transect + cast + down.up, function(x){
-  # means of columns that are numbers
-  means <- colMeans(x[,llply(d, class) == "numeric"]) #syntax error here?
-  d2 <- data.frame(means)
-  
-  # mean of the time in which the binning occurs
-  d2$dateTime <- mean(x$dateTimeB1)
-  
+# TODO by ddplying on cast + depthB2 we are actually separating the descending and ascending part of the turn at depth, for example, while there is no reason to think they would be different. This is not a problem here since we only have downcasts but in the complete data, the binning should be by depth only (and therefore the computation cannot be done with just ddply)
+dB2 <- ddply(d, ~ cast + depthB2 + taxon, function(x){
   # total abundance
-  d2$abund <- sum(x$abund)
+  abund <- sum(x$abund)
+  # location
+  loc <- colMeans(x[,c("lat", "long")])
+  # time
+  dateTime <- mean(x$dateTimeB1)
+  # physical data
+  phy <- colMeans(x[,c("temp", "salinity", "fluoro", "oxygen", "irrandiance", "heading")])
   
-  # sample size
-  d2$binBy <- nrow(x)
-
-  return(d2)
+  # count number of "seconds" (that's actually the nb of 1 sec bins)
+  # TODO we should be more precise here...
+  duration <- nrow(x)
+  
+  return(data.frame(dateTime, t(loc), t(phy), abund, duration))
 }, .progress="text")
 
-# so assuming 17 frames per second and field of view of 13cm x 13 cm x 45 cm, ISIIS images 0.1293 m^3/s. 
+# so assuming 17 frames per second and field of view of 13 cm x 45 cm, ISIIS images 0.1293 m^3/s. 
 # so equivalent time to image 1 m^3 is 7.735 sec. equivalent to 131.5 frames.
 # physical and biological data is already binned at 1 sec intervals. 
 # so if you divide by binBy, then you will get counts per 0.1293 m^3. So just multiply by the inverse and get counts per m^3.
-d$density <- d$abund / d$binBy * 7.735
+# TODO not sure I understand the reasonning here. It must depend on the speed of trawling...
+dB2$density <- dB2$count / dB2$duration * 7.735
 
-write.csv(d, "data/depth_bin1.csv", row.names=FALSE)
-
-#decide which is best
+write.csv(dB2, "data/full_bin2.csv", row.names=FALSE)
 
 # }
