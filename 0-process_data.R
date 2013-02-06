@@ -18,7 +18,7 @@ options("digits.secs"=3)
 # create the final data repository
 dir.create("data", showWarnings=FALSE)
 
-
+message("Read and process physical data")
 ##{ Read and reformat physical data ---------------------------------------
 
 # list all the physical data files in a given directory
@@ -110,11 +110,12 @@ phy <- phy[,-1]
 
 summary(phy)
 
-# inspect water masss data
+# inspect water mass data
 phyM <- melt(phy, id.vars=c("dateTime"), measure.vars=c("depth", "temp", "salinity", "fluoro", "oxygen", "irradiance"))
 ggplot(data=phyM) + geom_histogram(aes(x=value)) + facet_wrap(~variable, scales="free")
 
-# remove erroneous points when ISIIS lost contact
+# remove erroneous points when ISIIS lost contact, in transect 2
+# NB: this is specific to this dataset, a general solution would be better
 ggplot(data=phy) + geom_point(aes(x=long, y=-depth), size=0.5) + facet_grid(transect ~.) 
 which(abs(diff(phy$depth)) > 20)
 phy[49417:49428,]
@@ -175,7 +176,7 @@ phy$vertical.vel[abs(phy$vertical.vel) > 1000] <- NA
 
 # calculate in water velocity
 phy$velocity <- sqrt(phy$horizontal.vel^2 + phy$vertical.vel^2)
-# velocity measurements appear to be in mm/s (even though the header says m/s)
+# convert it in m/s
 phy$velocity <- phy$velocity / 1000
 
 # }
@@ -240,6 +241,7 @@ write.csv(phy, "data/phy.csv", row.names=FALSE)
 
 
 
+message("Read and process biological data")
 ##{ Biological data -------------------------------------------------------
 
 bioData <- "raw_biological_data"
