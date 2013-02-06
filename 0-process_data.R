@@ -53,7 +53,8 @@ phy <- adply(phyFiles, 1, function(file) {
   d$hour <- as.numeric(str_sub(d$time,1,2))
   d$date <- ifelse(d$hour >= 18 & d$hour <= 23, date, dateNextDay)
   d$dateTime <- str_c(d$date, d$time, sep=" ")
-  d$dateTime <- as.POSIXct(strptime(d$dateTime, format="%m/%d/%y %H:%M:%OS", tz="UTC"))
+  d$dateTime <- as.POSIXct(strptime(d$dateTime, format="%m/%d/%y %H:%M:%OS", tz="GMT"))
+  # NB: we say it is GMT when it is in fact local time, just to avoid having to deal with time zones
   
   # shift all physical data back 3 hours
   d$dateTime <- d$dateTime - 3 * 3600
@@ -258,7 +259,7 @@ sol$X1 <- str_replace(sol$X1, bioData, "")
 sol$transect <- as.numeric(str_sub(sol$X1, 4, 5)) - 14
 
 # create a true date+time column
-sol$dateTime <- as.POSIXct(str_c(sol$date, " ", sprintf("%02i",sol$hour), ":", sprintf("%02i",sol$min), ":", sprintf("%02i",sol$sec), ".", sol$s.1000), tz="UTC")
+sol$dateTime <- as.POSIXct(str_c(sol$date, " ", sprintf("%02i",sol$hour), ":", sprintf("%02i",sol$min), ":", sprintf("%02i",sol$sec), ".", sol$s.1000), tz="GMT")
 
 # convert to the tall format
 sol <- sol[ , ! names(sol) %in% c("X1", "date", "hour", "min", "sec", "s.1000")]
@@ -282,7 +283,7 @@ siph$X1 <- str_replace(siph$X1, bioData, "")
 siph$transect <- as.numeric(str_sub(siph$X1, 4, 5)) - 14
 
 # create a true date+time column
-siph$dateTime <- as.POSIXct(str_c(siph$date, " ", sprintf("%02i",siph$hour), ":", sprintf("%02i",siph$min), ":", sprintf("%02i",siph$sec), ".", siph$s.1000), tz="UTC")
+siph$dateTime <- as.POSIXct(str_c(siph$date, " ", sprintf("%02i",siph$hour), ":", sprintf("%02i",siph$min), ":", sprintf("%02i",siph$sec), ".", siph$s.1000), tz="GMT")
 
 # combine with and without tail
 siph$Type1 <- siph$Type1 + siph$Type1_wotail
@@ -316,7 +317,7 @@ cteT <- adply(cteFiles, 1, function(file){
   # recompute the time
   # the record contains the time of the first frame in the stack and the frame number within the stack
   # there are 300 frames in a stack and they represent a time of 17.375 seconds
-  d$dateTime <- as.POSIXct(str_c(d$year, "-", sprintf("%02i",d$month), "-", sprintf("%02i",d$date), " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec)), tz="UTC")
+  d$dateTime <- as.POSIXct(str_c(d$year, "-", sprintf("%02i",d$month), "-", sprintf("%02i",d$date), " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec)), tz="GMT")
   d$dateTime <- d$dateTime + 17.375 * d$x.300 / 300
   
   # extract downcast number
@@ -368,7 +369,7 @@ h <- adply(hFiles, 1, function(file) {
   # shift by one day when we cross midnight
   d$day <- ifelse(d$hour >= 18 & d$hour <= 23, day, day+1)
   # convert that into POSIXct
-  d$dateTime <- as.POSIXct(str_c("2010-10-", d$day, " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec), ".", d$s.1000), tz="UTC")
+  d$dateTime <- as.POSIXct(str_c("2010-10-", d$day, " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec), ".", d$s.1000), tz="GMT")
   # remove extraneous date columns
   d <- d[,!names(d) %in% c("day", "hour", "min", "sec", "s.1000")]
   
