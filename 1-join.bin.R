@@ -14,11 +14,14 @@ library("ggplot2")
 # setup R to keep decimal seconds in the times
 options("digits.secs"=3)
 
-##{ Joining physical and biological data ----------------------------------
+##{ read processed data from previous secion ----------------------------------
 
-# start from scratch just to be sure
 bio <- read.csv("data/bio.csv", colClasses=c(dateTime="POSIXct"), stringsAsFactors=FALSE)
 phy <- read.csv("data/phy.csv", colClasses=c(dateTime="POSIXct"), stringsAsFactors=FALSE)
+
+# }
+
+##{ Joining physical and biological data ----------------------------------
 
 # subset the physical data to match where the biological data was recorded
 # TODO generalize the subseting of data (actually there should not be any subseting at all in the end ;) )
