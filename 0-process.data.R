@@ -84,8 +84,14 @@ phy <- adply(phyFiles, 1, function(file) {
   # rename horizontal velocity in water column name
   names(d)[which(names(d)=="horizontal.vel.in.water")] <- "horizontal.vel"
   
-  # TODO: fill 0's with NAs in horizontal/vertical velocity and pitch
+  # can see the range of pitches here: 
+  hist(abs(phyt2$pitch))
+  
+  # what happens when you do not have pitch? can you calculate from differences in depth?
 
+  
+  # TODO: fill 0's with NAs in horizontal/vertical velocity and pitch
+  
   d <- d[,c("dateTime", "depth", "lat", "long", "temp", "salinity", "fluoro", "oxygen", "irrandiance", "heading", "horizontal.vel", "vertical.vel", "pitch", "transect")]
   # NB: can keep vol.imaged in the future, but it is all zeros here
   # TODO typo in irraNdiance
@@ -146,6 +152,12 @@ phy <- ddply(phy, ~transect, function(d) {
 
 # visualize
 # ggplot(data=phy) + geom_path(aes(x=long, y=-depth, colour=as.factor(cast), linetype=factor(down.up))) + facet_grid(transect ~.) 
+
+# calculate in water velocity
+phy$velocity <- sqrt(phyt2$horizontal.vel^2 + phyt2$vertical.vel^2)
+
+# velocity measurements appear to be in mm/s (even though the header says m/s)
+phy$velocity <- phy$velocity/1000
 
 # save it as text
 write.csv(phy, "data/phy.csv", row.names=FALSE)
