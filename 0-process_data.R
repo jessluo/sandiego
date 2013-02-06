@@ -17,7 +17,8 @@ options("digits.secs"=3)
 # create the final data repository
 dir.create("data", showWarnings=FALSE)
 
-##{ Physical data ---------------------------------------------------------
+
+##{ Read and reformat physical data ---------------------------------------
 
 # list all the physical data files in a given directory
 phyFiles <- list.files("raw_physical_data", full=TRUE)
@@ -27,7 +28,6 @@ phy <- adply(phyFiles, 1, function(file) {
   
   # read the data
   d <- read.table(file, sep="\t", skip=10, header=TRUE, fileEncoding="ISO-8859-1", stringsAsFactors=FALSE, quote="\"", check.names=FALSE, encoding="UTF-8", na.strings="9999.99")
-  
   
   # clean names
   head <- names(d)
@@ -176,11 +176,12 @@ phy$velocity <- phy$velocity / 1000
 # }
 
 
+##{ Detect up and down casts and number them ------------------------------
+
 # there is still an issue here with the numbering of the casts. in transect 2, the first minute and a half of data is at the surface and it is marked as an upcast. 
 # brute force method of removal -- as a temporary fix so I can do the joining. think of a better way to detect this and remove the data
 phy <- phy[-which(phy$transect==2)[1:400],]
 
-# Detect up and down casts and number them
 phy <- ddply(phy, ~transect, function(d) {
   # detect up and down casts by smoothing the depth profile and finding the turning points
   # smooth depths
