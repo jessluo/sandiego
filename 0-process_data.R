@@ -102,6 +102,80 @@ phy <- adply(phyFiles, 1, function(file) {
 # remove adply crap
 phy <- phy[,-1]
 
+# }
+
+
+##{ Check and correct the physical data -----------------------------------
+
+summary(phy)
+
+# inspect water masss data
+phyM <- melt(phy, id.vars=c("dateTime"), measure.vars=c("depth", "temp", "salinity", "fluoro", "oxygen", "irradiance"))
+ggplot(data=phyM) + geom_histogram(aes(x=value)) + facet_wrap(~variable, scales="free")
+
+# remove erroneous points when ISIIS lost contact
+ggplot(data=phy) + geom_point(aes(x=long, y=-depth), size=0.5) + facet_grid(transect ~.) 
+which(abs(diff(phy$depth)) > 20)
+phy[49417:49428,]
+phy[49418:49427,]
+phy <- phy[-c(49418:49427),]
+
+# TODO the depth gets stuck from time to time and that results in jumps afterwards. Remove those stuck points and reinterpolate the depth linarly using time.
+
+# irradiance looks funny, all negative
+ggplot(data=phy) + geom_histogram(aes(x=irradiance)) + facet_wrap(~transect)
+# same for all transects
+
+# look at profiles
+ggplot(phy) + geom_path(aes(x=temp, y=-depth), alpha=0.5) + facet_wrap(~transect)
+ggplot(phy) + geom_path(aes(x=salinity, y=-depth), alpha=0.5) + facet_wrap(~transect)
+ggplot(phy) + geom_path(aes(x=fluoro, y=-depth), alpha=0.5) + facet_wrap(~transect)
+ggplot(phy) + geom_path(aes(x=oxygen, y=-depth), alpha=0.5) + facet_wrap(~transect)
+ggplot(phy) + geom_path(aes(x=irradiance, y=-depth), alpha=0.5) + facet_wrap(~transect)
+ggplot(phy) + geom_path(aes(x=irradiance, y=-depth), alpha=0.5) + facet_wrap(~transect) + scale_x_continuous(limits=c(-1.7E-6, -7.5E-7))
+# real issue with irradiance
+
+
+# inspect navigation data
+ggplot(data=phy) + geom_histogram(aes(x=horizontal.vel), binwidth=100)
+ggplot(data=phy) + geom_histogram(aes(x=abs(vertical.vel)), binwidth=100)
+ggplot(data=phy) + geom_histogram(aes(x=abs(pitch)))
+
+# obvious issues with horizontal velocities
+length(which(phy$horizontal.vel <= 0))
+ggplot(data=phy[which(phy$horizontal.vel <= 2000),]) + geom_point(aes(x=long, y=-depth, size=-horizontal.vel, colour=horizontal.vel <= 0)) + facet_grid(transect ~.)
+# ggplot(data=phy) + geom_point(aes(x=long, y=-depth, colour=horizontal.vel, size=abs(horizontal.vel))) + facet_grid(transect ~.) + scale_colour_gradient2()
+ggplot(phy) + geom_path(aes(x=horizontal.vel, y=-depth), alpha=0.5) + facet_wrap(~transect)
+# remove everything around the main peak
+phy$horizontal.vel[phy$horizontal.vel <= 1500 | phy$horizontal.vel >= 3200] <- NA
+
+# issues with vertical vel too
+ggplot(phy) + geom_path(aes(x=vertical.vel, y=-depth), alpha=0.5) + facet_wrap(~transect)
+# look at it in time
+phyT2 <- phy[phy$transect==2,]
+ggplot(phyT2[2500:5000,]) + geom_path(aes(x=dateTime, y=vertical.vel, colour=depth))
+# compute percentage of "extreme" values
+sum(abs(phy$vertical.vel) > 1000, na.rm=T) / length(na.omit(phy$vertical.vel))
+# [1] 0.02474908
+# that's actually noise because of a power outage for the ADCP
+
+# recompute the vertical velocity from the depth change / time
+phy$vertical.vel <- c(NA, diff(phy$depth) / as.numeric(diff(phy$dateTime))) * 1000
+ggplot(data=phy) + geom_histogram(aes(x=vertical.vel), binwidth=100)
+ggplot(phy) + geom_path(aes(x=vertical.vel, y=-depth), alpha=0.5) + facet_wrap(~transect)
+
+# remove peaks
+phy$vertical.vel[abs(phy$vertical.vel) > 1000] <- NA
+
+
+# calculate in water velocity
+phy$velocity <- sqrt(phy$horizontal.vel^2 + phy$vertical.vel^2)
+# velocity measurements appear to be in mm/s (even though the header says m/s)
+phy$velocity <- phy$velocity / 1000
+
+# }
+
+
 # there is still an issue here with the numbering of the casts. in transect 2, the first minute and a half of data is at the surface and it is marked as an upcast. 
 # brute force method of removal -- as a temporary fix so I can do the joining. think of a better way to detect this and remove the data
 phy <- phy[-which(phy$transect==2)[1:184],]
@@ -149,19 +223,16 @@ phy <- ddply(phy, ~transect, function(d) {
   return(d) 
 }, .progress="text")
 
-# visualize
-# ggplot(data=phy) + geom_path(aes(x=long, y=-depth, colour=as.factor(cast), linetype=factor(down.up))) + facet_grid(transect ~.) 
 
-# calculate in water velocity
-phy$velocity <- sqrt(phyt2$horizontal.vel^2 + phyt2$vertical.vel^2)
+# check cast numbering
+ggplot(data=phy) + geom_path(aes(x=long, y=-depth, colour=as.factor(cast), linetype=factor(down.up))) + facet_grid(transect ~.) 
 
-# velocity measurements appear to be in mm/s (even though the header says m/s)
-phy$velocity <- phy$velocity/1000
+# }
 
 # save it as text
 write.csv(phy, "data/phy.csv", row.names=FALSE)
 
-# }
+
 
 ##{ Biological data -------------------------------------------------------
 
