@@ -1,7 +1,13 @@
 #
-#   Read and preprocess ISIIS data
+#      Read and preprocess ISIIS data
+#      - reformat dates, lat/long
+#      - remove erroneous data
+#      - detect casts
+#      ...
 #
-#   Jean-Olivier Irisson and Jessica Luo
+#  (c) Copyright 2013 Jean-Olivier Irisson
+#                     Jessica Luo
+#      GNU General Public License v3
 #
 #--------------------------------------------------------------------------
 
@@ -18,7 +24,7 @@ options("digits.secs"=3)
 # create the final data repository
 dir.create("data", showWarnings=FALSE)
 
-
+message("Read and process physical data")
 ##{ Read and reformat physical data ---------------------------------------
 
 # list all the physical data files in a given directory
@@ -53,7 +59,8 @@ phy <- adply(phyFiles, 1, function(file) {
   d$hour <- as.numeric(str_sub(d$time,1,2))
   d$date <- ifelse(d$hour >= 18 & d$hour <= 23, date, dateNextDay)
   d$dateTime <- str_c(d$date, d$time, sep=" ")
-  d$dateTime <- as.POSIXct(strptime(d$dateTime, format="%m/%d/%y %H:%M:%OS", tz="UTC"))
+  d$dateTime <- as.POSIXct(strptime(d$dateTime, format="%m/%d/%y %H:%M:%OS", tz="GMT"))
+  # NB: we say it is GMT when it is in fact local time, just to avoid having to deal with time zones
   
   # shift all physical data back 3 hours
   d$dateTime <- d$dateTime - 3 * 3600
@@ -110,11 +117,12 @@ phy <- phy[,-1]
 
 summary(phy)
 
-# inspect water masss data
+# inspect water mass data
 phyM <- melt(phy, id.vars=c("dateTime"), measure.vars=c("depth", "temp", "salinity", "fluoro", "oxygen", "irradiance"))
 ggplot(data=phyM) + geom_histogram(aes(x=value)) + facet_wrap(~variable, scales="free")
 
-# remove erroneous points when ISIIS lost contact
+# remove erroneous points when ISIIS lost contact, in transect 2
+# NB: this is specific to this dataset, a general solution would be better
 ggplot(data=phy) + geom_point(aes(x=long, y=-depth), size=0.5) + facet_grid(transect ~.) 
 which(abs(diff(phy$depth)) > 20)
 phy[49417:49428,]
@@ -141,6 +149,8 @@ ggplot(phy) + geom_path(aes(x=oxygen, y=-depth), alpha=0.5) + facet_wrap(~transe
 ggplot(phy) + geom_path(aes(x=irradiance, y=-depth), alpha=0.5) + facet_wrap(~transect)
 ggplot(phy) + geom_path(aes(x=irradiance, y=-depth), alpha=0.5) + facet_wrap(~transect) + scale_x_continuous(limits=c(-1.7E-6, -7.5E-7))
 # real issue with irradiance
+# the sensor was actually broken, remove all values
+phy$irradiance <- NA
 
 
 # inspect navigation data
@@ -177,7 +187,7 @@ phy$vertical.vel[abs(phy$vertical.vel) > 1000] <- NA
 
 # calculate in water velocity
 phy$velocity <- sqrt(phy$horizontal.vel^2 + phy$vertical.vel^2)
-# velocity measurements appear to be in mm/s (even though the header says m/s)
+# convert it in m/s
 phy$velocity <- phy$velocity / 1000
 
 # }
@@ -242,6 +252,7 @@ write.csv(phy, "data/phy.csv", row.names=FALSE)
 
 
 
+message("Read and process biological data")
 ##{ Biological data -------------------------------------------------------
 
 bioData <- "raw_biological_data"
@@ -258,7 +269,7 @@ sol$X1 <- str_replace(sol$X1, bioData, "")
 sol$transect <- as.numeric(str_sub(sol$X1, 4, 5)) - 14
 
 # create a true date+time column
-sol$dateTime <- as.POSIXct(str_c(sol$date, " ", sprintf("%02i",sol$hour), ":", sprintf("%02i",sol$min), ":", sprintf("%02i",sol$sec), ".", sol$s.1000), tz="UTC")
+sol$dateTime <- as.POSIXct(str_c(sol$date, " ", sprintf("%02i",sol$hour), ":", sprintf("%02i",sol$min), ":", sprintf("%02i",sol$sec), ".", sol$s.1000), tz="GMT")
 
 # convert to the tall format
 sol <- sol[ , ! names(sol) %in% c("X1", "date", "hour", "min", "sec", "s.1000")]
@@ -282,7 +293,7 @@ siph$X1 <- str_replace(siph$X1, bioData, "")
 siph$transect <- as.numeric(str_sub(siph$X1, 4, 5)) - 14
 
 # create a true date+time column
-siph$dateTime <- as.POSIXct(str_c(siph$date, " ", sprintf("%02i",siph$hour), ":", sprintf("%02i",siph$min), ":", sprintf("%02i",siph$sec), ".", siph$s.1000), tz="UTC")
+siph$dateTime <- as.POSIXct(str_c(siph$date, " ", sprintf("%02i",siph$hour), ":", sprintf("%02i",siph$min), ":", sprintf("%02i",siph$sec), ".", siph$s.1000), tz="GMT")
 
 # combine with and without tail
 siph$Type1 <- siph$Type1 + siph$Type1_wotail
@@ -316,7 +327,7 @@ cteT <- adply(cteFiles, 1, function(file){
   # recompute the time
   # the record contains the time of the first frame in the stack and the frame number within the stack
   # there are 300 frames in a stack and they represent a time of 17.375 seconds
-  d$dateTime <- as.POSIXct(str_c(d$year, "-", sprintf("%02i",d$month), "-", sprintf("%02i",d$date), " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec)), tz="UTC")
+  d$dateTime <- as.POSIXct(str_c(d$year, "-", sprintf("%02i",d$month), "-", sprintf("%02i",d$date), " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec)), tz="GMT")
   d$dateTime <- d$dateTime + 17.375 * d$x.300 / 300
   
   # extract downcast number
@@ -368,7 +379,7 @@ h <- adply(hFiles, 1, function(file) {
   # shift by one day when we cross midnight
   d$day <- ifelse(d$hour >= 18 & d$hour <= 23, day, day+1)
   # convert that into POSIXct
-  d$dateTime <- as.POSIXct(str_c("2010-10-", d$day, " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec), ".", d$s.1000), tz="UTC")
+  d$dateTime <- as.POSIXct(str_c("2010-10-", d$day, " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec), ".", d$s.1000), tz="GMT")
   # remove extraneous date columns
   d <- d[,!names(d) %in% c("day", "hour", "min", "sec", "s.1000")]
   
@@ -416,7 +427,11 @@ bio$dateTime <- bio$dateTime - 3 * 3600
 # they should be the same but we never know
 bio <- rename(bio, c("downcast"="cast.bio"))
 
-# check
+# }
+
+
+##{ Check biological data -------------------------------------------------
+
 head(bio)
 unique(bio$transect)
 unique(bio$cast.bio)
@@ -426,7 +441,12 @@ range(bio$dateTime)
 unique(bio$count)
 count(bio$count)
 
-# save it, just in case
-write.csv(bio, "data/bio.csv", row.names=FALSE)
+countPerTransect <- ddply(bio, ~transect + group + taxon, function(x) {sum(x$count, na.rm=T)})
+dcast(countPerTransect, group+taxon~transect)
+
+# -> all that seems consistent and OK
 
 # }
+
+# save it as text
+write.csv(bio, "data/bio.csv", row.names=FALSE)
