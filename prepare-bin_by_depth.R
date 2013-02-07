@@ -12,6 +12,10 @@ library("stringr")
 library("reshape2")
 library("ggplot2")
 library("PBSmapping")
+library("foreach")
+library("doParallel")
+registerDoParallel(cores=detectCores())
+parallel <- TRUE
 
 # setup R to keep decimal seconds in the times
 options("digits.secs"=3)
@@ -101,7 +105,7 @@ phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
   # TODO check compared to computation using volume per frame and frames per second
 
   return(out)
-}, .progress="text")
+}, .progress="text", .parallel=parallel)
 
 # }
 
@@ -120,7 +124,7 @@ bioB <- ddply(bio, ~ transect + cast.bio + dateTimeB + group + taxon, function(x
   tot <- sum(abund, na.rm=T)
   # TODO for organisms that were subsampled, this may result in errors because subsampling intervals would overlap with the previous and next frames. This is especially critical for appendicularians which were subsampled every 20 frames while 1m bins correspond to approximately 39 frames when ISIIS is goind down fast
   return(c(abund=tot))
-}, .progress="text")
+}, .progress="text", .parallel=parallel)
 
 # }
 
@@ -148,7 +152,7 @@ d <- ddply(bioB[,c("dateTimeB", "group", "taxon", "abund")], ~ taxon, function(b
   d$taxon <- b$taxon[1]
   d$abund[is.na(d$abund)] <- 0
   return(d)
-}, .progress="text")
+}, .progress="text", .parallel=parallel)
 
 # compute concentrations
 d$concentration <- d$abund / d$volume
