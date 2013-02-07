@@ -16,7 +16,6 @@ library("stringr")
 library("reshape2")
 library("pastecs")
 library("ggplot2")
-library("timeSeries")
 
 # setup R to keep decimal seconds in the times
 options("digits.secs"=3)
@@ -134,7 +133,7 @@ phy <- phy[-c(49418:49427),]
 phy$depth[which(diff(phy$depth)==0)+1] <- NA
 
 # interpolation
-idD <- (1:n)[!is.na(phy$depth)]
+idD <- which(!is.na(phy$depth))
 phy$depth <- approx(phy$dateTime[idD], phy$depth[idD], phy$dateTime, method="linear")$y
 
 # irradiance looks funny, all negative
@@ -189,6 +188,11 @@ phy$vertical.vel[abs(phy$vertical.vel) > 1000] <- NA
 phy$velocity <- sqrt(phy$horizontal.vel^2 + phy$vertical.vel^2)
 # convert it in m/s
 phy$velocity <- phy$velocity / 1000
+
+# inspect
+ggplot(data=phy) + geom_histogram(aes(x=velocity), binwidth=0.01)
+# mean velocity is really close to 2.5, which is what we want
+mean(phy$velocity, na.rm=TRUE)
 
 # }
 
@@ -253,6 +257,7 @@ write.csv(phy, "data/phy.csv", row.names=FALSE)
 
 
 message("Read and process biological data")
+
 ##{ Biological data -------------------------------------------------------
 
 bioData <- "raw_biological_data"
@@ -445,6 +450,7 @@ countPerTransect <- ddply(bio, ~transect + group + taxon, function(x) {sum(x$cou
 dcast(countPerTransect, group+taxon~transect)
 
 # -> all that seems consistent and OK
+# note that upuon first inspection, it seems strange that there are so much less appendicularians in transect 2
 
 # }
 
