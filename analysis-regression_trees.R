@@ -205,9 +205,36 @@ vif.cca(allCCA)
 ccaordistep <- ordistep(cca(dCspp ~1, data=dCenv),scope=formula(allCCA),direction="forward",pstep=1000)
 # this computation indicates that that you should keep all your explanatory variables ... even though oxy had a high VIF value?
 
+# }
+
+##{ Logistic Regression  ------------------------------------------------
+# use logistic regression on presence / absence data
+
+# code in Presence or Absence in original data frame
+d$pa <- 0
+d$pa[which(d$concentration != 0)] <- 1
+
+# logistic regression for all species together... just to see what happens
+dlogit <- glm(pa ~ temp + salinity + fluoro + oxygen, data=d, family=binomial("logit"))
+summary(dlogit)
+plot(predict(dlogit, type="response") ~ temp + salinity + fluoro + oxygen, data=d)
+
+# how to correctly interpret? higher salinities and oxygen values have a negative effect on proportion of presence. and increased fluorometry increases proportion of presence. temperature has a slight positive effect.
+
+# cast data frame
+dC <- dcast (d, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + fluoro + oxygen ~ taxon, value.var="pa")
+# make names you can call
+names(dC) <- make.names(names(dC))
+
+# try logistic regression on Ocyropsis maculata (Ctenophore)
+ocmalogit <- glm(Ocyropsis.maculata ~ temp + salinity + fluoro + oxygen, data=dC, family=binomial("logit"))
+summary(ocmalogit) # intercept, salinity, and oxygen are significant explanatory variables
+# make a model only out of significant explanatory variables
+ocmalogit <- glm(Ocyropsis.maculata ~ salinity + oxygen, data=dC, family=binomial("logit"))
+summary(ocmalogit)
+plot(predict(ocmalogit, type="response") ~ salinity + oxygen, data=dC)
+
+# TODO: try others
 
 # }
 
-
-# TODO:
-# logistic regression on P/A data
