@@ -36,16 +36,14 @@ d$group2[d$group == "Tunicates"] <- d$taxon[d$group == "Tunicates"]
 # compute total concentration per group
 dg <- ddply(d, ~transect + cast + down.up + dateTimeB + group2, function(x) {
   tot <- sum(x$concentration)
-  return(data.frame(x[1,vars], concentration=tot))
+  timeavg <- mean(x$dateTime)
+  return(data.frame(x[1,vars], concentration=tot, dateTime=timeavg))
 }, .parallel=TRUE)
 
 ggplot(dg[dg$concentration > 0,]) + geom_histogram(aes(x=concentration)) + facet_wrap(~group2, scale="free")
 ggplot(dg[dg$concentration > 0,]) + geom_histogram(aes(x=log(concentration))) + facet_wrap(~group2, scale="free")
 
 # }
-
-##{ Regression trees -------------------------------------------------------
-
 
 ##{ Per group trees -------------------------------------------------------
 
@@ -68,7 +66,6 @@ m <- mvpart(concentration ~ temp + salinity + fluoro + oxygen, data=dg[dg$group2
 
 # }
 
-
 ##{ Community structure ---------------------------------------------------
 
 # let's look at the influence of the different sizes of Solmaris on each other
@@ -79,7 +76,7 @@ dSol <- join(dSol, unique(d[,c("dateTimeB", vars)]))
 m <- mvpart(sol_small ~ temp + salinity + fluoro + oxygen + sol_large, data=dSol, xv=("1se"), xval=5, xvmult=100)
 m <- mvpart(sol_small ~ depth + long + sol_large, data=dSol, xv=("1se"), xval=5, xvmult=100)
 
-dgC <- dcast (dg, dateTimeB + transect + cast + down.up + depth + long + temp + salinity + fluoro + oxygen ~ group2, value.var="concentration")
+dgC <- dcast (dg, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + fluoro + oxygen ~ group2, value.var="concentration")
 
 # multivariate regression tree with all taxa
 m <- mvpart(data.matrix(dgC[,names(dgC) %in% c("appendicularians", "Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]) ~ temp + salinity + fluoro + oxygen, data=dgC, xv=("min"), xval=5, xvmult=100)
