@@ -70,6 +70,9 @@ phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
   # compute duration (in seconds)
   out$duration <- as.numeric(diff(range(x$dateTime, na.rm=T)))
   
+  # compute average date
+  out$dateTime <- mean(x$dateTime, na.rm=T)
+  
   # recompute vertical velocity in this larger bin (more precise)
   # remove records in which either depth or time is missing
   xS <- x[,c("depth", "dateTime")]
