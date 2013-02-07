@@ -141,13 +141,73 @@ plot(allCA, scaling=2, main="CA biplot of species concentrations")
 text(allCA, dis="sp", col="red")
 
 # I'm not sure which one I like better
+# it would be nice to plot the CA plots with different colors representing different depths or longitudes. does autoplot work for CA?
+
+# }
 
 
+##{ Constrained ordination ------------------------------------------------
+# which is better, RDA or CCA?
+# Lots of zeros in data, maybe CCA would be better
+
+# setting environmental vars
+dCenv <- dgC[, hydroVars]
+dCspp <- dgC[,names(dgC) %in% c("appendicularians", "Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
+keep <- which(rowSums(dCspp) > 0)
+dCspp <- dCspp[keep,]
+dCenv <- dCenv[keep,]
+# check again
+nrow(dCenv) == nrow(dCspp)
+
+allCCA <- cca(dCspp ~ ., data=dCenv)
+head(summary(allCCA))
+# the CCA component scores are much lower than the CA component scores. and constrained proportion of inertia is 11% whereas unconstrained is 89%. this isn't that great ... but we will proceed
+plot(allCCA, display=c("sp","lc","cn"), main="cca triplot conc ~ env") 
+text(allCCA, dis="sp", col="red")
+
+# test for significance of CCA results
+anova(allCCA, steps=1000) # surprisingly it is significant
+anova(allCCA, steps=1000, by="axis") # the first two axes are significant
+
+# test VIFs of environmental variables - high values indicate collinearity
+vif.cca(allCCA)
+
+# compute a forward selection of explanatory variables for the CCA
+ccaordistep <- ordistep(cca(dCspp ~1, data=dCenv),scope=formula(allCCA),direction="forward",pstep=1000)
+# this computation indicates that you can keep all your explanatory variables
+
+# TRY AGAIN WITHOUT APPS
+dCenv <- dgC[, hydroVars]
+dCspp <- dgC[,names(dgC) %in% c("Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
+keep <- which(rowSums(dCspp) > 0)
+dCspp <- dCspp[keep,]
+dCenv <- dCenv[keep,]
+# check
+nrow(dCenv) == nrow(dCspp)
+
+# perform the CCA
+allCCA <- cca(dCspp ~ ., data=dCenv)
+head(summary(allCCA)) # better than previous
+# plot the CCA triplot
+plot(allCCA, display=c("sp","lc","cn"), main="cca triplot without apps") 
+# display species names in red text
+text(allCCA, dis="sp", col="red")
+
+# test for significance of CCA results
+anova(allCCA, steps=1000)
+anova(allCCA, steps=1000, by="axis") # the first three axes are significant
+
+# test VIFs of environmental variables - high values indicate collinearity
+vif.cca(allCCA)
+# oxygen values indicates high collinearity
+
+# compute a forward selection of explanatory variables for the CCA
+ccaordistep <- ordistep(cca(dCspp ~1, data=dCenv),scope=formula(allCCA),direction="forward",pstep=1000)
+# this computation indicates that that you should keep all your explanatory variables ... even though oxy had a high VIF value?
 
 
 # }
 
 
 # TODO:
-# CCA or RDA with species ~ environment
 # logistic regression on P/A data
