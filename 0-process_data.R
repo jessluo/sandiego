@@ -419,7 +419,11 @@ bio$dateTime <- bio$dateTime - 3 * 3600
 # they should be the same but we never know
 bio <- rename(bio, c("downcast"="cast.bio"))
 
-# check
+# }
+
+
+##{ Check biological data -------------------------------------------------
+
 head(bio)
 unique(bio$transect)
 unique(bio$cast.bio)
@@ -429,7 +433,12 @@ range(bio$dateTime)
 unique(bio$count)
 count(bio$count)
 
-# save it, just in case
-write.csv(bio, "data/bio.csv", row.names=FALSE)
+countPerTransect <- ddply(bio, ~transect + group + taxon, function(x) {sum(x$count, na.rm=T)})
+dcast(countPerTransect, group+taxon~transect)
+
+# -> all that seems consistent and OK
 
 # }
+
+# save it as text
+write.csv(bio, "data/bio.csv", row.names=FALSE)
