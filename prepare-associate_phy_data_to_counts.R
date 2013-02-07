@@ -1,5 +1,9 @@
 #
-#   Read and preprocess ISIIS data
+#      Associate physical variables to each count through inteprolation
+#
+#  (c) Copyright 2013 Jean-Olivier Irisson
+#                     Jessica Luo
+#      GNU General Public License v3
 #
 #--------------------------------------------------------------------------
 

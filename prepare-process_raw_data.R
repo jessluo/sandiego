@@ -1,7 +1,13 @@
 #
-#   Read and preprocess ISIIS data
+#      Read and preprocess ISIIS data
+#      - reformat dates, lat/long
+#      - remove erroneous data
+#      - detect casts
+#      ...
 #
-#   Jean-Olivier Irisson and Jessica Luo
+#  (c) Copyright 2013 Jean-Olivier Irisson
+#                     Jessica Luo
+#      GNU General Public License v3
 #
 #--------------------------------------------------------------------------
 
