@@ -8,6 +8,7 @@
 #
 #--------------------------------------------------------------------------
 
+library("vegan")
 library("mvpart")
 library("plyr")
 library("ggplot2")
@@ -95,9 +96,56 @@ m <- mvpart(data.matrix(dgC[,names(dgC) %in% c("Hydromedusae", "Siphonophores", 
 # think about the interpretation for these plots ...
 
 
-# }
+# multivariate regression tree with Principal components analysis of the group means
+m <- mvpart(data.matrix(dgC[,names(dgC) %in% c("Ctenophores", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]) ~ temp + salinity + fluoro + oxygen, data=dgC, xv=("min"), xval=5, xvmult=100, pca=T)
+# difficult to interpret
 
 # }
+
+
+##{ constrained and unconstrained ordination  -----------------------------
+
+# Unconstrained ordination - CA
+# is it going to be better to transform the concentration values? probably will be fine on either transformed values or raw values. can do a sqrt transformation to dampen the effect of dominant species.
+
+# start with CA with no transformation to see how it performs
+dCspp <- dgC[,names(dgC) %in% c("appendicularians", "Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
+# CA requires all row sums to be >0 in the community data matrix
+# check to see which row sums = 0 and remove them
+which(rowSums(dCspp) == 0)
+dCspp <- dCspp[-which(rowSums(dCspp)==0),]
+# remove the NAs
+dCspp <- na.omit(dCspp)
+# perform the CA using cca() from the vegan library
+allCA <- cca(dCspp)
+# check the summary
+head(summary(allCA)) # first two CA axes explain 56% of the variance
+plot(allCA, scaling=2, main="CA biplot of species concentrations")
+text(allCA, dis="sp", col="red")
+
+# removing the appendicularians from the CA
+dCspp <- dgC[,names(dgC) %in% c("Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
+dCspp <- dCspp[-which(rowSums(dCspp)==0),]
+dCspp <- na.omit(dCspp)
+allCA <- cca(dCspp)
+head(summary(allCA)) # first two CA axes explain 59% of the variance
+plot(allCA, scaling=2, main="CA biplot of species concentrations")
+text(allCA, dis="sp", col="red")
+# removing the appendicularians improves the proportion explained of the first CA a little bit, but not by much
+
+# just including the hydrozoans + the ctenophores in the CA
+dCspp <- dgC[,names(dgC) %in% c("Ctenophores", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
+dCspp <- dCspp[-which(rowSums(dCspp)==0),]
+dCspp <- na.omit(dCspp)
+allCA <- cca(dCspp)
+head(summary(allCA)) # first two CA axes explain 67% of the variance
+plot(allCA, scaling=2, main="CA biplot of species concentrations")
+text(allCA, dis="sp", col="red")
+
+# I'm not sure which one I like better
+
+# }
+
 
 # TODO:
 # CA with species
