@@ -177,7 +177,8 @@ sum(abs(phy$vertical.vel) > 1000, na.rm=T) / length(na.omit(phy$vertical.vel))
 # recompute the vertical velocity from the depth change / time
 phy$vertical.vel <- c(NA, diff(phy$depth) / as.numeric(diff(phy$dateTime))) * 1000
 ggplot(data=phy) + geom_histogram(aes(x=vertical.vel), binwidth=100)
-ggplot(phy) + geom_path(aes(x=vertical.vel, y=-depth), alpha=0.5) + facet_wrap(~transect) # still some peaks, far less
+ggplot(phy) + geom_path(aes(x=vertical.vel, y=-depth), alpha=0.5) + facet_wrap(~transect)
+# still some peaks, far less
 
 # remove peaks
 phy$vertical.vel[abs(phy$vertical.vel) > 1000] <- NA
@@ -446,7 +447,7 @@ unique(bio$count)
 count(bio$count)
 
 countPerTransect <- ddply(bio, ~transect + group + taxon, function(x) {sum(x$count, na.rm=T)})
-dcast(countPerTransect, group+taxon~transect)
+dcast(countPerTransect, group+taxon~transect, value.var="V1")
 
 # -> all that seems consistent and OK
 # note that upuon first inspection, it seems strange that there are so much less appendicularians in transect 2
