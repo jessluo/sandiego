@@ -124,8 +124,10 @@ phy <- phy[-c(49418:49427),]
 # the depth gets stuck from time to time and that results in jumps afterwards. Remove those stuck points and reinterpolate the depth linarly using time.
 # assign the depths in which the difference before the previous depth is 0 to be NA
 phy$depth[which(diff(phy$depth)==0)+1] <- NA
-# interpolates using the interpNA() function in the package timeSeries, which calls the approx() function
-phy$depth <- interpNA(phy$depth, method="linear")
+
+# interpolation
+idD <- (1:n)[!is.na(phy$depth)]
+phy$depth <- approx(phy$dateTime[idD], phy$depth[idD], phy$dateTime, method="linear")$y
 
 # irradiance looks funny, all negative
 ggplot(data=phy) + geom_histogram(aes(x=irradiance)) + facet_wrap(~transect)
@@ -167,7 +169,7 @@ sum(abs(phy$vertical.vel) > 1000, na.rm=T) / length(na.omit(phy$vertical.vel))
 # recompute the vertical velocity from the depth change / time
 phy$vertical.vel <- c(NA, diff(phy$depth) / as.numeric(diff(phy$dateTime))) * 1000
 ggplot(data=phy) + geom_histogram(aes(x=vertical.vel), binwidth=100)
-ggplot(phy) + geom_path(aes(x=vertical.vel, y=-depth), alpha=0.5) + facet_wrap(~transect)
+ggplot(phy) + geom_path(aes(x=vertical.vel, y=-depth), alpha=0.5) + facet_wrap(~transect) # still some peaks, far less
 
 # remove peaks
 phy$vertical.vel[abs(phy$vertical.vel) > 1000] <- NA
