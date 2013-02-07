@@ -11,6 +11,7 @@ library("plyr")
 library("stringr")
 library("reshape2")
 library("ggplot2")
+library("PBSmapping")
 
 # setup R to keep decimal seconds in the times
 options("digits.secs"=3)
@@ -72,7 +73,23 @@ phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
 
   # TODO recompute horizontal velocity from the lat/long difference when it is NA/NaN
   #      check out geodDist in oce to compute distances from lat and long
-
+  dist <- geodDist(phy$lat, phy$long, alongPath=TRUE)
+  # computes the distance differences along the path
+  dist <- diff(dist)
+  # the problem is that there is not enough precision in the lat/long in order to truly calculate a distance
+  
+  # you could also calculate a euclidean distance between UTM coordinates + depth (and then obtain the total distance between points)
+  xy<-cbind(X=phy$long, Y=phy$lat) # longitude is in the x direction, latitude is in the y direction
+  attr(xy,"zone")=11 # zone where this study site is located
+  attr(xy, "projection")="LL"
+  # convert to UTM
+  XY<-convUL(xy)
+  UTM.X<-XY[,1]
+  UTM.Y<-XY[,2]
+  # does plain "dist" work? apparently not, there is an error about negative length vectors ...
+  # dist2 <- dist(UTM.X, UTM.Y, -phy$depth, method="euclidean") 
+  
+  
   # recompute velocity since we recomputed vertical velocity
   out$velocity <- sqrt(out$horizontal.vel^2 + out$vertical.vel^2)
 
