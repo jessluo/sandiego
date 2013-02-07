@@ -26,6 +26,7 @@ bio$dateTime <- as.POSIXct(bio$dateTime, tz="GMT")
 
 ##{ Compute time bins on physical data ------------------------------------
 
+# depth bin size in m
 binSize <- 1
 
 # per cast, interpolate the times corresponding to the crossing of the depth bins
@@ -38,6 +39,7 @@ timeBins <- dlply(phy, ~transect+cast+down.up, function(x, bin) {
   
   # compute corresponding crossing times
   timeBins <- approx(x$depth, x$dateTime, depthBins)$y
+  # TODO try to extrapolate to get the first points and not loose data
   
   return(timeBins)
 }, bin=binSize, .progress="text")
@@ -96,6 +98,7 @@ phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
   # compute volume sampled in that bin (in m^3)
   #             ISIIS field in m^2  *  speed in m/s           *  duration in s  
   out$volume <- 0.13 * 0.45         *  (out$velocity / 1000)  *  out$duration
+  # TODO check compared to computation using volume per frame and frames per second
 
   return(out)
 }, .progress="text")
@@ -115,6 +118,7 @@ bioB <- ddply(bio, ~ transect + cast.bio + dateTimeB + group + taxon, function(x
   abund <- x$count * x$sub
   # compute total abundances
   tot <- sum(abund, na.rm=T)
+  # TODO for organisms that were subsampled, this may result in errors because subsampling intervals would overlap with the previous and next frames. This is especially critical for appendicularians which were subsampled every 20 frames while 1m bins correspond to approximately 39 frames when ISIIS is goind down fast
   return(c(abund=tot))
 }, .progress="text")
 
