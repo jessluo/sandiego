@@ -133,8 +133,7 @@ phy <- phy[-c(49418:49427),]
 phy$depth[which(diff(phy$depth)==0)+1] <- NA
 
 # interpolation
-idD <- which(!is.na(phy$depth))
-phy$depth <- approx(phy$dateTime[idD], phy$depth[idD], phy$dateTime, method="linear")$y
+phy$depth <- approx(phy$dateTime, phy$depth, phy$dateTime, method="linear")$y
 
 # irradiance looks funny, all negative
 ggplot(data=phy) + geom_histogram(aes(x=irradiance)) + facet_wrap(~transect)
