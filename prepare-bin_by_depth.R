@@ -133,17 +133,16 @@ bioB <- ddply(bio, ~ transect + cast.bio + dateTimeB + group + taxon, function(x
 # take physical data as reference to create zeros when nothing was caught in a bin
 
 # select only downcasts since biological data was aquired only on down casts
-phyBsel <- phyB[phyB$down.up == "down",]
+# phyB <- phyB[phyB$down.up == "down",]
 
-# TODO select more because biological data was actually not aquired on all downcasts
-#      this is what was done before:
-# dc <- unique(bio$cast.bio[which(bio$group=="Hydromedusae" & bio$transect==2)])
-# phy <- phy[which(phy$down.up=="down" & phy$transect==2 & phy$cast %in% dc),]
-# bio <- bio[which(bio$transect==2 & bio$cast.bio %in% dc),]
+# select only downcasts in which all the biological data is present (transect 2 only)
+dc <- unique(bio$cast.bio[which(bio$group=="Hydromedusae" & bio$transect==2)])
+phyB <- phyB[which(phyB$down.up=="down" & phyB$transect==2 & phyB$cast %in% dc),]
+bioB <- bioB[which(bioB$transect==2 & bioB$cast.bio %in% dc),]
 
 # join bio and phy data by time bin
 # make sure we create zeros for species absent in each bin
-d <- ddply(bioB[,c("dateTimeB", "group", "taxon", "abund")], ~ taxon, function(b, p=phyBsel){
+d <- ddply(bioB[,c("dateTimeB", "group", "taxon", "abund")], ~ taxon, function(b, p=phyB){
   # join physical data and counts for this taxon
   d <- join(p, b, type="left", by="dateTimeB")
   # when a taxon is not present in a bin, all columns corresponding to the biological data will contain NA
