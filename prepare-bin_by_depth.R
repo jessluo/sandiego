@@ -11,7 +11,7 @@ library("plyr")
 library("stringr")
 library("reshape2")
 library("ggplot2")
-library("PBSmapping")
+# library("oce")
 library("foreach")
 library("doParallel")
 registerDoParallel(cores=detectCores())
@@ -77,26 +77,19 @@ phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
   # compute the vertical speed
   out$vertical.vel <- diff(range(xS$depth)) / as.numeric(diff(range(xS$dateTime))) * 1000
 
-  # TODO recompute horizontal velocity from the lat/long difference when it is NA/NaN
-  #      check out geodDist in oce to compute distances from lat and long
-  dist <- geodDist(phy$lat, phy$long, alongPath=TRUE)
-  # computes the distance differences along the path
-  dist <- diff(dist)
-  # the problem is that there is not enough precision in the lat/long in order to truly calculate a distance
-  
-  # you could also calculate a euclidean distance between UTM coordinates + depth (and then obtain the total distance between points)
-  xy<-cbind(X=phy$long, Y=phy$lat) # longitude is in the x direction, latitude is in the y direction
-  attr(xy,"zone")=11 # zone where this study site is located
-  attr(xy, "projection")="LL"
-  # convert to UTM
-  XY<-convUL(xy)
-  UTM.X<-XY[,1]
-  UTM.Y<-XY[,2]
-  # does plain "dist" work? apparently not, there is an error about negative length vectors ...
-  # dist2 <- dist(UTM.X, UTM.Y, -phy$depth, method="euclidean") 
-  
-  
-  # recompute velocity since we recomputed vertical velocity
+  # when horizontal velocity is not available, assign something to it to be able to compte actual velocity
+  # try to compute it from distance travelled
+  # dist <- max(geodDist(x$lat, x$long, alongPath=TRUE)) * 1000 * 1000
+  # (h.vel <- dist / out$duration)
+  # # the problem is that there is not enough precision in the lat/long in order to truly calculate a distance
+  # assign the mean/median velocity instead
+  # median = 2470
+  # mean = 2474.009
+  if (is.na(out$horizontal.vel)) {
+    out$horizontal.vel <- 2470
+  }
+    
+  # recompute velocity since we recomputed vertical (and possibly horizontal) velocities
   out$velocity <- sqrt(out$horizontal.vel^2 + out$vertical.vel^2)
 
   # compute volume sampled in that bin (in m^3)
