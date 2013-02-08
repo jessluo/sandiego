@@ -14,7 +14,7 @@ library("ggplot2")
 
 # read data
 phy <- read.csv("data/phy.csv", stringsAsFactors=FALSE)
-phy$dateTime <- as.POSIXct(phy$dateTime, tz="GMT")
+# phy$dateTime <- as.POSIXct(phy$dateTime, tz="GMT")
 # NB: make sure time is set in GMT (even if it wasn't) to avoid dealing with tz afterwards
 
 
