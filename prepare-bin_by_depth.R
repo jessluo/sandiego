@@ -133,8 +133,14 @@ bioB <- ddply(bio, ~ transect + cast.bio + dateTimeB + group + taxon, function(x
 
 # select only downcasts in which all the biological data is present (transect 2 only)
 dc <- unique(bio$cast.bio[which(bio$group=="Hydromedusae" & bio$transect==2)])
-phyB <- phyB[which(phyB$down.up=="down" & phyB$transect==2 & phyB$cast %in% dc),]
-bioB <- bioB[which(bioB$transect==2 & bioB$cast.bio %in% dc),]
+phyBtr2 <- phyB[which(phyB$down.up=="down" & phyB$transect==2 & phyB$cast %in% dc),]
+bioBtr2 <- bioB[which(bioB$transect==2 & bioB$cast.bio %in% dc),]
+
+# more selection - this is only for the plots of the appendicularians that we wanted
+# select only downcasts in which all the biological data is present (transect 2 only)
+dc <- unique(bio$cast.bio[which(bio$group=="Hydromedusae" & bio$transect==1)])
+phyB <- rbind(phyB[which(phyB$down.up=="down" & phyB$transect==1 & phyB$cast %in% dc),], phyBtr2)
+bioB <- rbind(bioB[which(bioB$transect==1 & bioB$cast.bio %in% dc),], bioBtr2)
 
 # join bio and phy data by time bin
 # make sure we create zeros for species absent in each bin
@@ -152,6 +158,10 @@ d <- ddply(bioB[,c("dateTimeB", "group", "taxon", "abund")], ~ taxon, function(b
 # compute concentrations
 d$concentration <- d$abund / d$volume
 
+# note: this is just for the plots of appendicularians and hydromedusae in transect 1 and 2
+# revert this later
+d <- d[-which(d$transect==1 & d$group=="Ctenophores"),]
+  
 # }
 
 
@@ -167,7 +177,7 @@ ggplot(d[d$abund != 0,]) + geom_histogram(aes(x=concentration)) + facet_wrap(~ta
 ggplot(d) + geom_histogram(aes(x=volume), binwidth=0.1)
 
 alply(unique(d$group), 1, function(group) {
-  ggplot(d[d$group==group,]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(taxon~transect) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
+  ggplot(d[d$group==group,]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 })
 # -> there seem to be a few very high values of abundance, often near the surface
 # TODO find out wether this is present in the original data or is caused by the binning
