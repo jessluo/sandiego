@@ -104,9 +104,11 @@ m <- mvpart(data.matrix(dgC[,names(dgC) %in% c("Ctenophores", "Hydromedusae", "S
 
 # }
 
+
 ##{ Unconstrained ordination - CA  -----------------------------
 
 # Correspondence Analysis
+# is it going to be better to transform the concentration values? probably will be fine on either transformed values or raw values. can do a sqrt transformation to dampen the effect of dominant species.
 
 # start with CA with no transformation to see how it performs
 dCspp <- dgC[,names(dgC) %in% c("appendicularians", "Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
@@ -146,6 +148,33 @@ text(allCA, dis="sp", col="red")
 # it would be nice to plot the CA plots with different colors representing different depths or longitudes. does autoplot work for CA?
 
 # DCA better?
+
+# CA with sqrt transformation
+dCspp <- dgC[,names(dgC) %in% c("Ctenophores", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
+# removes rows that sum to zero and are also NAs
+dCspp <- dCspp[-which(rowSums(dCspp)==0),]
+dCspp <- na.omit(dCspp)
+# square root transform
+dCspp <- sqrt(dCspp)
+allCA <- cca(dCspp)
+head(summary(allCA)) # first two CA axes explain 64% of the variance
+plot(allCA, scaling=2, main="CA biplot of species concentrations")
+text(allCA, dis="sp", col="red")
+# so the proportion of variance explained does not change too much based on the transformation or no transformation, but the biplot changes quite a bit
+# maybe because the difference between the large values of the large solmaris compared to the 0's and 1's of the ctenophores and hydromedusae made the first set of plots on the untransformed data have this "V" like shape -- which is less pronounced in this plot.
+
+# CA with log transformation
+dCspp <- dgC[,names(dgC) %in% c("Ctenophores", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
+# removes rows that sum to zero and are also NAs
+dCspp <- dCspp[-which(rowSums(dCspp)==0),]
+dCspp <- na.omit(dCspp)
+# log transform
+dCspp <- log(dCspp+1)
+allCA <- cca(dCspp)
+head(summary(allCA)) # first two CA axes explain 65% of the variance
+plot(allCA, scaling=2, main="CA biplot of species concentrations")
+text(allCA, dis="sp", col="red")
+# again, the proportion of variance explained does not change too much, but the biplot changes a lot. and also changes the interpretation of which species are closer to each other. Prefer one over the other?
 
 # }
 
