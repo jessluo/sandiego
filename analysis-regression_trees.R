@@ -50,6 +50,15 @@ dgC <- dcast (dg, dateTimeB + dateTime + transect + cast + down.up + depth + lon
 
 # }
 
+##{ Creating some species plots
+dO=d[d$taxon=="Ocyropsis maculata",]
+dO$lconc=log1p(dO$concentration)
+dO$pres <- dO$concentration > 0
+
+ggplot(dO) + geom_point(aes(x=salinity, y=temp, size=pres, shape=long>119.6, colour=depth> 50), alpha=0.7) + scale_size_manual(values=c(1, 2.5))
+
+#}
+
 ##{ Per group trees -------------------------------------------------------
 
 m <- mvpart(concentration ~ temp + salinity + fluoro + oxygen, data=dg[dg$group2=="sol_small",], xv=("none"))
@@ -313,12 +322,6 @@ forward.sel(dCspp, dCenv, adjR2thresh=r2adj)
 d$pa <- 0
 d$pa[which(d$concentration != 0)] <- 1
 
-# logistic regression for all species together... just to see what happens
-dlogit <- glm(pa ~ temp + salinity + fluoro + oxygen, data=d, family=binomial("logit"))
-summary(dlogit)
-plot(predict(dlogit, type="response") ~ temp + salinity + fluoro + oxygen, data=d)
-
-# how to correctly interpret? higher salinities and oxygen values have a negative effect on proportion of presence. and increased fluorometry increases proportion of presence. temperature has a slight positive effect.
 
 # cast data frame
 dC <- dcast (d, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + fluoro + oxygen ~ taxon, value.var="pa")
@@ -326,9 +329,39 @@ dC <- dcast (d, dateTimeB + dateTime + transect + cast + down.up + depth + long 
 names(dC) <- make.names(names(dC))
 
 # try logistic regression on Ocyropsis maculata (Ctenophore)
-ocmalogit <- glm(Ocyropsis.maculata ~ temp + salinity + fluoro + oxygen, data=dC, family=binomial("logit"))
+nrow(dC)
+
+ocmalogit <- glm(Ocyropsis.maculata ~ (temp + salinity + fluoro + oxygen)^4 + I(temp^2) + I(salinity^2) + I(fluoro^2) + I(oxygen^2) , data=dC, family=binomial("logit"))
 summary(ocmalogit) # intercept, salinity, and oxygen are significant explanatory variables
 # make a model only out of significant explanatory variables
+
+m <- update(ocmalogit, . ~ . - temp:salinity:fluoro:oxygen)
+summary(m)
+m <- update(m, . ~ . - temp:salinity:fluoro)
+summary(m)
+m <- update(m, . ~ . - salinity:fluoro:oxygen)
+summary(m)
+
+m <- step(ocmalogit, direction="backward")
+summary(m)
+m <- update(m, . ~ . - salinity:fluoro:oxygen)
+summary(m)
+m <- update(m, . ~ . - temp:salinity:oxygen)
+summary(m)
+m <- update(m, . ~ . - salinity:fluoro)
+summary(m)
+m <- update(m, . ~ . - I(fluoro^2))
+summary(m)
+m <- update(m, . ~ . - temp:salinity:oxygen)
+summary(m)
+m <- update(m, . ~ . - temp:salinity:oxygen)
+summary(m)
+m <- update(m, . ~ . - temp:salinity:oxygen)
+summary(m)
+
+
+
+
 ocmalogit <- glm(Ocyropsis.maculata ~ salinity + oxygen, data=dC, family=binomial("logit"))
 summary(ocmalogit)
 plot(predict(ocmalogit, type="response") ~ salinity + oxygen, data=dC)
