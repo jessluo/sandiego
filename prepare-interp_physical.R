@@ -136,6 +136,9 @@ ti$dist <- ti$dist * f
 
 ggplot(ti) + geom_tile(aes(x=dist, y=-depth, fill=temp)) + geom_contour(aes(x=dist, y=-depth, z=temp), colour="white", size=0.5, alpha=0.5, breaks=c(10, 15)) + facet_grid(transect~.)
 
+write.csv(ti, file="data/interp_temp.csv", row.names=FALSE)
+
+
 # tried to interpolate salinity but it is returning NAs
 
 
