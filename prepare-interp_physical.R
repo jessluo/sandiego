@@ -11,57 +11,96 @@
 library("plyr")
 library("reshape2")
 library("ggplot2")
-library("sp")
-library("gstat")
-library("oce")
-
-# { Read data and calculate a distance matrix -----------------------------
 
 # read data
-d <- read.csv("data/all_binned_by_depth.csv", stringsAsFactors=FALSE)
-d$dateTime <- as.POSIXct(d$dateTime, tz="GMT")
+phy <- read.csv("data/phy.csv", stringsAsFactors=FALSE)
+phy$dateTime <- as.POSIXct(phy$dateTime, tz="GMT")
+# NB: make sure time is set in GMT (even if it wasn't) to avoid dealing with tz afterwards
 
 
-# longitude should be negative, we are in the Western hemisphere
-d$long <- -d$long
+##{ Compute a distance coordinate -----------------------------------------
 
-# compute a distance matrix using geodDist
-# TODO: this data frame is transect 2 only. put this in ddply and let it compute per transect
-# geodDist computes in km, so need to multiply by 1000 to get distances in meters
-d$dist <- geodDist(d$lat, d$long, d$lat[1], d$long[1]) * 1000
+library("oce")
+
+ggplot(phy) + geom_point(aes(x=long, y=-depth, colour=temp), size=1) + facet_grid(transect~.)
+
+# compute a distance from the Western-most point using geodDist
+# for each transect, we project data on a plane defined by the mean latitude (that is not a problem here because the latitude varies so little)
+lonRef <- min(phy$long)
+phy <- ddply(phy, ~transect, function(x, lonR=lonRef) {
+  latRef <- mean(x$lat)
+  x$dist <- geodDist(x$lat, x$lon, latRef, lonR) * 1000
+  # NB: geodDist computes in km
+  return(x)
+})
+
+ggplot(phy) + geom_point(aes(x=dist, y=-depth, colour=temp), size=1) + facet_grid(transect~.)
+
+
+# }
+
+
+##{ Evaluate anisotropy ---------------------------------------------------
+
+library("sp")
+library("gstat")
+
+# subsample data because the computation of the variogram is too long otherwise
+sub <- seq(1, nrow(phy), 15)
+ggplot(phy[sub,]) + geom_point(aes(x=dist, y=-depth, colour=temp), size=1) + facet_grid(transect~.)
+
+
+# regular variogram
+points <- seq(0, 50, by=2)
 
 # convert data to a spatial object
-dSp <- d
-coordinates (dSp) <- ~dist + depth
+phySp <- phy[sub,]
+coordinates (phySp) <- ~dist + depth
 
-# computing the directional variogram
-V <- variogram(temp~1, data=dSp, alpha=c(0,90), cutoff=50)
-plot(V, main="temp, directional, distance unchanged")
-# as expected, big difference between the plots
+# compute the directional variogram
+v <- variogram(temp~1, data=phySp, alpha=c(0,90), boundaries=points)
+plot(v, main="temp, directional, dist unchanged")
+# -> as expected, big difference between the plots
+#    0 is vertical, 90 is horizontal
 
-# compute a new coordinate system
-d$distnew <- d$dist / 1000
-dSp <- d
-coordinates (dSp) <- ~distnew + depth
+# transform horizontal distance to test whether that captures the horizontal-vertical anisotropy
+phy$distTr <- phy$dist / 1000
 
-# computing the directional variogram for temperature
-V <- variogram(temp~1, data=dSp, alpha=c(0,90), cutoff=50)
-plot(V, main="temp, directional, distance / 1000")
+# redo the variogram
+# convert the data into a spatial object
+phySp <- phy[sub,]
+coordinates(phySp) <- ~distTr+depth
+
+v <- variogram(temp~1, data=phySp, alpha=c(0,90), boundaries=points)
+plot(v, main="temp, directional, dist x / 1000")
+# -> we never reach a sill because there is a global trend in temperature accross the transect. The slopes are different though
+
+v <- variogram(fluoro~1, data=phySp, alpha=c(0,90), boundaries=points)
+plot(v, main="fluoro, directional, dist x / 1000")
+# -> here again there is a trend along the vertical (direction 0 here), but there is still an inflection point which seems to be around 20 in the vertical and 40 in the horizontal
+
+
+phy$distTr <- phy$dist / 1800
+phySp <- phy[sub,]
+coordinates(phySp) <- ~distTr+depth
+
+v <- variogram(temp~1, data=phySp, alpha=c(0,90), boundaries=points)
+plot(v, main="temp, directional, dist x / 1800")
+# -> we never reach a sill because there is a global trend in temperature accross the transect. The slopes are different though
+
+v <- variogram(fluoro~1, data=phySp, alpha=c(0,90), boundaries=points)
+plot(v, main="fluoro, directional, dist x / 1800")
 
 # for salinity
-V <- variogram(salinity~1, data=dSp, alpha=c(0,90), cutoff=50)
-plot(V, main="salinity, directional, distance / 1000")
-
-# for fluorometry
-V <- variogram(fluoro~1, data=dSp, alpha=c(0,90), cutoff=50)
-plot(V, main="fluorometry, directional, distance / 1000")
+V <- variogram(salinity~1, data=phySp, alpha=c(0,90), boundaries=points)
+plot(V, main="salinity, directional, distance / 1800")
 
 # for oxygen
-V <- variogram(oxygen~1, data=dSp, alpha=c(0,90), cutoff=50)
-plot(V, main="oxygen, directional, distance / 1000")
+V <- variogram(oxygen~1, data=phySp, alpha=c(0,90), boundaries=points)
+plot(V, main="oxygen, directional, distance / 1800")
 
-# tried different divisors for distance. overall, 1000 is ok... but there is a significant trend in the horizontal in all variables and I can't seem to find an inflection point.
-# why does it take so long to calculate and plot? 
+# -> 1800 is approximately OK even though there is a strong trend in all variables that we cannot get rid of
+#    need to experiment some more (detrend the data, test other factors)
 
-# TODO: interpolate with interp() using this anisotrophy ratio
-# need to first cast into wide format
+# }
+
