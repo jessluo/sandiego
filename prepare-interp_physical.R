@@ -65,5 +65,3 @@ plot(V, main="oxygen, directional, distance / 1000")
 
 # TODO: interpolate with interp() using this anisotrophy ratio
 # need to first cast into wide format
-# something along these lines
-# dcast(d, dateTimeB ~ taxon, value.var="concentration")
