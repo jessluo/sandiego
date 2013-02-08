@@ -22,7 +22,7 @@ phy <- read.csv("data/phy.csv", stringsAsFactors=FALSE)
 
 library("oce")
 
-ggplot(phy) + geom_point(aes(x=long, y=-depth, colour=temp), size=1) + facet_grid(transect~.)
+# ggplot(phy) + geom_point(aes(x=long, y=-depth, colour=temp), size=1) + facet_grid(transect~.)
 
 # compute a distance from the Western-most point using geodDist
 # for each transect, we project data on a plane defined by the mean latitude (that is not a problem here because the latitude varies so little)
@@ -34,8 +34,8 @@ phy <- ddply(phy, ~transect, function(x, lonR=lonRef) {
   return(x)
 })
 
-ggplot(phy) + geom_point(aes(x=dist, y=-depth, colour=temp), size=1) + facet_grid(transect~.)
-
+# ggplot(phy) + geom_point(aes(x=dist, y=-depth, colour=temp), size=1) + facet_grid(transect~.)
+# -> OK
 
 # }
 
