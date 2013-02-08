@@ -102,7 +102,7 @@ phy <- adply(phyFiles, 1, function(file) {
   ))
 
   # keep only interesting data
-  d <- d[,c("transect", "dateTime", "depth", "lat", "long", "temp", "salinity", "fluoro", "oxygen", "irradiance", "heading", "horizontal.vel", "vertical.vel", "pitch", "vol.imaged")]
+  d <- d[,c("transect", "dateTime", "depth", "lat", "long", "temp", "salinity", "pressure", "fluoro", "oxygen", "irradiance", "heading", "horizontal.vel", "vertical.vel", "pitch", "vol.imaged")]
   
   return(d)
   
@@ -198,6 +198,14 @@ mean(phy$velocity, na.rm=TRUE)
 
 # }
 
+##{ Calculate seawater density --------------------------------------------
+
+library(oce)
+
+phy$swRho <- swRho(phy$salinity, phy$temp, phy$pressure, eos="unesco")
+
+ phy <- phy[, c("transect", "dateTime", "depth", "lat", "long", "temp", "salinity", "fluoro", "oxygen", "swRho", "irradiance", "heading", "horizontal.vel", "vertical.vel", "pitch", "vol.imaged", "velocity")]
+# }
 
 ##{ Detect up and down casts and number them ------------------------------
 
@@ -212,7 +220,7 @@ phy <- ddply(phy, ~transect, function(d) {
   # tested options between 10-20, correct number after order=14. use order between 16-20 for robustness
   depth_avg <- decaverage(-d$depth, times=3, weights=c(seq(1, order), order+1, seq(order, 1, -1)))
   # plot(depth_avg)
-  depth_avg <- as.numeric(extract(depth_avg, component="filtered"))
+  depth_avg <- as.numeric(pastecs::extract(depth_avg, component="filtered"))
   # detect turning points
   TP <- suppressWarnings(turnpoints(depth_avg))
   
