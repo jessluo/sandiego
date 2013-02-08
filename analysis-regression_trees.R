@@ -10,6 +10,7 @@
 
 library("vegan")
 library("mvpart")
+library("packfor")
 library("plyr")
 library("ggplot2")
 library("foreach")
@@ -44,6 +45,9 @@ dg <- ddply(d, ~transect + cast + down.up + dateTimeB + group2, function(x) {
 ggplot(dg[dg$concentration > 0,]) + geom_histogram(aes(x=concentration)) + facet_wrap(~group2, scale="free")
 ggplot(dg[dg$concentration > 0,]) + geom_histogram(aes(x=log(concentration))) + facet_wrap(~group2, scale="free")
 
+# casing data into wide format with group 2
+dgC <- dcast (dg, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + fluoro + oxygen ~ group2, value.var="concentration")
+
 # }
 
 ##{ Per group trees -------------------------------------------------------
@@ -76,8 +80,6 @@ dSol <- join(dSol, unique(d[,c("dateTimeB", vars)]))
 
 m <- mvpart(sol_small ~ temp + salinity + fluoro + oxygen + sol_large, data=dSol, xv=("1se"), xval=5, xvmult=100)
 m <- mvpart(sol_small ~ depth + long + sol_large, data=dSol, xv=("1se"), xval=5, xvmult=100)
-
-dgC <- dcast (dg, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + fluoro + oxygen ~ group2, value.var="concentration")
 
 # multivariate regression tree with all taxa
 m <- mvpart(data.matrix(dgC[,names(dgC) %in% c("appendicularians", "Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]) ~ temp + salinity + fluoro + oxygen, data=dgC, xv=("min"), xval=5, xvmult=100)
@@ -143,10 +145,12 @@ text(allCA, dis="sp", col="red")
 # I'm not sure which one I like better
 # it would be nice to plot the CA plots with different colors representing different depths or longitudes. does autoplot work for CA?
 
+# DCA better?
+
 # }
 
 
-##{ Constrained ordination ------------------------------------------------
+##{ Constrained ordination: CCA ------------------------------------------------
 # which is better, RDA or CCA?
 # Lots of zeros in data, maybe CCA would be better
 
@@ -204,6 +208,49 @@ vif.cca(allCCA)
 # compute a forward selection of explanatory variables for the CCA
 ccaordistep <- ordistep(cca(dCspp ~1, data=dCenv),scope=formula(allCCA),direction="forward",pstep=1000)
 # this computation indicates that that you should keep all your explanatory variables ... even though oxy had a high VIF value?
+
+# }
+
+
+##{ Constrained ordination: RDA ------------------------------------------------
+
+# setting environmental vars and species vars
+dCenv <- dgC[, hydroVars]
+dCspp <- dgC[,names(dgC) %in% c("appendicularians", "Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
+keep <- which(rowSums(dCspp) > 0)
+dCspp <- dCspp[keep,]
+dCenv <- dCenv[keep,]
+# check again
+nrow(dCenv) == nrow(dCspp)
+
+# transform species concentrations
+# choosing log transformation. but other ones may work as well (hellinger? what is best here?)
+dCspp <- log(dCspp + 1)
+
+# do I also need to transform env vars?
+# all of the env vars are bimodal to some degree
+
+allrda <- rda(dCspp ~ ., data=dCenv)
+head(summary(allrda)) # not that bad
+
+# adjusted R squared
+RsquareAdj(allrda)
+r2adj <- RsquareAdj(allrda)$adj.r.squared
+
+# RDA triplot
+plot(allrda, scaling=2, title="RDA triplot, log(concentrations) ~ env")
+text(allrda, dis="sp", col="red")
+
+# permutation tests
+# testing overall significance
+anova.cca(allrda, step=1000)
+# testing each axis
+anova.cca(allrda, step=1000, by="axis") # 4th axis not significant
+
+# VIF scores
+vif.cca(allrda) # oxygen probably needs to be removed
+
+forward.sel(dCspp, dCenv, adjR2thresh=r2adj)
 
 # }
 
