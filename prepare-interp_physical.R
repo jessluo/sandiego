@@ -104,3 +104,37 @@ plot(V, main="oxygen, directional, distance / 1800")
 
 # }
 
+
+##{ Interpolate -----------------------------------------------------------
+
+library("akima")
+source("lib_manip.R")
+
+# transform the distance to account for the anisotropy
+f <- 1800
+phy$distTr <- phy$dist / f
+
+# new coordinate
+n <- 50
+xo <- seq(min(phy$distTr, na.rm=T), max(phy$distTr, na.rm=T), length.out=n*4)
+yo <- seq(0, max(phy$depth, na.rm=T), length.out=n)
+
+ti <- ddply(phy, ~transect, function(x) {
+  # have to subet otherwise interp fails
+  # no idea why...
+  x <- x[seq(1, nrow(x), 2),]
+
+  # interpolate
+  ti <- interp(x$distTr, x$depth, x$temp, xo=xo, yo=yo, duplicate="mean")
+
+  # convert the result to data.frame form
+  ti <- list2frame(ti)
+  return(ti)
+}, .progress="text")
+names(ti) <- c("transect", "dist", "depth", "temp")
+ti$dist <- ti$dist * f
+
+ggplot(ti) + geom_tile(aes(x=dist, y=-depth, fill=temp)) + geom_contour(aes(x=dist, y=-depth, z=temp), colour="white", size=0.5, alpha=0.5, breaks=c(10, 15)) + facet_grid(transect~.)
+
+# }
+
