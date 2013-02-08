@@ -42,8 +42,8 @@ dg <- ddply(d, ~transect + cast + down.up + dateTimeB + group2, function(x) {
   return(data.frame(x[1,vars], concentration=tot, dateTime=timeavg))
 }, .parallel=TRUE)
 
-ggplot(dg[dg$concentration > 0,]) + geom_histogram(aes(x=concentration)) + facet_wrap(~group2, scale="free")
-ggplot(dg[dg$concentration > 0,]) + geom_histogram(aes(x=log(concentration))) + facet_wrap(~group2, scale="free")
+ggplot(dg[which(dg$concentration > 0),]) + geom_histogram(aes(x=concentration)) + facet_wrap(~group2, scale="free")
+ggplot(dg[which(dg$concentration > 0),]) + geom_histogram(aes(x=log(concentration))) + facet_wrap(~group2, scale="free")
 
 # casing data into wide format with group 2
 dgC <- dcast (dg, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + fluoro + oxygen ~ group2, value.var="concentration")
@@ -140,7 +140,7 @@ m <- mvpart(data.matrix(decostand(dCbind[,names(dCbind) %in% spp], method="chi.s
 ##{ Unconstrained ordination - CA  -----------------------------
 
 # Correspondence Analysis
-# is it going to be better to transform the concentration values? probably will be fine on either transformed values or raw values. can do a sqrt transformation to dampen the effect of dominant species.
+# is it going to be better to transform the concentration values? probably will be fine on either transformed values or raw values. can do a sqrt transformation to dampen the effect of dominant species. or log transformation, which will transform the concentrations (when it is not zero) to being close to normal
 
 # start with CA with no transformation to see how it performs
 dCspp <- dgC[,names(dgC) %in% c("appendicularians", "Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
@@ -165,21 +165,10 @@ allCA <- cca(dCspp)
 head(summary(allCA)) # first two CA axes explain 59% of the variance
 plot(allCA, scaling=2, main="CA biplot of species concentrations")
 text(allCA, dis="sp", col="red")
-# removing the appendicularians improves the proportion explained of the first CA a little bit, but not by much
+# --> removing the appendicularians improves the proportion explained of the first CA a little bit. But in this case you should not remove the appendicularians from the data because the differences that you would see in the appendicularians compared to the other data would show up in the CA biplot
 
-# just including the hydrozoans + the ctenophores in the CA
-dCspp <- dgC[,names(dgC) %in% c("Ctenophores", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
-dCspp <- dCspp[-which(rowSums(dCspp)==0),]
-dCspp <- na.omit(dCspp)
-allCA <- cca(dCspp)
-head(summary(allCA)) # first two CA axes explain 67% of the variance
-plot(allCA, scaling=2, main="CA biplot of species concentrations")
-text(allCA, dis="sp", col="red")
-
-# I'm not sure which one I like better
 # it would be nice to plot the CA plots with different colors representing different depths or longitudes. does autoplot work for CA?
-
-# DCA better?
+# can do it by hand, just grab the relevant variables from the CA output and put it in a data frame for ggplot to plot
 
 # CA with sqrt transformation
 dCspp <- dgC[,names(dgC) %in% c("Ctenophores", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
@@ -195,8 +184,9 @@ text(allCA, dis="sp", col="red")
 # so the proportion of variance explained does not change too much based on the transformation or no transformation, but the biplot changes quite a bit
 # maybe because the difference between the large values of the large solmaris compared to the 0's and 1's of the ctenophores and hydromedusae made the first set of plots on the untransformed data have this "V" like shape -- which is less pronounced in this plot.
 
-# CA with log transformation
-dCspp <- dgC[,names(dgC) %in% c("Ctenophores", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
+# CA with log transformation - this is preferred because the variables are not normally distributed. And even if you can normally distribute the abundances, with the zeros it is not normally distributed. 
+# Sakina said that it would be better to perform the log transformation and perform the CA on the log transformed data anyway, even if the zeros make it so that your data is no longer normal
+dCspp <- dgC[,names(dgC) %in% c("appendicularians", "doliolids", "Ctenophores", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
 # removes rows that sum to zero and are also NAs
 dCspp <- dCspp[-which(rowSums(dCspp)==0),]
 dCspp <- na.omit(dCspp)
@@ -206,23 +196,33 @@ allCA <- cca(dCspp)
 head(summary(allCA)) # first two CA axes explain 65% of the variance
 plot(allCA, scaling=2, main="CA biplot of species concentrations")
 text(allCA, dis="sp", col="red")
-# again, the proportion of variance explained does not change too much, but the biplot changes a lot. and also changes the interpretation of which species are closer to each other. Prefer one over the other?
+# the first 3 CA axes are important. Can create a ggplot just like the CA biplot and change the colors of the site points to be related to the scores along the third axis. That way you can look at the influence of the three axes at all once. 
+
 
 # }
 
 
 ##{ Constrained ordination: CCA ------------------------------------------------
 # which is better, RDA or CCA?
-# Lots of zeros in data, maybe CCA would be better
+# Lots of zeros in data, CCA would be better in this case.
 
 # setting environmental vars
-dCenv <- dgC[, hydroVars]
+# use all your environmental variables in the analysis here
+dCenv <- dgC[, vars] 
+# setting species variables
 dCspp <- dgC[,names(dgC) %in% c("appendicularians", "Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
 keep <- which(rowSums(dCspp) > 0)
 dCspp <- dCspp[keep,]
 dCenv <- dCenv[keep,]
 # check again
 nrow(dCenv) == nrow(dCspp)
+dCspp <- log(dCspp + 1) # should keep log transformation here
+
+# another option is to plot the relationship between your species abundances and environmental variables and transform the environmental variables
+# if you have a polynomial relationship between species abundances and one enviornmental variable, you can code in the relationship like thus:
+# dCenv$temp2 <- (dCenv$temp)^2
+# in this case, it is not clear that there is a polynomial relationship (the relationship is more bimodal so you would not be able to do it in thise case.)
+
 
 allCCA <- cca(dCspp ~ ., data=dCenv)
 head(summary(allCCA))
@@ -241,34 +241,7 @@ vif.cca(allCCA)
 ccaordistep <- ordistep(cca(dCspp ~1, data=dCenv),scope=formula(allCCA),direction="forward",pstep=1000)
 # this computation indicates that you can keep all your explanatory variables
 
-# TRY AGAIN WITHOUT APPS
-dCenv <- dgC[, hydroVars]
-dCspp <- dgC[,names(dgC) %in% c("Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
-keep <- which(rowSums(dCspp) > 0)
-dCspp <- dCspp[keep,]
-dCenv <- dCenv[keep,]
-# check
-nrow(dCenv) == nrow(dCspp)
-
-# perform the CCA
-allCCA <- cca(dCspp ~ ., data=dCenv)
-head(summary(allCCA)) # better than previous
-# plot the CCA triplot
-plot(allCCA, display=c("sp","lc","cn"), main="cca triplot without apps") 
-# display species names in red text
-text(allCCA, dis="sp", col="red")
-
-# test for significance of CCA results
-anova(allCCA, steps=1000)
-anova(allCCA, steps=1000, by="axis") # the first three axes are significant
-
-# test VIFs of environmental variables - high values indicate collinearity
-vif.cca(allCCA)
-# oxygen values indicates high collinearity
-
-# compute a forward selection of explanatory variables for the CCA
-ccaordistep <- ordistep(cca(dCspp ~1, data=dCenv),scope=formula(allCCA),direction="forward",pstep=1000)
-# this computation indicates that that you should keep all your explanatory variables ... even though oxy had a high VIF value?
+# Sakina says that you should keep all your data, if the appendicularians are very different then you would see it separated out in the CCA triplot
 
 # }
 
