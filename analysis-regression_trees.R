@@ -277,7 +277,7 @@ ccaordistep <- ordistep(cca(dCspp ~1, data=dCenv),scope=formula(allCCA),directio
 
 # setting environmental vars and species vars
 dCenv <- dgC[, hydroVars]
-dCspp <- dgC[,names(dgC) %in% c("appendicularians", "Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
+dCspp <- dgC[,names(dgC) %in% c("Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
 keep <- which(rowSums(dCspp) > 0)
 dCspp <- dCspp[keep,]
 dCenv <- dCenv[keep,]
@@ -300,6 +300,29 @@ r2adj <- RsquareAdj(allrda)$adj.r.squared
 
 # RDA triplot
 plot(allrda, scaling=2, title="RDA triplot, log(concentrations) ~ env")
+text(allrda, dis="sp", col="red")
+
+# permutation tests
+# testing overall significance
+anova.cca(allrda, step=1000)
+# testing each axis
+anova.cca(allrda, step=1000, by="axis") # 4th axis not significant
+
+# VIF scores
+vif.cca(allrda) # oxygen probably needs to be removed
+
+forward.sel(dCspp, dCenv, adjR2thresh=r2adj)
+
+# removing oxygen because it covaries with temperature
+allrda <- rda(dCspp ~ temp + fluoro + salinity, data=dCenv)
+head(summary(allrda)) # not that bad
+
+# adjusted R squared
+RsquareAdj(allrda)
+r2adj <- RsquareAdj(allrda)$adj.r.squared
+
+# RDA triplot
+plot(allrda, scaling=2, main="RDA triplot, log(concentrations) ~ env")
 text(allrda, dis="sp", col="red")
 
 # permutation tests
