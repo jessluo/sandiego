@@ -85,6 +85,8 @@ phy <- adply(phyFiles, 1, function(file) {
   }
   d$lat <- to.dec(d$lat)
   d$long <- to.dec(d$long)
+  # we are in the western hemisphere so longitude should be negative
+  d$long <- -d$long
     
   # columns that are all zero are not possible
   # they are actually missing data
