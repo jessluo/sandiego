@@ -57,6 +57,11 @@ dO$pres <- dO$concentration > 0
 
 ggplot(dO) + geom_point(aes(x=salinity, y=temp, size=pres, shape=long>119.6, colour=depth> 50), alpha=0.7) + scale_size_manual(values=c(1, 2.5))
 
+dO=d[d$group=="Solmaris",]
+dO$lconc=log1p(dO$concentration)
+dO$pres <- dO$concentration > 0
+
+ggplot(dO) + geom_point(aes(x=salinity, y=temp, size=concentration, color=taxon, alpha=pres)) 
 #}
 
 ##{ Per group trees -------------------------------------------------------
