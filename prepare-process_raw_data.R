@@ -202,9 +202,12 @@ mean(phy$velocity, na.rm=TRUE)
 
 library(oce)
 
+# using salinity, temperature and pressure for calculation of seawater density
+# using UNESCO formulation
 phy$swRho <- swRho(phy$salinity, phy$temp, phy$pressure, eos="unesco")
 
- phy <- phy[, c("transect", "dateTime", "depth", "lat", "long", "temp", "salinity", "fluoro", "oxygen", "swRho", "irradiance", "heading", "horizontal.vel", "vertical.vel", "pitch", "vol.imaged", "velocity")]
+# not keeping pressure anymore; reordering variables
+phy <- phy[, c("transect", "dateTime", "depth", "lat", "long", "temp", "salinity", "fluoro", "oxygen", "swRho", "irradiance", "heading", "horizontal.vel", "vertical.vel", "pitch", "vol.imaged", "velocity")]
 # }
 
 ##{ Detect up and down casts and number them ------------------------------
