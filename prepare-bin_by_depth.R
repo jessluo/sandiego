@@ -73,12 +73,14 @@ phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
   # compute average date
   out$dateTime <- mean(x$dateTime, na.rm=T)
   
-  # recompute vertical velocity in this larger bin (more precise)
-  # remove records in which either depth or time is missing
-  xS <- x[,c("depth", "dateTime")]
-  xS <- na.omit(xS)
-  # compute the vertical speed
-  out$vertical.vel <- diff(range(xS$depth)) / as.numeric(diff(range(xS$dateTime))) * 1000
+  
+  # we are not using vertical velocity so this section is unnecessary
+  #   # recompute vertical velocity in this larger bin (more precise)
+  #   # remove records in which either depth or time is missing
+  #   xS <- x[,c("depth", "dateTime")]
+  #   xS <- na.omit(xS)
+  #   # compute the vertical speed
+  #   out$vertical.vel <- diff(range(xS$depth)) / as.numeric(diff(range(xS$dateTime))) * 1000
 
   # when horizontal velocity is not available, assign something to it to be able to compte actual velocity
   # try to compute it from distance travelled
@@ -86,18 +88,15 @@ phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
   # (h.vel <- dist / out$duration)
   # # the problem is that there is not enough precision in the lat/long in order to truly calculate a distance
   # assign the mean/median velocity instead
-  # median = 2470
-  # mean = 2474.009
-  if (is.na(out$horizontal.vel)) {
-    out$horizontal.vel <- 2470
+  # median = 2470 mm/s (2.470 m/s)
+  # mean = 2474.009 mm/s (2.474 m/s)
+  if (is.na(out$velocity)) {
+    out$velocity <- 2.470
   }
-    
-  # recompute velocity since we recomputed vertical (and possibly horizontal) velocities
-  out$velocity <- sqrt(out$horizontal.vel^2 + out$vertical.vel^2)
-
+ 
   # compute volume sampled in that bin (in m^3)
   #             ISIIS field in m^2  *  speed in m/s           *  duration in s  
-  out$volume <- 0.13 * 0.45         *  (out$velocity / 1000)  *  out$duration
+  out$volume <- 0.13 * 0.45         *  (out$velocity)         *  out$duration
   # TODO check compared to computation using volume per frame and frames per second
 
   return(out)
