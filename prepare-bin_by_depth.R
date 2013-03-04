@@ -65,7 +65,7 @@ phy$dateTimeB <- cut(phy$dateTime, breaks=timeBins, labels=1:(length(timeBins)-1
 # TODO because we compute things by date bins but *also* cast and down.up, we are actually separating the descending and ascending part of the turn at depth, for example. There is no reason to think they would be different. We need the separation here because we only have downcasts in the biological data anyway but with the complete data, the binning should be by date bin only.
 phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
   # means of variables inside the bin
-  out <- as.data.frame(as.list(colMeans(x[,c("depth", "lat", "long", "temp", "salinity", "fluoro", "oxygen", "irradiance", "horizontal.vel", "vertical.vel", "pitch", "velocity")], na.rm=T)))
+  out <- as.data.frame(as.list(colMeans(x[,c("depth", "lat", "long", "temp", "salinity", "swRho", "fluoro", "oxygen", "irradiance", "vertical.vel", "pitch", "velocity")], na.rm=T)))
   
   # compute duration (in seconds)
   out$duration <- as.numeric(diff(range(x$dateTime, na.rm=T)))
