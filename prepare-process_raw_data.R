@@ -26,6 +26,12 @@ dir.create("data", showWarnings=FALSE)
 message("Read and process physical data")
 ##{ Read and reformat physical data ---------------------------------------
 
+# This section performs the following tasks:
+# 1) read in the physical data files from a folder
+# 2) cleans up the names by removing the extra characters, units and making everything lowercase
+# 3) from the time format in the physical data, converts it to the universal time format
+# 4) corrects the time zone and adds in transect number, and converts lat/long into decimal degrees
+
 # list all the physical data files in a given directory
 phyFiles <- list.files("raw_physical_data", full=TRUE)
 
@@ -62,10 +68,13 @@ phy <- adply(phyFiles, 1, function(file) {
   # NB: we say it is GMT when it is in fact local time, just to avoid having to deal with time zones
   
   # shift all physical data back 3 hours
+  # NB: this is specific for the San Diego dataset, as the physical data was recorded in Eastern Time
+  # and our sampling was done in Pacific Time
   d$dateTime <- d$dateTime - 3 * 3600
   
   # code in a transect number
   # this is not robust for all physical data but is necessary here
+  # subtract 14 because our first sampling day was Oct 15, which is transect 1
   d$transect <- dd-14
   
   # reformat the lat and long in decimal degrees
@@ -75,7 +84,7 @@ phy <- adply(phyFiles, 1, function(file) {
     # extract orientation (S/N and E/W)
     orientation <- str_sub(pieces[,3], -1)
     # remove orientation to only keep numbers
-    pieces[,3] <- str_replace(pieces[,3], "[SNWE]", "")
+    pieces[,3] <- str_replace(pieces[,3], "[NSEW]", "")
     # convert to decimal degrees
     dec <- as.numeric(pieces[,1]) + as.numeric(pieces[,2]) / 60 + as.numeric(pieces[,3]) / 3600
     # orient the coordinate
@@ -154,6 +163,7 @@ phy$irradiance <- NA
 
 
 # inspect navigation data
+# the horizontal velocity should be the velocity parallel to the direction of movement (the velocity of the instrument)
 ggplot(data=phy) + geom_histogram(aes(x=horizontal.vel), binwidth=100)
 ggplot(data=phy) + geom_histogram(aes(x=abs(vertical.vel)), binwidth=100)
 ggplot(data=phy) + geom_histogram(aes(x=abs(pitch)))
@@ -206,8 +216,9 @@ library(oce)
 # using UNESCO formulation
 phy$swRho <- swRho(phy$salinity, phy$temp, phy$pressure, eos="unesco")
 
-# not keeping pressure anymore; reordering variables
-phy <- phy[, c("transect", "dateTime", "depth", "lat", "long", "temp", "salinity", "fluoro", "oxygen", "swRho", "irradiance", "heading", "horizontal.vel", "vertical.vel", "pitch", "vol.imaged", "velocity")]
+# not keeping pressure anymore
+phy <- phy[, -which(names(phy)=="pressure")]
+
 # }
 
 ##{ Detect up and down casts and number them ------------------------------
@@ -277,6 +288,7 @@ bioData <- "raw_biological_data"
 
 # NB: The data files for various groups have to be read separately because the format and convention change between each group
 
+# 
 # SOLMARIS
 solFiles <- list.files(bioData, pattern="Solmaris", full=TRUE)
 sol <- adply(solFiles, 1, read.csv, stringsAsFactors=FALSE)
