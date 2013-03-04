@@ -69,6 +69,12 @@ phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
   
   # compute duration (in seconds)
   out$duration <- as.numeric(diff(range(x$dateTime, na.rm=T)))
+  # NB: some of these durations are zero because there is only one data point per bin
+  
+  # we will assume that the duration for one data point is 1/17 of a second
+  if(out$duration==0) {
+    out$duration <- 0.0588
+  }
   
   # compute average date
   out$dateTime <- mean(x$dateTime, na.rm=T)
