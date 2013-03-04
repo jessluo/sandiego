@@ -196,8 +196,8 @@ ggplot(phy) + geom_path(aes(x=vertical.vel, y=-depth), alpha=0.5) + facet_wrap(~
 phy$vertical.vel[abs(phy$vertical.vel) > 1000] <- NA
 
 
-# calculate in water velocity
-phy$velocity <- sqrt(phy$horizontal.vel^2 + phy$vertical.vel^2)
+# in water velocity is the horizontal velocity
+phy$velocity <- phy$horizontal.vel
 # convert it in m/s
 phy$velocity <- phy$velocity / 1000
 
@@ -206,6 +206,7 @@ ggplot(data=phy) + geom_histogram(aes(x=velocity), binwidth=0.01)
 # mean velocity is really close to 2.5, which is what we want
 mean(phy$velocity, na.rm=TRUE)
 
+phy <- phy[, -which(names(phy)=="horizontal.vel")]
 # }
 
 ##{ Calculate seawater density --------------------------------------------
