@@ -171,10 +171,16 @@ ggplot(d[d$abund != 0,]) + geom_histogram(aes(x=concentration)) + facet_wrap(~ta
 
 ggplot(d) + geom_histogram(aes(x=volume), binwidth=0.1)
 
+# inspect concentrations
 alply(unique(d$group), 1, function(group) {
   ggplot(d[d$group==group,]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 })
-# -> there seem to be a few very high values of abundance, often near the surface
+
+# inspect abundances
+alply(unique(d$group), 1, function(group) {
+  ggplot(d[d$group==group,]) + geom_point(aes(x=long, y=-depth, size=abund, colour=abund>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
+})
+# -> there seem to be a few very high values of abundance, particularly with rare taxa such as siphonophores
 # TODO find out wether this is present in the original data or is caused by the binning
 
 # }
