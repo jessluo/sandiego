@@ -1,5 +1,5 @@
 #
-#      Associate physical variables to each count through inteprolation
+#      Associate physical variables to each count through interpolation
 #
 #  (c) Copyright 2013 Jean-Olivier Irisson
 #                     Jessica Luo
