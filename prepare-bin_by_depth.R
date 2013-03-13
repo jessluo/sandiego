@@ -31,7 +31,7 @@ bio$dateTime <- as.POSIXct(bio$dateTime, tz="GMT")
 ##{ Compute time bins on physical data ------------------------------------
 
 # depth bin size in m
-binSize <- 1
+binSize <- 2
 
 # per cast, interpolate the times corresponding to the crossing of the depth bins
 timeBins <- dlply(phy, ~transect+cast+down.up, function(x, bin) {
@@ -105,9 +105,12 @@ phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
  
   # compute volume sampled in that bin (in m^3)
   #             ISIIS field in m^2  *  speed in m/s           *  duration in s  
-  out$volume <- 0.13 * 0.45         *  (out$velocity)         *  out$duration
+  out$volume <- 0.13 * 0.50         *  (out$velocity)         *  out$duration
+  # To consider doing: this theoretical field of view is for large organisms like jellies. For smaller appendicularians, your field of view would be smaller (possibly 13 cm x 40 or 45 cm) because of the difficulty in resolving appendicularians when they are too close to the glass.
+  
   # TODO check compared to computation using volume per frame and frames per second
-
+  # --> checked with calculating of frames per second, some of the data bins have a duration per frame value greater than 0.75 seconds. using 1 m depth bins, some of the bins have values greater than 1.5 seconds, which seem high. using 2 m depth bin, this smooths out the high values a bit (down to 1.3 seconds per frame) However, this is only present in 1-1.3% of the bins and this percentage seems to be consistent with depth bin sizes up to 5 m
+  
   return(out)
 }, .progress="text", .parallel=parallel)
 
