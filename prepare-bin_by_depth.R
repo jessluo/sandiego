@@ -129,7 +129,7 @@ bioB <- ddply(bio, ~ transect + cast.bio + dateTimeB + group + taxon, function(x
   abund <- x$count * x$sub
   # compute total abundances
   tot <- sum(abund, na.rm=T)
-  # TODO for organisms that were subsampled, this may result in errors because subsampling intervals would overlap with the previous and next frames. This is especially critical for appendicularians which were subsampled every 20 frames while 1m bins correspond to approximately 39 frames when ISIIS is goind down fast
+  # TODO for organisms that were subsampled, this may result in errors because subsampling intervals would overlap with the previous and next frames. This is especially critical for appendicularians which were subsampled every 20 frames while 1m bins correspond to approximately 39 frames when ISIIS is going down fast
   return(c(abund=tot))
 }, .progress="text", .parallel=parallel)
 
@@ -146,6 +146,7 @@ bioB <- ddply(bio, ~ transect + cast.bio + dateTimeB + group + taxon, function(x
 dc <- unique(bio$cast.bio[which(bio$group=="Hydromedusae" & bio$transect==2)])
 phyB <- phyB[which(phyB$down.up=="down" & phyB$transect==2 & phyB$cast %in% dc),]
 bioB <- bioB[which(bioB$transect==2 & bioB$cast.bio %in% dc),]
+# one problem with selecting only downcasts is that if one depth bin spans both downcasts and upcasts, then both the duration of the depth bin as well as the volume sampled is wrong, which changes the calculated concentration of the organisms
 
 # join bio and phy data by time bin
 # make sure we create zeros for species absent in each bin
