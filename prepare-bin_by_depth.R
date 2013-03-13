@@ -139,13 +139,15 @@ bioB <- ddply(bio, ~ transect + cast.bio + dateTimeB + group + taxon, function(x
 ##{ Join physical and biological data -------------------------------------
 # take physical data as reference to create zeros when nothing was caught in a bin
 
+# ---this section is commented out because the selection shouldn't be done manually before the binning---
 # select only downcasts since biological data was aquired only on down casts
 # phyB <- phyB[phyB$down.up == "down",]
+# # select only downcasts in which all the biological data is present (transect 2 only)
+# dc <- unique(bio$cast.bio[which(bio$group=="Hydromedusae" & bio$transect==2)])
+# phyB <- phyB[which(phyB$down.up=="down" & phyB$transect==2 & phyB$cast %in% dc),]
+# bioB <- bioB[which(bioB$transect==2 & bioB$cast.bio %in% dc),]
+# ---
 
-# select only downcasts in which all the biological data is present (transect 2 only)
-dc <- unique(bio$cast.bio[which(bio$group=="Hydromedusae" & bio$transect==2)])
-phyB <- phyB[which(phyB$down.up=="down" & phyB$transect==2 & phyB$cast %in% dc),]
-bioB <- bioB[which(bioB$transect==2 & bioB$cast.bio %in% dc),]
 # one problem with selecting only downcasts is that if one depth bin spans both downcasts and upcasts, then both the duration of the depth bin as well as the volume sampled is wrong, which changes the calculated concentration of the organisms
 
 # join bio and phy data by time bin
@@ -164,6 +166,24 @@ d <- ddply(bioB[,c("dateTimeB", "group", "taxon", "abund")], ~ taxon, function(b
 # compute concentrations
 d$concentration <- d$abund / d$volume
 
+# remove the zeros for the transects / casts in which data was not recorded (these are not true zeros)
+# steps:
+# 1. Use ddply to mark and delete transects in which no data was recorded for each group. 
+d1 <- ddply(d, ~ transect + group, function(x){
+  x$tfzero <- sum(x$abund) != 0
+  return(x)
+})
+
+d <- d1[which(d1$tfzero),]
+# problem here because some hydromedusae and appendicularians somehow got merged with physical data from the third transect, which should not happen (hydromedusae and appendicularians were not counted yet in the 3rd transect) 
+# this has to do with the NAs in the timeBins ... see above comment in the timeBins section. Maybe caused by the binning process?
+
+# 2. Mark the depth bins in which both down casts and upcasts are captured
+# 3. Remove all upcasts 
+# 4. Use ddply to identify and mark all down casts in which there is no data for each group
+# 5. Recalculate volume sampled for the portions of casts in which it is captured in one depth bin
+
+# 
 # }
 
 
