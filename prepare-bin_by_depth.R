@@ -43,7 +43,8 @@ timeBins <- dlply(phy, ~transect+cast+down.up, function(x, bin) {
   
   # compute corresponding crossing times
   timeBins <- approx(x$depth, x$dateTime, depthBins)$y
-  # TODO try to extrapolate to get the first points and not loose data
+  # TODO try to extrapolate to get the first points and not lose data
+  # Does this cause the NAs in the timeBins?
   
   return(timeBins)
 }, bin=binSize, .progress="text")
@@ -121,6 +122,10 @@ phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
 
 # create the bins (with labels consistent with the physical data)
 bio$dateTimeB <- cut(bio$dateTime, breaks=timeBins, labels=1:(length(timeBins)-1))
+
+# there is an issue with the timeBins in the biological data. NA values in downcast 1, transect 1
+bio[which(is.na(bio$dateTimeB)),]
+# inspect this and figure out what is going on
 
 # compute total abundance per taxon per bin
 bioB <- ddply(bio, ~ transect + cast.bio + dateTimeB + group + taxon, function(x) {
