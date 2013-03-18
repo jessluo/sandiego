@@ -401,6 +401,16 @@ h <- adply(hFiles, 1, function(file) {
   # missing values (blanks) are actually 0
   d[is.na(d)] <- 0
   
+  # TODO: consider whether you want to split up the H7 groups in the future, as Rhopalonema and Cucina are fairly different
+  # in third transect, we took note of the differences between the two and recorded them as different
+  # for the purposes of having a homogonized data set, we will combine them here
+  if ("h7.cucina" %in% names(d)){
+    d$h7 <- d$h7 + d$h7.cucina
+    d <- d[,!names(d) %in% "h7.cucina"]
+  }
+  
+  d$h14 <- ifelse (("h14" %in% names(d)), d$h14, 0)
+  
   # compute the date + time
   # detect starting day from the file name
   file <- str_replace(file, bioData, "")
@@ -418,7 +428,7 @@ h <- adply(hFiles, 1, function(file) {
 })
 
 # remove taxa we are not interested in
-h <- h[,!names(h) %in% c("muat", "lemu", "spko", "si.2.eu", "nabi", "agel", "coor")]
+h <- h[,!names(h) %in% c("h8", "muat", "lemu", "spko", "si.2.eu", "nabi", "agel", "coor", "foed")]
 # and the stuff that's added by adply
 h <- h[,!names(h) %in% c("X1")]
 
