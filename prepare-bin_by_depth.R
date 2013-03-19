@@ -114,9 +114,12 @@ phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
 # create the bins (with labels consistent with the physical data)
 bio$dateTimeB <- cut(bio$dateTime, breaks=timeBins, labels=1:(length(timeBins)-1))
 
-# there is an issue with the timeBins in the biological data. NA values in downcast 1, transect 1
+# TODO there is an issue with the timeBins in the biological data. NA values in downcast 1, transect 1
 bio[which(is.na(bio$dateTimeB)),]
-# inspect this and figure out what is going on
+# --> these NAs are data points near the surface where phy data have NA values in dateTimeB (first depth bin is not marked)
+
+# until can fix the binning issue, remove these data points
+bio <- bio[complete.cases(bio),]
 
 # compute total abundance per taxon per bin
 bioB <- ddply(bio, ~ transect + cast.bio + dateTimeB + group + taxon, function(x) {
@@ -161,6 +164,10 @@ d <- ddply(bioB[,c("dateTimeB", "group", "taxon", "abund")], ~ taxon, function(b
 
 # compute concentrations
 d$concentration <- d$abund / d$volume
+
+# TODO: remove this later when you have solved the NA problem in computing timeBins
+d <- d[complete.cases(d$dateTimeB),]
+
 
 # remove the zeros for the transects / casts in which data was not recorded (these are not true zeros)
 # steps:
