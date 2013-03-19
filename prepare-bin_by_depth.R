@@ -172,20 +172,38 @@ d <- d[complete.cases(d$dateTimeB),]
 # remove the zeros for the transects / casts in which data was not recorded (these are not true zeros)
 # steps:
 # 1. Use ddply to mark and delete transects in which no data was recorded for each group. 
-d1 <- ddply(d, ~ transect + group, function(x){
+d <- ddply(d, ~ transect + group, function(x){
   x$tfzero <- sum(x$abund) != 0
   return(x)
 })
 
-d <- d1[which(d1$tfzero),]
+d <- d[which(d$tfzero),]
 # problem here because some hydromedusae and appendicularians somehow got merged with physical data from the third transect, which should not happen (hydromedusae and appendicularians were not counted yet in the 3rd transect) 
 # this has to do with the NAs in the timeBins ... see above comment in the timeBins section. Maybe caused by the binning process?
 
 # 2. Mark the depth bins in which both down casts and upcasts are captured
-# 3. Remove all upcasts 
-# 4. Use ddply to identify and mark all down casts in which there is no data for each group
-# 5. Recalculate volume sampled for the portions of casts in which it is captured in one depth bin
+# this can't be done here --- must be done above before binning
 
+# 3. Remove all upcasts 
+d <- d[which(d$down.up == "down"),]
+
+# 4. Use ddply to identify and mark all down casts in which there is no data for each group
+d <- ddply(d, ~transect + cast + group, function(x){
+  x$tfzero <- sum(x$abund) != 0
+  return(x)
+})
+
+d <- d[which(d$tfzero),]
+
+# inspect
+d1 <- d[which(d$tfzero==F),]
+
+d_ply(d1, ~transect + cast + group, function(x){
+  s <- c(unique(x$transect), unique(x$cast), unique(x$group))
+  print(s)
+})
+
+ 
 # 
 # }
 
@@ -211,7 +229,7 @@ alply(unique(d$group), 1, function(group) {
   ggplot(d[d$group==group,]) + geom_point(aes(x=long, y=-depth, size=abund, colour=abund>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 })
 # -> there seem to be a few very high values of abundance, particularly with rare taxa such as siphonophores
-# TODO find out wether this is present in the original data or is caused by the binning
+# TODO find out whether this is present in the original data or is caused by the binning
 
 # }
 
