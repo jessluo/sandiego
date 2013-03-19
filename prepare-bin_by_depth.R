@@ -78,20 +78,11 @@ phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
     out$duration <- 0.6048
   }
   
-  # out$n <- nrow(x)
+  out$n <- nrow(x)
   
   # compute average date
   out$dateTime <- mean(x$dateTime, na.rm=T)
   
-  
-  # we are not using vertical velocity so this section is unnecessary
-  #   # recompute vertical velocity in this larger bin (more precise)
-  #   # remove records in which either depth or time is missing
-  #   xS <- x[,c("depth", "dateTime")]
-  #   xS <- na.omit(xS)
-  #   # compute the vertical speed
-  #   out$vertical.vel <- diff(range(xS$depth)) / as.numeric(diff(range(xS$dateTime))) * 1000
-
   # when horizontal velocity is not available, assign something to it to be able to compte actual velocity
   # try to compute it from distance travelled
   # dist <- max(geodDist(x$lat, x$long, alongPath=TRUE)) * 1000 * 1000
