@@ -14,7 +14,7 @@ library("ggplot2")
 
 # read data
 phy <- read.csv("data/phy.csv", stringsAsFactors=FALSE)
-# phy$dateTime <- as.POSIXct(phy$dateTime, tz="GMT")
+phy$dateTime <- as.POSIXct(phy$dateTime, tz="GMT")
 # NB: make sure time is set in GMT (even if it wasn't) to avoid dealing with tz afterwards
 
 
@@ -119,8 +119,9 @@ n <- 50
 xo <- seq(min(phy$distTr, na.rm=T), max(phy$distTr, na.rm=T), length.out=n*4)
 yo <- seq(0, max(phy$depth, na.rm=T), length.out=n)
 
+# Interpolate temperature
 ti <- ddply(phy, ~transect, function(x) {
-  # have to subet otherwise interp fails
+  # have to subset otherwise interp fails
   # no idea why...
   x <- x[seq(1, nrow(x), 2),]
 
@@ -139,24 +140,85 @@ ggplot(ti) + geom_tile(aes(x=dist, y=-depth, fill=temp)) + geom_contour(aes(x=di
 write.csv(ti, file="data/interp_temp.csv", row.names=FALSE)
 
 
-# tried to interpolate salinity but it is returning NAs
-
-
-ti <- ddply(phy, ~transect, function(x) {
+# Interpolate density
+swi <- ddply(phy, ~transect, function(x) {
   # have to subet otherwise interp fails
   # no idea why...
-  x <- x[seq(1, nrow(x), 2),]
+  x <- x[seq(1, nrow(x), 3),]
   
   # interpolate
-  ti <- interp(x$distTr, x$depth, x$swRho, xo=xo, yo=yo, duplicate="mean")
+  swi <- interp(x$distTr, x$depth, x$swRho, xo=xo, yo=yo, duplicate="mean")
   
   # convert the result to data.frame form
-  ti <- list2frame(ti)
-  return(ti)
+  swi <- list2frame(swi)
+  return(swi)
 }, .progress="text")
-names(ti) <- c("transect", "dist", "depth", "swRho")
-ti$dist <- ti$dist * f
+names(swi) <- c("transect", "dist", "depth", "swRho")
+swi$dist <- swi$dist * f
 
-ggplot(ti) + geom_tile(aes(x=dist, y=-depth, fill=temp)) + geom_contour(aes(x=dist, y=-depth, z=temp), colour="white", size=0.5, alpha=0.5) + facet_grid(transect~.)
+ggplot(swi) + geom_tile(aes(x=dist, y=-depth, fill=swRho)) + geom_contour(aes(x=dist, y=-depth, z=swRho), colour="white", swize=0.5, alpha=0.5) + facet_grid(transect~.)
+
+write.csv(swi, file="data/interp_swRho.csv", row.names=FALSE)
+
+
+# Interpolate salinity
+si <- ddply(phy, ~transect, function(x) {
+  # have to subet otherwise interp fails
+  # no idea why...
+  x <- x[seq(1, nrow(x), 3),]
+  
+  # interpolate
+  si <- interp(x$distTr, x$depth, x$salinity, xo=xo, yo=yo, duplicate="mean")
+  
+  # convert the result to data.frame form
+  si <- list2frame(si)
+  return(si)
+}, .progress="text")
+names(si) <- c("transect", "dist", "depth", "salinity")
+si$dist <- si$dist * f
+
+ggplot(si) + geom_tile(aes(x=dist, y=-depth, fill=salinity)) + geom_contour(aes(x=dist, y=-depth, z=salinity), colour="white", size=0.5, alpha=0.5) + facet_grid(transect~.)
+
+write.csv(si, file="data/interp_salinity.csv", row.names=FALSE)
+
+# Interpolate fluorometry
+fi <- ddply(phy, ~transect, function(x) {
+  # have to subet otherwise interp fails
+  # no idea why...
+  x <- x[seq(1, nrow(x), 3),]
+  
+  # interpolate
+  fi <- interp(x$distTr, x$depth, x$fluoro, xo=xo, yo=yo, duplicate="mean")
+  
+  # convert the result to data.frame form
+  fi <- list2frame(fi)
+  return(fi)
+}, .progress="text")
+names(fi) <- c("transect", "dist", "depth", "fluoro")
+fi$dist <- fi$dist * f
+
+ggplot(fi) + geom_tile(aes(x=dist, y=-depth, fill=fluoro)) + geom_contour(aes(x=dist, y=-depth, z=fluoro), colour="white", size=0.5, alpha=0.5) + facet_grid(transect~.)
+
+write.csv(fi, file="data/interp_fluoro.csv", row.names=FALSE)
+
+# Interpolate oxygen
+oi <- ddply(phy, ~transect, function(x) {
+  # have to subet otherwise interp fails
+  # no idea why...
+  x <- x[seq(1, nrow(x), 3),]
+  
+  # interpolate
+  oi <- interp(x$distTr, x$depth, x$oxygen, xo=xo, yo=yo, duplicate="mean")
+  
+  # convert the result to data.frame form
+  oi <- list2frame(oi)
+  return(oi)
+}, .progress="text")
+names(oi) <- c("transect", "dist", "depth", "oxygen")
+oi$dist <- oi$dist * f
+
+ggplot(oi) + geom_tile(aes(x=dist, y=-depth, fill=oxygen)) + geom_contour(aes(x=dist, y=-depth, z=oxygen), colour="white", size=0.5, alpha=0.5) + facet_grid(transect~.)
+
+write.csv(oi, file="data/interp_oxygen.csv", row.names=FALSE)
 # }
 
