@@ -31,7 +31,7 @@ bio$dateTime <- as.POSIXct(bio$dateTime, tz="GMT")
 ##{ Compute time bins on physical data ------------------------------------
 
 # depth bin size in m
-binSize <- 2
+binSize <- 1
 
 # per cast, interpolate the times corresponding to the crossing of the depth bins
 timeBins <- dlply(phy, ~transect+cast+down.up, function(x, bin) {
@@ -89,10 +89,11 @@ phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
   # (h.vel <- dist / out$duration)
   # # the problem is that there is not enough precision in the lat/long in order to truly calculate a distance
   # assign the mean/median velocity instead
-  # median = 2470 mm/s (2.470 m/s)
-  # mean = 2474.009 mm/s (2.474 m/s)
+  # choose the mean/median velocity of downcasts
+  # median = 2511 mm/s (2.551 m/s)
+  # mean = 2511.884 mm/s (2.511884 m/s)
   if (is.na(out$velocity)) {
-    out$velocity <- 2.470
+    out$velocity <- 2.5119
   }
  
   # compute volume sampled in that bin (in m^3)
@@ -202,7 +203,6 @@ d_ply(d1, ~transect + cast + group, function(x){
   s <- c(unique(x$transect), unique(x$cast), unique(x$group))
   print(s)
 })
-
  
 # 
 # }
