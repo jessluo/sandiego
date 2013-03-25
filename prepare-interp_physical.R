@@ -137,6 +137,8 @@ ti$dist <- ti$dist * f
 
 ggplot(ti) + geom_tile(aes(x=dist, y=-depth, fill=temp)) + geom_contour(aes(x=dist, y=-depth, z=temp), colour="white", size=0.5, alpha=0.5, breaks=c(10, 15)) + facet_grid(transect~.)
 
+ggplot(ti) + geom_tile(aes(x=dist/1000, y=-depth, fill=temp)) + geom_contour(aes(x=dist, y=-depth, z=temp), colour="white", size=0.5, alpha=0.5, breaks=c(10, 15)) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth") + scale_fill_gradient("Temp (C)", na.value="grey80", low = "#2d669f", high = "#c8dcef")
+
 write.csv(ti, file="data/interp_temp.csv", row.names=FALSE)
 
 
@@ -221,4 +223,3 @@ ggplot(oi) + geom_tile(aes(x=dist, y=-depth, fill=oxygen)) + geom_contour(aes(x=
 
 write.csv(oi, file="data/interp_oxygen.csv", row.names=FALSE)
 # }
-
