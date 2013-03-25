@@ -231,6 +231,13 @@ alply(unique(d$group), 1, function(group) {
 # -> there seem to be a few very high values of abundance, particularly with rare taxa such as siphonophores
 # TODO find out whether this is present in the original data or is caused by the binning
 
+# subset plots
+ggplot(d[d$taxon %in% c("h5_Liriope", "h6_Solmundella", "vsh", "h7_Pegantha", "h7_Rhopalonema", "h9_Aglaura", "h2_Haliscera"),]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
+
+ggplot(d[d$taxon %in% c("h5_Liriope"),]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
+
+ggplot(d[d$taxon %in% c("Beroida", "Hormiphora californiensis", "Larval Lobata", "Ocyropsis maculata", "Velamen"),]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
+
 # }
 
 write.csv(d, "data/all_binned_by_depth.csv", row.names=FALSE)
