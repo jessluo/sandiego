@@ -41,7 +41,6 @@ dg <- ddply(d, ~transect + cast + down.up + dateTimeB + group2, function(x) {
   return(data.frame(x[1,vars], concentration=tot, dateTime=timeavg))
 }, .parallel=TRUE)
 
-
 # casting data into wide format with group 2
 dgC <- dcast (dg, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + fluoro + oxygen ~ group2, value.var="concentration")
 
@@ -68,32 +67,19 @@ head(summary(allCA)) # first two CA axes explain 56% of the variance
 plot(allCA, scaling=2, main="CA biplot of species concentrations")
 text(allCA, dis="sp", col="red")
 
-# removing the appendicularians from the CA
-dCspp <- dgC[,names(dgC) %in% c("Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
-dCspp <- dCspp[-which(rowSums(dCspp)==0),]
-dCspp <- na.omit(dCspp)
-allCA <- cca(dCspp)
-head(summary(allCA)) # first two CA axes explain 59% of the variance
-plot(allCA, scaling=2, main="CA biplot of species concentrations")
-text(allCA, dis="sp", col="red")
-# --> removing the appendicularians improves the proportion explained of the first CA a little bit. But in this case you should not remove the appendicularians from the data because the differences that you would see in the appendicularians compared to the other data would show up in the CA biplot
+# # removing the appendicularians from the CA
+# dCspp <- dgC[,names(dgC) %in% c("Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
+# dCspp <- dCspp[-which(rowSums(dCspp)==0),]
+# dCspp <- na.omit(dCspp)
+# allCA <- cca(dCspp)
+# head(summary(allCA)) # first two CA axes explain 59% of the variance
+# plot(allCA, scaling=2, main="CA biplot of species concentrations")
+# text(allCA, dis="sp", col="red")
+# # --> removing the appendicularians improves the proportion explained of the first CA a little bit. But in this case you should not remove the appendicularians from the data because the differences that you would see in the appendicularians compared to the other data would show up in the CA biplot
 
 # it would be nice to plot the CA plots with different colors representing different depths or longitudes. does autoplot work for CA?
 # can do it by hand, just grab the relevant variables from the CA output and put it in a data frame for ggplot to plot
 
-# CA with sqrt transformation
-dCspp <- dgC[,names(dgC) %in% c("Ctenophores", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]
-# removes rows that sum to zero and are also NAs
-dCspp <- dCspp[-which(rowSums(dCspp)==0),]
-dCspp <- na.omit(dCspp)
-# square root transform
-dCspp <- sqrt(dCspp)
-allCA <- cca(dCspp)
-head(summary(allCA)) # first two CA axes explain 64% of the variance
-plot(allCA, scaling=2, main="CA biplot of species concentrations")
-text(allCA, dis="sp", col="red")
-# so the proportion of variance explained does not change too much based on the transformation or no transformation, but the biplot changes quite a bit
-# maybe because the difference between the large values of the large solmaris compared to the 0's and 1's of the ctenophores and hydromedusae made the first set of plots on the untransformed data have this "V" like shape -- which is less pronounced in this plot.
 
 # CA with log transformation - this is preferred because the variables are not normally distributed. And even if you can normally distribute the abundances, with the zeros it is not normally distributed. 
 # Sakina said that it would be better to perform the log transformation and perform the CA on the log transformed data anyway, even if the zeros make it so that your data is no longer normal
@@ -108,6 +94,68 @@ head(summary(allCA)) # first two CA axes explain 65% of the variance
 plot(allCA, scaling=2, main="CA biplot of species concentrations")
 text(allCA, dis="sp", col="red")
 # the first 3 CA axes are important. Can create a ggplot just like the CA biplot and change the colors of the site points to be related to the scores along the third axis. That way you can look at the influence of the three axes at all once. 
+
+
+######## CA on each taxon separately ####### 
+library("pastecs")
+
+# Ctenophores
+# subsetting and casting data into wide format
+ds <- d[d$group=="Ctenophores",]
+dsC <- dcast (ds, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + swRho + fluoro + oxygen ~ taxon, value.var="concentration")
+dCspp <- dsC[,names(dsC) %in% c("Beroida", "Bolinopsis", "Charistephane", "Dryodora glandiformis", "Haeckelia beehlri", "Hormiphora californiensis", "Juvenile Lobata", "Larval Lobata", "Mertensid", "Ocyropsis maculata", "Pleurobrachia", "Thalassocalycidae inconstans", "Velamen")]
+colSums (dCspp)
+# --> Pleurobrachia, Charistephane, Bolinopsis and Dryodora are the least common species
+
+# select some taxa using Escoufier’s equivalent vectors -- escouf on dCspp 
+ct.escouf <- escouf(dCspp)
+plot(ct.escouf)
+# --> these taxa are all different, just arbitrarily select some
+#mmyLevel <- identify(ct.escouf)
+#selectedTaxa <- extract(ct.escouf, level=mmyLevel)
+
+# removes rows that sum to zero and are also NAs
+dCspp <- dCspp[-which(rowSums(dCspp)==0),]
+dCspp <- na.omit(dCspp)
+# log transform
+dCspp <- log(dCspp+1)
+allCA <- cca(dCspp)
+head(summary(allCA)) # first two CA axes explain 29% of the variance
+plot(allCA, scaling=2, main="CA biplot of species concentrations")
+text(allCA, dis="sp", col="red")
+# axes 2 and 3
+plot(allCA, scaling=2, main="CA biplot of species concentrations", choice=2:3)
+text(allCA, dis="sp", col="red", choice=2:3)
+#
+# Hydromedusae
+# subsetting and casting data into wide format
+ds <- d[d$group=="Hydromedusae",]
+dsC <- dcast (ds, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + swRho + fluoro + oxygen ~ taxon, value.var="concentration")
+dCspp <- dsC[,names(dsC) %in% c("Annatiara", "h1", "h10_Pegantha", "h11_Haliscera", "h13", "h15", "h2_Haliscera", "h3_Cunina", "h5_Liriope", "h5b", "h6_Solmundella", "h7_Pegantha",  "h7_Rhopalonema", "h9_Aglaura", "h9_Arctapodema", "r1", "r2", "r3", "r4_Aegina", "r5_Eutonia", "vsh")]
+colSums (dCspp)
+# select some taxa
+# Compute Escoufier’s equivalent vectors using escouf on dCspp 
+hydro.escouf <- escouf(dCspp)
+plot(hydro.escouf)
+# --> again, all the taxa are different
+
+# mmyLevel <- identify(hydro.escouf)
+# selectedTaxa <- extract(hydro.escouf, level=mmyLevel)
+
+dCspp <- dsC[,names(dsC) %in% c("Annatiara", "h1", "h10_Pegantha", "h11_Haliscera", "h15", "h2_Haliscera", "h3_Cunina", "h5_Liriope", "h5b", "h6_Solmundella", "h7_Pegantha",  "h7_Rhopalonema", "h9_Aglaura", "r3", "r4_Aegina", "r5_Eutonia", "vsh")]
+
+# removes rows that sum to zero and are also NAs
+dCspp <- dCspp[-which(rowSums(dCspp)==0),]
+dCspp <- na.omit(dCspp)
+# log transform
+dCspp <- log(dCspp+1)
+allCA <- cca(dCspp)
+head(summary(allCA)) # first two CA axes explain 29% of the variance
+plot(allCA, scaling=2, main="CA biplot of species concentrations")
+text(allCA, dis="sp", col="red")
+# axes 2 and 3
+plot(allCA, scaling=2, main="CA biplot of species concentrations", choice=2:3)
+text(allCA, dis="sp", col="red", choice=2:3)
 
 
 # }
