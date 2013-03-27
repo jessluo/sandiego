@@ -226,12 +226,18 @@ phy <- phy[, -which(names(phy)=="pressure")]
 
 # there is still an issue here with the numbering of the casts. in transect 2, the first minute and a half of data is at the surface and it is marked as an upcast. 
 # brute force method of removal -- as a temporary fix so I can do the joining. think of a better way to detect this and remove the data
-phy <- phy[-which(phy$transect==2)[1:400],]
+phy$flag <- FALSE
+phy$flag[which(phy$transect==2)[1:370]] <- TRUE
+phy$flag[which(phy$transect==3)[1:50]] <- TRUE
+# p <- ggplot(data=phy) + geom_path(aes(x=long, y=-depth, colour=flag), size=0.5) + facet_grid(transect ~.)
+# p + xlim(-119.15, -119.1)
+# p + xlim(-119.95, -119.9)
+phy <- phy[!phy$flag,]
 
 phy <- ddply(phy, ~transect, function(d) {
   # detect up and down casts by smoothing the depth profile and finding the turning points
   # smooth depths
-  order <- 100
+  order <- 25
   # tested options between 10-20, correct number after order=14. use order between 16-20 for robustness
   depth_avg <- decaverage(-d$depth, times=3, weights=c(seq(1, order), order+1, seq(order, 1, -1)))
   # plot(depth_avg)
@@ -272,7 +278,18 @@ phy <- ddply(phy, ~transect, function(d) {
 
 
 # check cast numbering
-ggplot(data=phy) + geom_path(aes(x=long, y=-depth, colour=as.factor(cast), linetype=factor(down.up))) + facet_grid(transect ~.) 
+ddply(phy, ~transect+cast, nrow)
+
+ggplot(data=phy) + geom_path(aes(x=long, y=-depth, colour=factor(cast), linetype=down.up), size=0.5) + facet_grid(transect ~.) 
+
+# inspect turniing points to check the accuracy of the detection of up and down casts
+# p <- ggplot(data=phy) + geom_point(aes(x=long, y=-depth, colour=down.up), size=1) + facet_grid(transect ~.)
+# pieces <- seq(min(phy$long), max(phy$long), length.out=8)
+# for (i in 1:(length(pieces)-1)) {
+#   print(p + ylim(-7,0) + xlim(pieces[i], pieces[i+1]))
+#   print(p + ylim(-138,-123) + xlim(pieces[i], pieces[i+1]))
+# }
+# it is better at the surface than at depth, but good enough
 
 # }
 
