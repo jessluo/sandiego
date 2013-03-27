@@ -204,7 +204,7 @@ d_ply(d1, ~transect + cast + group, function(x){
   print(s)
 })
  
-# 
+d <- d[,-which(names(d)=="tfzero")]# 
 # }
 
 
