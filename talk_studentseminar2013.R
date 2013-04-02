@@ -8,6 +8,8 @@ library("plyr")
 library("reshape2")
 library("ggplot2")
 library("oce")
+`%ni%` <- Negate(`%in%`) 
+library("pastecs")
 
 
 ##{ Read data ------------------------------------------------
@@ -101,6 +103,34 @@ ggplot(d[d$concentration>0,]) + geom_violin(aes(x=front, y=-depth, weight=concen
 
 # }
 
+##{ Ctenophore assemblage analysis -------------------------------------------------
+#  CA on ctenophores
+
+# subsetting and casting data into wide format
+ds <- d[d$group=="Ctenophores",]
+dsC <- dcast (ds, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + swRho + fluoro + oxygen ~ taxon, value.var="concentration")
+dCspp <- dsC[,names(dsC) %in% c("Beroida", "Bolinopsis", "Charistephane", "Dryodora glandiformis", "Haeckelia beehlri", "Hormiphora californiensis", "Juvenile Lobata", "Larval Lobata", "Mertensid", "Ocyropsis maculata", "Pleurobrachia", "Thalassocalycidae inconstans", "Velamen")]
+colSums (dCspp)
+# --> Pleurobrachia, Charistephane, Bolinopsis and Dryodora are the least common species
+
+# select some taxa using Escoufier’s equivalent vectors -- escouf on dCspp 
+ct.escouf <- escouf(dCspp)
+plot(ct.escouf)
+# --> these taxa are all different, just arbitrarily select some
+
+# removes rows that sum to zero and are also NAs
+dCspp <- dCspp[-which(rowSums(dCspp)==0),]
+dCspp <- na.omit(dCspp)
+# log transform
+dCspp <- log(dCspp+1)
+allCA <- cca(dCspp)
+head(summary(allCA)) # first two CA axes explain 29% of the variance
+plot(allCA, scaling=2, main="CA biplot of species concentrations")
+text(allCA, dis="sp", col="red")
+# axes 2 and 3
+plot(allCA, scaling=2, main="CA biplot of species concentrations", choice=2:3)
+text(allCA, dis="sp", col="red", choice=2:3)
+#
 
 # }
 
