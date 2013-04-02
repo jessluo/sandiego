@@ -18,8 +18,6 @@ d$dateTime <- as.POSIXct(d$dateTime, tz="GMT")
 phy <- read.csv("data/phy.csv", stringsAsFactors=FALSE)
 phy$dateTime <- as.POSIXct(phy$dateTime, tz="GMT")
 # NB: make sure time is set in GMT (even if it wasn't) to avoid dealing with tz afterwards
-bio <- read.csv("data/bio.csv", stringsAsFactors=FALSE)
-bio$dateTime <- as.POSIXct(bio$dateTime, tz="GMT")
 
 
 ti <- read.csv("data/interp_temp.csv", stringsAsFactors=FALSE)
@@ -85,10 +83,24 @@ oplot <- ggplot(oi) + geom_tile(aes(x=dist/1000, y=-depth, fill=oxygen)) + geom_
 # }
 
 
+##{ Generate plots --------------------------------------------------------
 
-# plotting just the appendicularians only
+# general density plots
+ggplot(d) + geom_density(aes(x=-depth, weight=concentration, colour=group2), alpha=0.5) + coord_flip() + labs(y="Density", x="Depth", title="Depth distribution", colour="Taxon")
 
-Tplot + geom_point(aes(x=dist/1000, y=-depth, size=concentration, colour=concentration>0), alpha=0.7, data=d[d$taxon=="appendicularians",]) + facet_grid(transect~.,) + scale_colour_manual("Presence / Absence", values=c("grey60", "black")) + scale_size_area("Density", range=c(1,10)) + labs(title="Appendicularians")
+# density plots with three transects separated
+ggplot(d) + geom_density(aes(x=-depth, weight=concentration, colour=group2), alpha=0.5) + facet_grid(transect~.) + coord_flip() + labs(y="Density", x="Depth", title="Depth distribution", colour="Taxon")
+
+# density plot without appendicularians, with and without transects separated
+ggplot(d[d$taxon != "appendicularians",]) + geom_density(aes(x=-depth, weight=concentration, colour=group2), alpha=0.5) + coord_flip() + labs(y="Density", x="Depth", title="Depth distribution", colour="Taxon")
+
+ggplot(d[d$taxon != "appendicularians",]) + geom_density(aes(x=-depth, weight=concentration, colour=group2), alpha=0.5) + facet_grid(transect~.) + coord_flip() + labs(y="Density", x="Depth", title="Depth distribution", colour="Taxon")
+
+# violin plot comparing depth distribution of all taxa with respect to transect and position relative to the front
+ggplot(d[d$concentration>0,]) + geom_violin(aes(x=front, y=-depth, weight=concentration, colour=group2), alpha=0.4) + facet_grid(transect~group2) + labs(colour="Taxon")
+
+# }
+
 
 # }
 
