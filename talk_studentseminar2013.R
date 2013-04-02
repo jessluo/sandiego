@@ -132,6 +132,36 @@ plot(allCA, scaling=2, main="CA biplot of species concentrations", choice=2:3)
 text(allCA, dis="sp", col="red", choice=2:3)
 #
 
+# subset the ctenophores
+rare <- c("Bolinopsis", "Charistephane", "Dryodora glandiformis", "Pleurobrachia", "Unknown")
+dct <- d[d$group=="Ctenophores" & d$taxon %ni% rare,]
+
+# initiate
+dct$assemblage <- NA
+
+# define the assemblages in the data frame
+a1 <- c("Ocyropsis maculata", "Juvenile Lobata", "Thalassocalycidae inconstans")
+a2 <- c("Beroida", "Larval Lobata", "Haeckelia beehlri", "Mertensid")
+a3 <- "Hormiphora californiensis"
+a4 <- "Velamen"
+dct[dct$taxon %in% a1,]$assemblage=1
+dct[dct$taxon %in% a2,]$assemblage=2
+dct[dct$taxon %in% a3,]$assemblage=3
+dct[dct$taxon %in% a4,]$assemblage=4
+
+# order the taxa according to assemblage
+dct$taxon <- factor(dct$taxon, levels=c("Ocyropsis maculata", "Juvenile Lobata", "Thalassocalycidae inconstans", "Beroida", "Larval Lobata", "Haeckelia beehlri", "Mertensid", "Hormiphora californiensis", "Velamen"))
+
+# all data together, Ctenophore densities by taxon
+ggplot(dct) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
+
+# violin plots with constant widths (scaled to the same width) -- this is appropriate for presenting the CA analysis
+ggplot(dct[dct$concentration>0,]) + geom_violin(aes(x=taxon, y=-depth, weight=concentration, colour=factor(assemblage)), alpha=0.7, scale="width") + labs(colour="Taxon")
+
+# Ocyropsis and larval lobates only
+ggplot(dct[dct$taxon %in% c("Ocyropsis maculata", "Larval Lobata"),]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
+
+
 # }
 
 ##{ Liriope tetraphylla DVM -----------------------------------------------
