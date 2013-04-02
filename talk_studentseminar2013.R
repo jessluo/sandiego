@@ -207,12 +207,11 @@ medLiriope[medLiriope$transect==3 & medLiriope$cast==1, which(names(medLiriope) 
 
 # calculate rate of change
 medLiriope$rate <- medLiriope$depthdiff / medLiriope$timediff
+# --> in transect 1, move from 55 m to 15 m in 2 hrs --> 33 cm / min migration rate
+# --> max rate of change 
 
-# plot it up
-ggplot(data=medLiriope) + geom_bar(aes(x=medTime, y=rate), stat="identity") + facet_grid(transect~., scales="free_x")
-# --> why does the scales="free_x" not work?
 
-# TODO: SCALE RATE OF CHANGE BY CONCENTRATION OF INDIVIDUALS. HOW TO DO THIS?
+# }
 
 
 # }
