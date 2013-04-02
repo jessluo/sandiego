@@ -213,6 +213,62 @@ medLiriope$rate <- medLiriope$depthdiff / medLiriope$timediff
 
 # }
 
+##{ jelly biomass -----------------------------------------------
+# calculating ballpark C biomass for different jelly taxa
+
+# ballpark average lengths
+# app length: 1 mm
+# ctenophore length: 10 mm
+# hydromedusae length: 2.5 mm
+# solmaris large: 4 mm
+# solmaris small: 0.5 mm
+# siphonophore nectophore length: 7.5 mm
+# doliolid length: 3.5 mm
+
+Lapp <- 1.5 # 0
+
+# low average
+Lct <- 10
+Lhy <- 3.5
+Lsl <- 5
+Lsm <- 1
+Lsiph <- 8
+Ldol <- 3.5
+
+# high average length
+Lct <- 25
+Lhy <- 4.5
+Lsl <- 8
+Lsm <- 2
+Lsiph <- 15
+Ldol <- 4.5
+
+# biomass calculations (in micrograms)
+# from Lavaniegos and Ohman 2007
+d$massSingle <- NA
+d[d$taxon=="appendicularians",]$massSingle <- 29.49 * (Lapp ^ 2.88) # assume generalized Oikopleura (combining wet weight and C biomass together)
+d[d$group=="Ctenophores",]$massSingle <- 4.8 * (Lct ^ 1.775) # this result in micrograms
+d[d$group=="Hydromedusae",]$massSingle <- 1.8885 * (Lhy ^ 2.619)
+d[d$taxon=="sol_large",]$massSingle <- 1.8885 * (Lsl ^ 2.619)
+d[d$taxon=="sol_small",]$massSingle <- 1.8885 * (Lsm ^ 2.619)
+d[d$group=="Siphonophores",]$massSingle <- 20.47 * (Lsiph ^ 0.834)
+d[d$taxon=="doliolids",]$massSingle <- 0.51 * (Ldol ^ 2.28)
+
+d$biomass <- d$abund * d$massSingle
+massSum <- sum(d$biomass)
+
+# scaled up to include potential full hydro, app, doliolid and ctenophore data
+abund_appuncounted <- sum(d[d$group=="Tunicates" & d$transect==1,]$abund) +
+  sum(d[d$group=="Tunicates" & d$transect==2,]$abund)
+abund_uncounted <- sum(d[d$group %in% c("Tunicates", "Hydromedusae") & d$transect==1,]$abund) +
+  sum(d[d$group %in% c("Tunicates", "Hydromedusae") & d$transect==2,]$abund) +
+  sum(d[d$group=="Ctenophores",]$abund) * 1.615
+biomass_uncounted <- sum(d[d$group %in% c("Tunicates", "Hydromedusae") & d$transect==1,]$biomass) +
+  sum(d[d$group %in% c("Tunicates", "Hydromedusae") & d$transect==2,]$biomass) +
+  sum(d[d$group=="Ctenophores",]$biomass) * 1.615
+
+# convert to grams
+(massSum + biomass_uncounted)* 10^-6
 
 # }
 
