@@ -33,26 +33,43 @@ bio$dateTime <- as.POSIXct(bio$dateTime, tz="GMT")
 # depth bin size in m
 binSize <- 1
 
+maxD <- max(phy$depth, na.rm=T)
+
+bins=seq(0, maxD, by=binSize)
+
 # per cast, interpolate the times corresponding to the crossing of the depth bins
-timeBins <- dlply(phy, ~transect+cast+down.up, function(x, bin) {
-  # maximum depth reached in this cast
-  maxD <- max(x$depth, na.rm=T)
-  
-  # compute depth bins crosses
-  depthBins <- seq(0, maxD, by=bin)
-  
+timeBins <- dlply(phy, ~transect+cast+down.up, function(x, bins) {  
   # compute corresponding crossing times
-  timeBins <- approx(x$depth, x$dateTime, depthBins)$y
-  # TODO try to extrapolate to get the first points and not lose data
-  # Does this cause the NAs in the timeBins?
-  
+  timeBins <- na.omit(approx(x$depth, x$dateTime, bins, rule=1)$y)
   return(timeBins)
-}, bin=binSize, .progress="text")
+}, bins=bins, .progress="text")
 # combine the elements of the lists into just one vector
-timeBins <- sort(do.call(c, timeBins))
+timeBins <- unique(sort(do.call(c, timeBins)))
+
+# add times at which we shift between up and downcasts
+d.u <- ifelse(phy$down.up == "down", 1, 2)
+d.u <- diff(d.u)
+changes <- which(d.u != 0)
+changes <- data.frame(phy$dateTime[changes], phy$dateTime[changes+1])
+changeTimes <- aaply(changes, 1, function(x) {
+  mean(unlist(x))
+}, .expand=FALSE)
+
+timeBins <- sort(c(timeBins, changeTimes))
 
 # make it a proper time
 timeBins <- as.POSIXct(timeBins, origin="1970-01-01 00:00:00.00 GMT", tz="GMT")
+
+# verify where the cuts are
+dd <- data.frame(dateTime=timeBins)
+# find the depth/long/transect number where the cuts will happen
+dd$depth <- approx(phy$dateTime, phy$depth, timeBins)$y
+dd$long <- approx(phy$dateTime, phy$long, timeBins)$y
+dd$transect <- approx(phy$dateTime, phy$transect, timeBins)$y
+# plot the top and bottom of the yos
+p <- ggplot(mapping=aes(x=long, y=-depth)) + geom_point(data=phy[phy$transect==1,], size=0.5) + facet_grid(transect~.) + geom_point(data=dd[dd$transect==1,], size=2)
+p + coord_cartesian(ylim=c(-4, 0))
+p + coord_cartesian(ylim=c(-138, -120))
 
 # }
 
