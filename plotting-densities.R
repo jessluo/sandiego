@@ -75,9 +75,9 @@ Tplot + geom_point(aes(x=dist/1000, y=-depth, size=concentration, colour=concent
 
 # just a simple app concentrations by depth plot
 df <- d[which(d$taxon=="appendicularians"),]
-ggplot(data=df[which(df$concentration > 0),]) + geom_point(mapping=aes(x=log(concentration), y=-depth), stat="identity") + labs(title="Appendicularian densities depth profile", x="Log-Density", y="Depth") + ylim(-135, 0) + geom_smooth(aes(x=log(concentration), y=-depth), method="glm")
+ggplot(data=df[which(df$concentration > 0),]) + geom_point(mapping=aes(x=-depth, y=log(concentration)), stat="identity") + labs(title="Appendicularian densities depth profile", x="Depth", y="Log-Density") + xlim(-135, 0) + geom_smooth(aes(x=-depth, y=log(concentration)), method="loess") + coord_flip()
 
-ggplot(data=df[which(df$concentration > 0),]) + geom_point(mapping=aes(x=concentration, y=-depth), stat="identity") + labs(title="Appendicularian densities depth profile", x="Density", y="Depth") + ylim(-135, 0)
+# ggplot(data=df[which(df$concentration > 0),]) + geom_point(mapping=aes(x=concentration, y=-depth), stat="identity") + labs(title="Appendicularian densities depth profile", x="Density", y="Depth") + ylim(-135, 0) + scale_x_continuous(guide=list(guide_axis(), guide_axis(position="top", trans = function(x) x * 2)))
 
 # }
 
