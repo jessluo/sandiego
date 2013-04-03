@@ -95,8 +95,9 @@ plot(allCA, scaling=2, main="CA biplot of species concentrations")
 text(allCA, dis="sp", col="red")
 # the first 3 CA axes are important. Can create a ggplot just like the CA biplot and change the colors of the site points to be related to the scores along the third axis. That way you can look at the influence of the three axes at all once. 
 
+# }
 
-######## CA on each taxon separately ####### 
+## { CA on each taxon separately ----------------------------------- 
 library("pastecs")
 
 # Ctenophores
@@ -111,9 +112,10 @@ colSums (dCspp)
 ct.escouf <- escouf(dCspp)
 plot(ct.escouf)
 # --> these taxa are all different, just arbitrarily select some
-#mmyLevel <- identify(ct.escouf)
-#selectedTaxa <- extract(ct.escouf, level=mmyLevel)
+# mmyLevel <- identify(ct.escouf)
+# selectedTaxa <- extract(ct.escouf, level=mmyLevel)
 
+dCspp <- dsC[,names(dsC) %in% c("Beroida", "Haeckelia beehlri", "Hormiphora californiensis", "Juvenile Lobata", "Larval Lobata", "Mertensid", "Ocyropsis maculata", "Thalassocalycidae inconstans", "Velamen")]
 # removes rows that sum to zero and are also NAs
 dCspp <- dCspp[-which(rowSums(dCspp)==0),]
 dCspp <- na.omit(dCspp)
@@ -157,6 +159,8 @@ text(allCA, dis="sp", col="red")
 plot(allCA, scaling=2, main="CA biplot of species concentrations", choice=2:3)
 text(allCA, dis="sp", col="red", choice=2:3)
 
+
+# TODO: Hierarchical clustering on CA results
 
 # }
 
