@@ -7,14 +7,30 @@
 library("plyr")
 library("reshape2")
 library("ggplot2")
-
+library("foreach")
+library("doParallel")
+library("oce")
+registerDoParallel(cores=detectCores())
+parallel <- TRUE
 
 
 ##{ Read data ------------------------------------------------
+# read binned data
 d <- read.csv("data/all_binned_by_depth.csv", stringsAsFactors=FALSE)
 d$dateTime <- as.POSIXct(d$dateTime, tz="GMT")
 
+# read physical data
+phy <- read.csv("data/phy.csv", stringsAsFactors=FALSE)
+phy$dateTime <- as.POSIXct(phy$dateTime, tz="GMT")
+
+bio <- read.csv("data/bio.csv", stringsAsFactors=FALSE)
+bio$dateTime <- as.POSIXct(bio$dateTime, tz="GMT")
+
 ti <- read.csv("data/interp_temp.csv", stringsAsFactors=FALSE)
+si <- read.csv("data/interp_salinity.csv", stringsAsFactors=FALSE)
+swi <- read.csv("data/interp_swRho.csv", stringsAsFactors=FALSE)
+fi <- read.csv("data/interp_fluoro.csv", stringsAsFactors=FALSE)
+oi <- read.csv("data/interp_oxygen.csv", stringsAsFactors=FALSE)
 
 # }
 
@@ -31,7 +47,7 @@ d <- ddply(d, ~transect, function(x, lonR=lonRef) {
 
 # plotting just the appendicularians only
 
-Tplot <- ggplot(ti[which(ti$transect!=3),]) + geom_tile(aes(x=dist/1000, y=-depth, fill=temp)) + geom_contour(aes(x=dist, y=-depth, z=temp), colour="white", size=0.5, alpha=0.5, breaks=c(10, 15)) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth") + scale_fill_gradient("Temp (C)", na.value="grey80", low = "#2d669f", high = "#c8dcef")
+Tplot <- ggplot(ti[which(ti$transect!=3),]) + geom_tile(aes(x=dist/1000, y=-depth, fill=temp)) + geom_contour(aes(x=dist/1000, y=-depth, z=temp), colour="white", size=0.5, alpha=0.5, breaks=c(10, 15)) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth") + scale_fill_gradient("Temp (C)", na.value="grey80", low = "#2d669f", high = "#c8dcef")
 
 Tplot + geom_point(aes(x=dist/1000, y=-depth, size=concentration, colour=concentration>0), alpha=0.7, data=d[d$taxon=="appendicularians",]) + facet_grid(transect~.,) + scale_colour_manual("Presence / Absence", values=c("grey60", "black")) + scale_area("Density", range=c(1,10)) + labs(title="Appendicularians")
 
