@@ -9,3 +9,4 @@ data/*
 .Rproj.user*
 .Rproj.user
 .RData
+raw_particlecount_data/*
