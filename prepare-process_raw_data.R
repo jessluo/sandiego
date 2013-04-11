@@ -374,9 +374,9 @@ cteT <- adply(cteFiles, 1, function(file){
   
   # recompute the time
   # the record contains the time of the first frame in the stack and the frame number within the stack
-  # there are 300 frames in a stack and they represent a time of 17.375 seconds
+  # there are 300 frames in a stack and they represent a time of 17.55 seconds
   d$dateTime <- as.POSIXct(str_c(d$year, "-", sprintf("%02i",d$month), "-", sprintf("%02i",d$date), " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec)), tz="GMT")
-  d$dateTime <- d$dateTime + 17.375 * d$x.300 / 300
+  d$dateTime <- d$dateTime + 17.55 * d$x.300 / 300
   
   # extract downcast number
   downcast <- d$folder
