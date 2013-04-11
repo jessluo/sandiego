@@ -53,14 +53,14 @@ pc2 <- pc2[,-1]
 pc <- rbind(pc1, pc2)
 
 # save it as a csv file
-write.csv(pc, file="raw_particlecount_data/raw_import.csv", row.names=FALSE)
+write.csv(pc, file="data/raw_particle_count_import.csv", row.names=FALSE)
 
 # }
 
 ##{ Calculate and create a proper time format ----------------------------
 
 # import particle count data, if not already done so
-pc <- read.csv("raw_particlecount_data/raw_import.csv", header=TRUE, stringsAsFactors=FALSE)
+pc <- read.csv("data/raw_particle_count_import.csv", header=TRUE, stringsAsFactors=FALSE)
 
 # define a beginning position for subsetting the name
 # this cuts out the name of the file folder as well as "Dataset3_"
@@ -87,6 +87,6 @@ pc$dateTime <- pc$dateTime - 3 * 3600
 
 pc <- pc[, c("X", "dateTime", "Area", "Perim.", "BX", "BY", "Width", "Height", "Major", "Minor", "Angle")]
 
-write.csv(pc, "raw_particlecount_data/particle_count_corr_timestamp.csv", row.names=FALSE)
+write.csv(pc, "data/particle_count_corr_timestamp.csv", row.names=FALSE)
 
 # }
