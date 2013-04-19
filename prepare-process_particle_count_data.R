@@ -7,50 +7,69 @@ library("plyr")
 library("stringr")
 library("reshape2")
 library("ggplot2")
-library("foreach")
-library("doParallel")
-registerDoParallel(cores=detectCores())
-parallel <- TRUE
+# library("foreach")
+# library("doParallel")
+# registerDoParallel(cores=detectCores())
+# parallel <- TRUE
 
 `%ni%` <- Negate(`%in%`) 
 
 # setup R to keep decimal seconds in the times
 options("digits.secs"=3)
 
-##{ Read in file list and cull list of empty files ------------------------
+##{ Read in folder list ---------------------------------------------------
 
-# list files
-pcFiles1 <- list.files("raw_particlecount_data/101510", full=TRUE)
-pcFiles2 <- list.files("raw_particlecount_data/101610", full=TRUE)
+# list folders
+pcFolders1 <- list.files("../SD_ImageJ/particleCount_2013-03/101510", full=TRUE)
+pcFolders2 <- list.files("../SD_ImageJ/particleCount_2013-03/101610", full=TRUE)
 
-# filter out the files that are smaller or equal to 3 bytes in size (empty files)
-pcFiles1 <- pcFiles1[file.info(pcFiles1)$size>3]
-pcFiles2 <- pcFiles2[file.info(pcFiles2)$size>3]
 
 # }
 
 ##{ Import the data -------------------------------------------------------
 
-# read in files
-pc1 <- adply(pcFiles1, 1, function(file){
+d1 <- data.frame()
+d2 <- data.frame()
+
+for (i in 1:length(pcFolders1)) {
   
-  d <- read.delim(file, header=TRUE, stringsAsFactors=FALSE)
-  return(d)
-
-}, .progress="text")
-
-pc2 <- adply(pcFiles2, 1, function(file){
+  # initialize
   
-  d <- read.delim(file, header=TRUE, stringsAsFactors=FALSE)
-  return(d)
+  # get a list of files within each folder
+  pcFiles <- list.files(pcFolders1[i], full=TRUE)
   
-}, .progress="text")
+  # filter out the files that are smaller than 3 bytes in size (empty files)
+  pcFiles <- pcFiles[file.info(pcFiles)$size >3]
+  
+  # read in the files
+  for (j in 1:length(pcFiles)){
+    di <- read.delim(pcFiles[j], header=TRUE, stringsAsFactors=FALSE)
+    
+    # combine the files
+    d1 <- rbind(d1, di)
+  }
+  print(i)
+}
 
-# remove adply column
-pc1 <- pc1[,-1]
-pc2 <- pc2[,-1]
+for (i in 1:length(pcFolders2)) {
+  
+  # get a list of files within each folder
+  pcFiles <- list.files(pcFolders2[i], full=TRUE)
+  
+  # filter out the files that are smaller than 3 bytes in size (empty files)
+  pcFiles <- pcFiles[file.info(pcFiles)$size >3]
+  
+  # read in the files
+  for (j in 1:length(pcFiles)){
+    di <- read.delim(pcFiles[j], header=TRUE, stringsAsFactors=FALSE)
+    
+    # combine the files
+    d2 <- rbind(d2, di)
+  }
+  print(i)
+}
 
-pc <- rbind(pc1, pc2)
+pc <- rbind(d1, d2)
 
 # save it as a csv file
 write.csv(pc, file="data/raw_particle_count_import.csv", row.names=FALSE)
