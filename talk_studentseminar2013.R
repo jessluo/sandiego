@@ -34,7 +34,7 @@ oi <- read.csv("data/interp_oxygen.csv", stringsAsFactors=FALSE)
 
 # define new groups for the analysis
 d$group2 <- d$group
-# d$group2[d$group == "Solmaris"] <- d$taxon[d$group == "Solmaris"]
+d$group2[d$group == "Solmaris"] <- d$taxon[d$group == "Solmaris"]
 d$group2[d$group == "Tunicates"] <- d$taxon[d$group == "Tunicates"]
 
 ##### how to define the frontal water mass?
@@ -86,6 +86,8 @@ oplot <- ggplot(oi) + geom_tile(aes(x=dist/1000, y=-depth, fill=oxygen)) + geom_
 
 
 ##{ Generate plots --------------------------------------------------------
+plottheme <- theme(title=element_text(size=rel(2)), plot.title=element_text(size=rel(1.8)), axis.text=element_text(size=rel(1.5)), strip.text=element_text(size=rel(2)), legend.text=element_text(size=rel(1.5)))
+# plottheme <- theme(title=element_text(size=20), plot.title=element_text(size=24), axis.text=element_text(size=14), strip.text=element_text(size=14), legend.text=element_text(size=12))
 
 # general density plots
 ggplot(d) + geom_density(aes(x=-depth, weight=concentration, colour=group2), alpha=0.5) + coord_flip() + labs(y="Density", x="Depth", title="Depth distribution", colour="Taxon")
@@ -97,6 +99,17 @@ ggplot(d) + geom_density(aes(x=-depth, weight=concentration, colour=group2), alp
 ggplot(d[d$taxon != "appendicularians",]) + geom_density(aes(x=-depth, weight=concentration, colour=group2), alpha=0.5) + coord_flip() + labs(y="Density", x="Depth", title="Depth distribution", colour="Taxon")
 
 ggplot(d[d$taxon != "appendicularians",]) + geom_density(aes(x=-depth, weight=concentration, colour=group2), alpha=0.5) + facet_grid(transect~.) + coord_flip() + labs(y="Density", x="Depth", title="Depth distribution", colour="Taxon")
+
+
+# DISTRIBUTION PLOTS
+
+# solmaris, large size fraction
+splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="sol_large" & d$concentration>0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=13) + labs(title="Solmaris rhodoloma, large size fraction", y="Depth (m)") + plottheme + theme(legend.position=c(.1, .35))
+
+# solmaris, small size fraction
+splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="sol_small" & d$concentration>0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=13) + labs(title="Solmaris rhodoloma, small size fraction", y="Depth (m)") + plottheme + theme(legend.position=c(.1, .35))
+
+splot + labs(title="Salinity") + plottheme + theme(legend.position=c(.1, .35))
 
 # violin plot comparing depth distribution of all taxa with respect to transect and position relative to the front
 ggplot(d[d$concentration>0,]) + geom_violin(aes(x=front, y=-depth, weight=concentration, colour=group2), alpha=0.4) + facet_grid(transect~group2) + labs(colour="Taxon")
@@ -150,13 +163,14 @@ dct[dct$taxon %in% a3,]$assemblage=3
 dct[dct$taxon %in% a4,]$assemblage=4
 
 # order the taxa according to assemblage
-dct$taxon <- factor(dct$taxon, levels=c("Ocyropsis maculata", "Juvenile Lobata", "Thalassocalycidae inconstans", "Beroida", "Larval Lobata", "Haeckelia beehlri", "Mertensid", "Hormiphora californiensis", "Velamen"))
+dct$taxon <- factor(dct$taxon, levels=c("Ocyropsis maculata", "Juvenile Lobata", "Thalassocalycidae inconstans", "Larval Lobata", "Haeckelia beehlri", "Beroida", "Mertensid", "Hormiphora californiensis", "Velamen"))
 
 # all data together, Ctenophore densities by taxon
 ggplot(dct) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 
+
 # violin plots with constant widths (scaled to the same width) -- this is appropriate for presenting the CA analysis
-ggplot(dct[dct$concentration>0,]) + geom_violin(aes(x=taxon, y=-depth, weight=concentration, colour=factor(assemblage)), alpha=0.7, scale="width") + labs(colour="Taxon")
+ggplot(dct[dct$concentration>0,]) + geom_violin(aes(x=taxon, y=-depth, weight=concentration, colour=taxon), alpha=0.7, scale="width") + labs(colour="Taxa", y="Depth (m)", x="Taxa") + theme(title=element_text(size=18), plot.title=element_text(size=22), axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_text(size=14), legend.text=element_text(size=11))
 
 # Ocyropsis and larval lobates only
 ggplot(dct[dct$taxon %in% c("Ocyropsis maculata", "Larval Lobata"),]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
@@ -170,7 +184,7 @@ ggplot(dct[dct$taxon %in% c("Ocyropsis maculata", "Larval Lobata"),]) + geom_poi
 ggplot(d[d$taxon=="h5_Liriope",]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 
 # plot Liriope concentrations on top of salinity profile
-splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="h5_Liriope" & d$concentration>0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=13) + labs(title="Liriope tetraphylla")
+splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="h5_Liriope" & d$concentration>0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=13) + labs(title="Liriope tetraphylla") + plottheme + theme(legend.position=c(.1, .35))
 
 # Calculation of Liriope rate of movement
 # how fast are the liriope tetraphylla moving up in the water column?
