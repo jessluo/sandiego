@@ -103,16 +103,37 @@ ggplot(d[d$taxon != "appendicularians",]) + geom_density(aes(x=-depth, weight=co
 
 # DISTRIBUTION PLOTS
 
+# salinity
+splot + labs(title="Salinity") + plottheme + theme(legend.position=c(.1, .35))
+
 # solmaris, large size fraction
 splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="sol_large" & d$concentration>0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=13) + labs(title="Solmaris rhodoloma, large size fraction", y="Depth (m)") + plottheme + theme(legend.position=c(.1, .35))
 
 # solmaris, small size fraction
 splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="sol_small" & d$concentration>0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=13) + labs(title="Solmaris rhodoloma, small size fraction", y="Depth (m)") + plottheme + theme(legend.position=c(.1, .35))
 
-splot + labs(title="Salinity") + plottheme + theme(legend.position=c(.1, .35))
+# appendicularians
+splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="appendicularians" & d$concentration>0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=15) + labs(title="Appendicularians", y="Depth (m)", x="Distance from start of transect (km)") + plottheme + theme(legend.position=c(.1, .35))
+
+# doliolids
+splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="doliolids" & d$concentration>0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=10) + labs(title="Doliolids", y="Depth (m)", x="Distance from start of transect (km)") + plottheme + theme(legend.position=c(.1, .35))
+
+# hydromedusa
+splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration, colour=taxon), alpha=0.7, data=d[d$group=="Hydromedusae" & d$concentration>0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=10) + labs(title="Hydromedusae", y="Depth (m)", x="Distance from start of transect (km)") + plottheme + theme(legend.position=c(.1, .35))
+
 
 # violin plot comparing depth distribution of all taxa with respect to transect and position relative to the front
 ggplot(d[d$concentration>0,]) + geom_violin(aes(x=front, y=-depth, weight=concentration, colour=group2), alpha=0.4) + facet_grid(transect~group2) + labs(colour="Taxon")
+
+
+ggplot(d[d$taxon=="appendicularians",]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
+
+# siphonophores
+dS <- d[d$group=="Siphonophores",]
+
+dS$taxon <- factor(dS$taxon, levels=c("Physonect", "Diphyidae", "Sphaeronectes", "Lilyopsis", "Prayidae"))
+
+ggplot(dS) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 
 # }
 
