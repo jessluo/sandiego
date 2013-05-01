@@ -124,6 +124,12 @@ phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
   return(out)
 }, .progress="text", .parallel=parallel)
 
+# compute total sampling volume
+sum(phyB[phyB$transect==1,]$volume)
+sum(phyB[phyB$transect==2 & phyB$cast >=5,]$volume)
+sum(phyB[phyB$transect==3,]$volume)
+# --> this sampling volume seems to be off
+
 # }
 
 
