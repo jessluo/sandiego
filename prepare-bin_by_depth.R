@@ -180,10 +180,10 @@ sum(phyB[phyB$transect==1,]$volume)
 # [1] 4001.259
 
 sum(phyB[phyB$transect==2 & phyB$cast >=5,]$volume)
-
+# [1] 4427.926
 
 sum(phyB[phyB$transect==3,]$volume)
-
+# [1] 2696.185
 
 # --> this sampling volume seems to be off
 
