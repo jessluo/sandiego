@@ -293,6 +293,10 @@ ggplot(data=phy) + geom_path(aes(x=long, y=-depth, colour=factor(cast), linetype
 
 # }
 
+# remove the flag column
+phy <- phy[, which(names(phy) != "flag")]
+
+
 # save it as text
 write.csv(phy, "data/phy.csv", row.names=FALSE)
 
