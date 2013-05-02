@@ -79,20 +79,71 @@ p + coord_cartesian(ylim=c(-138, -120))
 # create the bins (and ensure labels are simple, consistent and unique)
 phy$dateTimeB <- cut(phy$dateTime, breaks=timeBins, labels=1:(length(timeBins)-1))
 
+# convert from factor to numeric
+phy$dateTimeB <- as.numeric(phy$dateTimeB)
+
+# calculate the time duration of each bin
+# assign the timeBin values to the phy dataframe, convert to POSIX
+phy$timeBins <- cut(phy$dateTime, breaks=timeBins, labels=timeBins[1:length(timeBins)-1])
+phy$timeBins <- as.POSIXct(phy$timeBins, origin="1970-01-01 00:00:00.00 GMT", tz="GMT")
+
+# cut by transect, because the time bin duration values need to be calculated per bin
+binDuration <- dlply(phy, ~transect, function(x){
+  # because time bin values are repeated, find just the unique values
+  uniqtimeBins <- unique(x$timeBins)
+  
+  # calculate the duration of the first and last bin
+  durationFirstBin <- difftime(uniqtimeBins[2], min(x$dateTime), units="secs")
+  durationLastBin <- difftime(max(x$dateTime), max(uniqtimeBins, na.rm=T), units="secs")
+  
+  # calculate the time difference between bins
+  binDuration <- diff(uniqtimeBins)
+  
+  # add in the duration of the first bin and the last bin
+  binDuration <- c(durationFirstBin, binDuration[2:length(binDuration)], durationLastBin)
+  
+  return(binDuration)
+})
+
+# convert list to data frame, then combine the  
+binDuration <- rbind(data.frame(a=as.vector(binDuration$`1`)), data.frame(a=as.vector(binDuration$`2`)), data.frame(a=as.vector(binDuration$`3`)))
+binDuration <- binDuration[complete.cases(binDuration),]
+binDuration <- as.difftime(binDuration, units="secs")
+
+binDuration <- data.frame(duration=binDuration, dateTimeB=as.numeric(unique(phy$dateTimeB)))
+binDuration[1,2] <- 0
+
+# remove timeBins column
+phy <- phy[, which(names(phy) != "timeBins")]
+
+
+# change the NAs - the first set of NAs is from the beginning of the transect to the first bin, and the second set of NAs are from the last bin to the end
+# the first set of NAs will be changed to be bin 0 and the last set of NAs will be grouped with the previous bin
+
+# call the first datetimeB "0" instead of NA
+# NB this is technically not how you're supposed to do this subsetting/resetting of values but since these values are at the beginning of the dataframe it should be ok
+phy[which(is.na(phy[phy$transect==1 & phy$cast==1,"dateTimeB"])),"dateTimeB"] <- 0
+
+phy[which(is.na(phy$dateTimeB)),"dateTimeB"] <- as.numeric(max(phy$dateTimeB, na.rm=T))
+
+# add another dateTimeB column
+phy$dateTimeB2 <- phy$dateTimeB
+
 # compute average properties per bin
 # TODO because we compute things by date bins but *also* cast and down.up, we are actually separating the descending and ascending part of the turn at depth, for example. There is no reason to think they would be different. We need the separation here because we only have downcasts in the biological data anyway but with the complete data, the binning should be by date bin only.
 phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
+  
   # means of variables inside the bin
   out <- as.data.frame(as.list(colMeans(x[,c("depth", "lat", "long", "temp", "salinity", "swRho", "fluoro", "oxygen", "irradiance", "vertical.vel", "pitch", "velocity")], na.rm=T)))
   
-  # compute duration (in seconds)
-  out$duration <- as.numeric(diff(range(x$dateTime, na.rm=T)))
-  # NB: some of these durations are zero because there is only one data point per bin
   
-  # when there is only one physical data point per bin, we will assign just the mean value
-  # [1] 0.6047928
-  if(out$duration==0) {
-    out$duration <- 0.6048
+  # retrieve computed duration
+  index <- as.numeric(unique(x$dateTimeB2))
+  
+  out$duration <- as.numeric(binDuration[which(binDuration$dateTimeB == index), "duration"])
+  
+  if (out$duration > 60){
+    out$duration <-  as.numeric(diff(range(x$dateTime, na.rm=T)))
   }
   
   out$n <- nrow(x)
@@ -126,8 +177,14 @@ phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
 
 # compute total sampling volume
 sum(phyB[phyB$transect==1,]$volume)
+# [1] 4001.259
+
 sum(phyB[phyB$transect==2 & phyB$cast >=5,]$volume)
+
+
 sum(phyB[phyB$transect==3,]$volume)
+
+
 # --> this sampling volume seems to be off
 
 # }
