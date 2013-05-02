@@ -14,6 +14,7 @@ library(plyr)
 library(reshape2)
 library(ggplot2)
 library(stringr)
+`%ni%` <- Negate(`%in%`) 
 
 # setup R to keep decimal seconds in the times
 options("digits.secs"=3)
@@ -93,5 +94,29 @@ app <- rename(app, c("transectDate" = "transect"))
 
 # write it as text file
 write.csv(app, file="data/jbinstein_apps_with_phys_vars.csv", row.names=FALSE)
+
+# }
+
+##{ Plotting ------------------------------------------------------------
+plottheme <- theme(title=element_text(size=rel(1.8)), plot.title=element_text(size=rel(1.6)), axis.text=element_text(size=rel(1.4)), strip.text=element_text(size=rel(2)), legend.text=element_text(size=rel(1.4)))
+
+# initialize
+app$front <- NA
+
+app[app$transect=="10/15/10" & app$downcast <=11,]$front <- "inshore"
+app[app$transect=="10/15/10" & app$downcast >=12 & app$downcast <= 15,]$front <- "front"
+app[app$transect=="10/15/10" & app$downcast >=16,]$front <- "offshore"
+app[app$transect=="10/16/10" & app$downcast <=22,]$front <- "inshore"
+app[app$transect=="10/16/10" & app$downcast >=23 & app$downcast <= 28,]$front <- "front"
+app[app$transect=="10/16/10" & app$downcast >=29,]$front <- "offshore"
+
+app$front <- factor(app$front, levels=c("offshore", "front", "inshore"))
+
+app$size <- factor(app$size, levels=c("Tiny", "Sm", "Med", "Lg"))
+
+
+ggplot(app[app$size %ni% c("Tiny", "Sm"),]) + geom_violin(aes(x=front, y=-depth), alpha=0.4) + labs(y="Depth (m)", x="Location relative to front") + facet_grid(transect~size) + plottheme
+
+ggplot(data=app) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 
 # }
