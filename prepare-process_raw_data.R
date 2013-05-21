@@ -291,10 +291,10 @@ ggplot(data=phy) + geom_path(aes(x=long, y=-depth, colour=factor(cast), linetype
 # }
 # it is better at the surface than at depth, but good enough
 
-# }
-
 # remove the flag column
 phy <- phy[, which(names(phy) != "flag")]
+
+# }
 
 
 # save it as text
@@ -382,12 +382,12 @@ cteT <- adply(cteFiles, 1, function(file){
   d$dateTime <- as.POSIXct(str_c(d$year, "-", sprintf("%02i",d$month), "-", sprintf("%02i",d$date), " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec)), tz="GMT")
   d$dateTime <- d$dateTime + 17.55 * d$x.300 / 300
   
-  # extract downcast number
-  downcast <- d$folder
-  downcast <- str_sub(downcast, start=4, end=5)
-  downcast <- str_trim(downcast)
-  downcast <- as.numeric(downcast)
-  d$downcast <- downcast
+#   # extract downcast number
+#   downcast <- d$folder
+#   downcast <- str_sub(downcast, start=4, end=5)
+#   downcast <- str_trim(downcast)
+#   downcast <- as.numeric(downcast)
+#   d$downcast <- downcast
   
   # add a reorder columns
   d$group <- "Ctenophores"
@@ -425,7 +425,7 @@ h <- adply(hFiles, 1, function(file) {
   # TODO: consider whether you want to split up the H7 groups in the future, as Rhopalonema and Cucina are fairly different
   # in third transect, we took note of the differences between the two and recorded them as different
   # for the purposes of having a homogonized data set, we will combine them here
-  if ("h7.cucina" %in% names(d)){
+    if ("h7.cucina" %in% names(d)){
     d$h7 <- d$h7 + d$h7.cucina
     d <- d[,!names(d) %in% "h7.cucina"]
   }
