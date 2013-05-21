@@ -31,7 +31,7 @@ bio$dateTime <- as.POSIXct(bio$dateTime, tz="GMT")
 ##{ Compute time bins on physical data ------------------------------------
 
 # depth bin size in m
-binSize <- 1
+binSize <- 2
 
 maxD <- max(phy$depth, na.rm=T)
 
@@ -185,7 +185,6 @@ sum(phyB[phyB$transect==2 & phyB$cast >=5,]$volume)
 sum(phyB[phyB$transect==3,]$volume)
 # [1] 2696.185
 
-# --> this sampling volume seems to be off
 
 # }
 
@@ -318,6 +317,7 @@ ggplot(d[d$taxon %in% c("h5_Liriope"),]) + geom_point(aes(x=long, y=-depth, size
 
 ggplot(d[d$taxon %in% c("Beroida", "Hormiphora californiensis", "Larval Lobata", "Ocyropsis maculata", "Velamen"),]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 
+ggplot(d[d$taxon %in% c("Larval Lobata", "Ocyropsis maculata") & d$concentration > 0,]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=taxon), alpha=0.7) + facet_grid(transect~.) + scale_area(range=c(1,10))
 # }
 
 write.csv(d, "data/all_binned_by_depth.csv", row.names=FALSE)
