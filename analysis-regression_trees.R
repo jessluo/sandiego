@@ -26,7 +26,7 @@ d$dateTime <- as.POSIXct(d$dateTime, tz="GMT")
 
 
 # identify explanatory variables of interest
-locVars <- c("depth", "long")
+locVars <- c("depth", "long", "front")
 hydroVars <- c("temp", "salinity", "fluoro", "oxygen")
 vars <- c(locVars, hydroVars)
 
