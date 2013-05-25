@@ -227,7 +227,12 @@ dS <- d[d$group=="Siphonophores",]
 
 dS$taxon <- factor(dS$taxon, levels=c("Physonect", "Diphyidae", "Sphaeronectes", "Lilyopsis", "Prayidae"))
 
-ggplot(dS) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
+ggplot() + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7, data=dS) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
+
+splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=dS[dS$taxon %in% c("Physonect", "Diphyidae", "Sphaeronectes") & dS$concentration > 0,]) + labs(y="Depth (m)", size="Conc.") + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10)) + plottheme
+
+# solmaris
+splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$group=="Solmaris" & d$concentration > 0,]) + labs(y="Depth (m)", size="Conc.") + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10)) + plottheme
 
 # }
 
@@ -299,7 +304,7 @@ ggplot(dct[dct$taxon %in% c("Ocyropsis maculata", "Larval Lobata"),]) + geom_poi
 ggplot(d[d$taxon=="h5_Liriope",]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 
 # plot Liriope concentrations on top of salinity profile
-splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="h5_Liriope" & d$concentration>0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=13) + labs(title="Liriope tetraphylla") + plottheme + theme(legend.position=c(.1, .35))
+splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="h5_Liriope" & d$concentration>0,]) + facet_grid(transect~.,) + scale_size_area("Conc.", max_size=13) + labs(title="Liriope tetraphylla") + plottheme + theme(legend.position=c(.1, .35)) + theme(plot.title=element_text(face="italic")) + labs(y="Depth (m)")
 
 # Calculation of Liriope rate of movement
 # how fast are the liriope tetraphylla moving up in the water column?
@@ -468,4 +473,5 @@ ggplot(data=dcorWm) + geom_tile(aes(x=factor(Var1, levels=levels), y=factor(Var2
 ggplot(data=dcorFm) + geom_tile(aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels), fill=value >0, alpha=abs(value))) + labs(x="", y="", title="Front", fill="Positive / Negative", alpha="Strength of Correlation") + scale_fill_discrete(labels=c("Negative", "Positive")) + theme_bw() + cortheme
 ggplot(data=dcorEm) + geom_tile(aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels), fill=value >0, alpha=abs(value))) + labs(x="", y="", title="East", fill="Positive / Negative", alpha="Strength of Correlation") + scale_fill_discrete(labels=c("Negative", "Positive")) + theme_bw() + cortheme
 # }
+
 
