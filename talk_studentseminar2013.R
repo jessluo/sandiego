@@ -55,6 +55,24 @@ d[d$transect==3 & d$cast >=9 & d$cast <= 13,]$front <- "front"
 d[d$transect==3 & d$cast >=14,]$front <- "east"
 d$front <- factor(d$front, levels=c("west", "front", "east"))
 
+# calculate an average value for each bin by frontal region
+# define which columns you want for the VIOLIN PLOT
+d2 <- d[,names(d) %in% c("transect", "cast", "down.up", "dateTime", "dateTimeB", "depth", "front", "group", "group2", "taxon", "abund", "concentration")]
+
+d2$depthBin <- floor(d$depth)
+
+d2 <- ddply(d2, ~transect + front + depthBin + group2, function(x){
+  avgConc <- mean(x$concentration)
+  return(avgConc)
+}, .progress="text")
+
+d2 <- rename(d2, c("depthBin" = "depth", "V1" = "concentration"))
+
+d2$group2 <- factor(d2$group2, levels=c("Solmaris", "Hydromedusae", "Siphonophores", "Ctenophores", "Appendicularians", "Doliolids"))
+
+# violin plot comparing depth distribution of all taxa with respect to transect and position relative to the front
+ggplot(d2[d2$concentration>0,]) + geom_violin(aes(x=front, y=-depth, weight=concentration, colour=group2), alpha=0.4) + facet_grid(transect~group2) + labs(colour="Taxon") + scale_colour_brewer(palette="Dark2")
+
 
 # }
 
