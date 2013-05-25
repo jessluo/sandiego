@@ -192,10 +192,33 @@ splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, da
 # hydromedusa
 splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration, colour=taxon), alpha=0.7, data=d[d$group=="Hydromedusae" & d$concentration>0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=10) + labs(title="Hydromedusae", y="Depth (m)", x="Distance from start of transect (km)") + plottheme + theme(legend.position=c(.1, .35))
 
+### VIOLIN PLOT
+# calculate an average value for each bin by frontal region
+# define which groups you want
+d$group2 <- d$group
+# d$group2[d$group == "Solmaris"] <- d$taxon[d$group == "Solmaris"]
+d$group2[d$group == "Tunicates"] <- d$taxon[d$group == "Tunicates"]
+d[d$group2=="appendicularians","group2"] <- "Appendicularians"
+d[d$group2=="doliolids","group2"] <- "Doliolids"
+
+d2 <- d[,names(d) %in% c("transect", "cast", "down.up", "dateTime", "dateTimeB", "depth", "front", "group", "group2", "taxon", "abund", "concentration")]
+
+d2$depthBin <- floor(d$depth)
+
+d2 <- ddply(d2, ~transect + front + depthBin + group2, function(x){
+  avgConc <- mean(x$concentration)
+  return(avgConc)
+}, .progress="text")
+
+d2 <- rename(d2, c("depthBin" = "depth", "V1" = "concentration"))
+
+d2$group2 <- factor(d2$group2, levels=c("Solmaris", "Hydromedusae", "Siphonophores", "Ctenophores", "Appendicularians", "Doliolids"))
 
 # violin plot comparing depth distribution of all taxa with respect to transect and position relative to the front
-ggplot(d[d$concentration>0,]) + geom_violin(aes(x=front, y=-depth, weight=concentration, colour=group2), alpha=0.4) + facet_grid(transect~group2) + labs(colour="Taxon")
+ggplot(d2[d2$concentration>0,]) + geom_violin(aes(x=front, y=-depth, weight=concentration, colour=group2), alpha=0.4) + facet_grid(transect~group2) + labs(colour="Taxon", x="Location relative to front", y="Depth (m)") + plottheme + theme(legend.position="none") + scale_colour_brewer(palette="Dark2")
 
+# empty plot
+ggplot(d2[d2$concentration>0,]) + geom_violin(aes(x=front, y=-depth, weight=concentration*0, colour=group2), alpha=0.4) + facet_grid(transect~group2) + labs(colour="Taxon", x="Location relative to front", y="Depth (m)") + plottheme + theme(legend.position="none")
 
 ggplot(d[d$taxon=="appendicularians",]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 
