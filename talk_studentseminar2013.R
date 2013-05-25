@@ -14,11 +14,11 @@ library("pastecs")
 
 ##{ Read data ------------------------------------------------
 d <- read.csv("data/all_binned_by_depth.csv", stringsAsFactors=FALSE)
-d$dateTime <- as.POSIXct(d$dateTime, tz="GMT")
+d$dateTime <- as.POSIXct(d$dateTime, tz="America/Los_Angeles")
 
 # read data
 phy <- read.csv("data/phy.csv", stringsAsFactors=FALSE)
-phy$dateTime <- as.POSIXct(phy$dateTime, tz="GMT")
+phy$dateTime <- as.POSIXct(phy$dateTime, tz="America/Los_Angeles")
 # NB: make sure time is set in GMT (even if it wasn't) to avoid dealing with tz afterwards
 
 
