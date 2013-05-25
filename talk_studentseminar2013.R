@@ -34,8 +34,12 @@ oi <- read.csv("data/interp_oxygen.csv", stringsAsFactors=FALSE)
 
 # define new groups for the analysis
 d$group2 <- d$group
-d$group2[d$group == "Solmaris"] <- d$taxon[d$group == "Solmaris"]
+# d$group2[d$group == "Solmaris"] <- d$taxon[d$group == "Solmaris"]
 d$group2[d$group == "Tunicates"] <- d$taxon[d$group == "Tunicates"]
+d[d$group2=="appendicularians","group2"] <- "Appendicularians"
+d[d$group2=="doliolids","group2"] <- "Doliolids"
+
+d$group2 <- factor(d$group2, levels=c("Solmaris", "Hydromedusae", "Siphonophores", "Ctenophores", "Appendicularians", "Doliolids"))
 
 ##### how to define the frontal water mass?
 ggplot(data=phy) + geom_point(aes(x=salinity, y=temp, colour=long)) + facet_grid(transect~.) + scale_colour_gradientn(colours=rainbow(10))
