@@ -377,3 +377,71 @@ biomass_uncounted <- sum(d[d$group %in% c("Tunicates", "Hydromedusae") & d$trans
 
 # }
 
+## { correlation heatmap ---------------------------------------------
+# select downcasts for inclusion
+dcchoose <- unique(d[d$group=="Hydromedusae" & d$transect==1,"cast"])
+
+# define functional/taxonomic groups
+Narcomedusae <- c("h10_Pegantha", "h3_Cunina", "h6_Solmundella", "h7_Pegantha", "r4_Aegina")
+Trachymedusae <- c("h11_Haliscera", "h2_Haliscera", "h5_Liriope", "h5b", "h7_Rhopalonema", "h9_Aglaura", "h9_Arctapodema")
+Other_Hydro <- c("Annatiara", "h1", "h13", "h15", "r1", "r2", "r3", "r5_Eutonia", "vsh")
+Cydippida <- c("Haeckelia beehlri", "Hormiphora californiensis", "Mertensid", "Dryodora glandiformis", "Pleurobrachia", "Charistephane")
+Lobata_Adult <- c("Bolinopsis", "Ocyropsis maculata")
+Lobata_Young <- c("Juvenile Lobata", "Larval Lobata")
+Calycophoran <- c("Diphyidae", "Lilyopsis", "Prayidae", "Sphaeronectes")
+
+# assign these groups into a different column
+d$group2 <- d$taxon
+d$group2[d$taxon %in% Narcomedusae] <- "Narcomedusae"
+d$group2[d$taxon %in% Trachymedusae] <- "Trachymedusae"
+d$group2[d$taxon %in% Other_Hydro] <- "Other Hydro"
+d$group2[d$taxon %in% Cydippida] <- "Cydippida"
+d$group2[d$taxon %in% Lobata_Adult] <- "Lobata_Adult"
+d$group2[d$taxon %in% Lobata_Young] <- "Lobata_Young"
+d$group2[d$taxon %in% Calycophoran] <- "Calycophoran"
+
+# exclude unknown ctenophores
+d <- d[d$group2 != "Unknown",]
+
+# select which portions of the water column to sample
+dcor <- d[d$transect==1 & d$cast %in% dcchoose,]
+dcor <- rbind(dcor, d[d$transect==2,])
+
+# compute total concentration per group
+dcor <- ddply(dcor, ~transect + cast + front + dateTimeB + group2, function(x) {
+  tot <- sum(x$concentration)
+  timeavg <- mean(x$dateTime)
+  return(data.frame(concentration=tot, dateTime=timeavg))
+}, .parallel=TRUE)
+
+# separate out the frontal regions
+dcorE <- dcor[dcor$front=="east", which(names(dcor) %in% c("dateTimeB", "group2", "concentration"))]
+dcorF <- dcor[dcor$front=="front", which(names(dcor) %in% c("dateTimeB", "group2", "concentration"))]
+dcorW <- dcor[dcor$front=="west", which(names(dcor) %in% c("dateTimeB", "group2", "concentration"))]
+
+# convert to wide format
+dcorW <- dcast(dcorW, dateTimeB~group2, value.var="concentration")
+dcorF <- dcast(dcorF, dateTimeB~group2, value.var="concentration")
+dcorE <- dcast(dcorE, dateTimeB~group2, value.var="concentration")
+
+# rename columns
+rename <- c("appendicularians" = "Appendicularians", "doliolids" = "Doliolids", "Physonect" = "Physonectae", "sol_large" = "Solmaris_Lg", "sol_small" = "Solmaris_Sm", "Thalassocalycidae inconstans" = "Thalassocalycidae")
+dcorW <- rename(dcorW, rename)
+dcorF <- rename(dcorF, rename)
+dcorE <- rename(dcorE, rename)
+
+# set the order
+levels <- c("Solmaris_Lg", "Solmaris_Sm", "Narcomedusae", "Trachymedusae", "Other Hydro", "Calycophoran", "Physonectae", "Lobata_Young", "Lobata_Adult", "Cydippida", "Beroida", "Thalassocalycidae", "Velamen", "Doliolids", "Appendicularians")
+
+# calculate the spearman's correlation coefficient and melt into a dataframe
+dcorWm <- melt(cor(dcorW[,-1], use="complete.obs", method="spearman"))
+dcorFm <- melt(cor(dcorF[,-1], use="complete.obs", method="spearman"))
+dcorEm <- melt(cor(dcorE[,-1], use="complete.obs", method="spearman"))
+
+# plot the heatmap
+cortheme <- theme(axis.text.x=element_text(angle=45, vjust=0.5, size=14), axis.text.y=element_text(size=14), legend.text=element_text(size=12), legend.title=element_text(size=12), plot.title=element_text(size=26))
+ggplot(data=dcorWm) + geom_tile(aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels), fill=value >0, alpha=abs(value))) + labs(x="", y="", title="West", fill="Positive / Negative", alpha="Strength of Correlation") + scale_fill_discrete(labels=c("Negative", "Positive")) + theme_bw() + cortheme
+ggplot(data=dcorFm) + geom_tile(aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels), fill=value >0, alpha=abs(value))) + labs(x="", y="", title="Front", fill="Positive / Negative", alpha="Strength of Correlation") + scale_fill_discrete(labels=c("Negative", "Positive")) + theme_bw() + cortheme
+ggplot(data=dcorEm) + geom_tile(aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels), fill=value >0, alpha=abs(value))) + labs(x="", y="", title="East", fill="Positive / Negative", alpha="Strength of Correlation") + scale_fill_discrete(labels=c("Negative", "Positive")) + theme_bw() + cortheme
+# }
+
