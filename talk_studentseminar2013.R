@@ -80,6 +80,62 @@ ggplot(d2[d2$concentration>0,]) + geom_violin(aes(x=front, y=-depth, weight=conc
 
 # }
 
+##{ Global averages --------------------------------------------------------
+# 1. want a global total abundance value for all groups: PIE CHART
+# select casts and transects
+dcchoose <- unique(d[d$group=="Hydromedusae" & d$transect==1,"cast"])
+# create a subset data frame
+dsub <- d[d$transect==1 & d$cast %in% dcchoose,]
+# include everything from transect 2
+dsub <- rbind(dsub, d[d$transect==2,])
+
+# sum everything
+dsub <- dsub[, which(names(dsub) %in% c("transect", "front", "group2", "abund", "depth", "concentration"))]
+df <- ddply(dsub, ~ group2, function(x){sum(x$abund)})
+df <- rename(df, replace=c("V1" = "counts"))
+
+df$percentage <- df$counts / (sum(df$counts)) * 100
+
+df$percent_woapps <- df$counts / (sum(df$counts[df$group2 != "Appendicularians"])) * 100
+
+# plot (pie charts are plotted as bar graphs in the polar coordinate scale)
+ggplot(data=df) + geom_bar(aes(x=factor(1), y=percentage, fill=group2), width=1) + coord_polar(theta="y") + scale_fill_brewer(palette="Dark2") + labs(x="", y="", fill="Taxon") +   theme(panel.background=element_rect(fill="white", colour="white"), line=element_blank(), axis.text=element_blank())
+
+ggplot(data=df[df$group2 != "Appendicularians",], aes(x=factor(1), y=percent_woapps,)) + geom_bar(aes(fill=group2), width=1) + coord_polar(theta="y") + 
+  labs(x="", y="", fill="Taxon") + theme(panel.background=element_rect(fill="white", colour="white"), line=element_blank(), axis.text=element_blank()) + 
+  scale_fill_manual(values = c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#E6AB02"))
+
+# 2. global violin plot for all taxa, all transects, all horizontal locations
+dsub <- d
+dsub$depthBin <- floor(dsub$depth)
+
+df <- ddply(dsub, ~depthBin, function(x){
+  avgConc <- mean(x$concentration)
+  return(avgConc)
+}, .progress="text")
+df <- rename(df, replace=c("V1" = "avgConc"))
+
+ggplot(data=df) + geom_violin(aes(x=factor(1), y=-depthBin, weight=avgConc)) + labs(x="", y="Depth (m)") + plottheme + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+
+# 3.  violin plot facetted by transect
+df <- ddply(dsub, ~depthBin + transect, function(x){
+  avgConc <- mean(x$concentration)
+  return(avgConc)
+}, .progress="text")
+df <- rename(df, replace=c("V1" = "avgConc"))
+
+ggplot(data=df) + geom_violin(aes(x=factor(1), y=-depthBin, weight=avgConc)) + labs(x="", y="Depth (m)") + facet_grid(transect~.) + plottheme + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+
+# 4.  violin plot facetted by transect and taxonomic group
+df <- ddply(dsub, ~depthBin + transect + group2, function(x){
+  avgConc <- mean(x$concentration)
+  return(avgConc)
+}, .progress="text")
+df <- rename(df, replace=c("V1" = "avgConc"))
+
+ggplot(data=df) + geom_violin(aes(x=factor(1), y=-depthBin, weight=avgConc, colour=group2)) + labs(x="", y="Depth (m)") + facet_grid(transect~group2) + plottheme + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), legend.position="none") + scale_colour_brewer(palette="Dark2")
+
+# }
 
 ##{ Create interpolated physical variables plots ----------------------------
 
