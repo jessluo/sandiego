@@ -172,6 +172,27 @@ ggplot(d[d$taxon %in% trachy,]) + geom_point(aes(x=long, y=-depth, size=concentr
 ggplot() + geom_point(aes(x=long, y=-depth, size=concentration), colour="pink", alpha=0.7, data=d[d$group=="Ctenophores" & d$taxon !="Beroida" & d$concentration > 0,]) + facet_grid(transect~.) + scale_area(range=c(1,10))
 
 ggplot() + geom_point(aes(x=long, y=-depth, size=concentration), colour="pink", alpha=0.7, data=d[d$group=="Ctenophores" & d$taxon !="Beroida" & d$concentration > 0,]) + geom_point(aes(x=long, y=-depth, size=concentration), colour="black", alpha=0.7, data=d[d$group=="Ctenophores" & d$taxon=="Beroida" & d$concentration >0,]) + facet_grid(transect~.) + scale_area(range=c(1,10))
+
+### VIOLIN PLOT
+# calculate an average value for each bin by frontal region
+# define which groups you want
+d$group2 <- d$group
+# d$group2[d$group == "Solmaris"] <- d$taxon[d$group == "Solmaris"]
+d$group2[d$group == "Tunicates"] <- d$taxon[d$group == "Tunicates"]
+
+d2 <- d[,names(d) %in% c("transect", "cast", "down.up", "dateTime", "dateTimeB", "depth", "front", "group", "group2", "taxon", "abund", "concentration")]
+
+d2$depthBin <- floor(d$depth)
+
+d2 <- ddply(d2, ~transect + front + depthBin + group2, function(x){
+  avgConc <- mean(x$concentration)
+  return(avgConc)
+}, .progress="text")
+
+d2 <- rename(d2, c("depthBin" = "depth", "V1" = "concentration"))
+
+d2$group2 <- factor(d2$group2, levels=c("Solmaris", "Hydromedusae", "Siphonophores", "Ctenophores", "appendicularians", "doliolids"))
+
 # }
 
 
