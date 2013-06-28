@@ -51,6 +51,56 @@ dgC <- dcast (dg, dateTimeB + dateTime + transect + cast + down.up + depth + lon
 # }
 
 ##{ Creating some species plots
+## { Define secondary groups for analysis -------------------------------
+# use the ordination results to define groups for analysis
+# hydromedusae: excluding the species that are present in less than 1% of the population (and keeping broad taxonomic groups), these are the following groups:
+# 1) deep trachymedusae: h2-haliscera, h7-rhopalonema, h9-aglaura, h11-haliscera, 2) liriope and h5b, 3) shallow narcos: h7-pegantha, h6-solmundella, 4) deep narco's -- h3-cunina, and 5) other hydros: h1, h15, vsh
+# ctenophores: keep broad taxonomic groups: cydippids, lobates, beroe, thalasso, velamen
+# siphs: keep groups: physonectae, diphyidae, sphaeronectes, prayidae
+
+# select downcasts for inclusion
+dcchoose <- unique(d[d$group=="Hydromedusae" & d$transect==1,"cast"])
+
+# define functional/taxonomic groups
+Deep_Trachy <- c("h11_Haliscera", "h2_Haliscera", "h7_Rhopalonema", "h9_Aglaura")
+Shallow_Trachy <- c("h5_Liriope", "h5b")
+Shallow_Narco <- c("h7_Pegantha", "h6_Solmundella")
+Deep_Narco <- c("h3_Cunina")
+Other_Hydro <- c("h1", "h15", "vsh")
+Cydippida <- c("Haeckelia beehlri", "Hormiphora californiensis", "Mertensid")
+Lobata <- c("Bolinopsis", "Ocyropsis maculata", "Juvenile Lobata", "Larval Lobata")
+Prayidae <- c("Lilyopsis", "Prayidae")
+
+# assign these groups into a different column
+d$group3 <- d$taxon
+d$group3[d$taxon %in% Deep_Trachy] <- "Deep Trachy"
+d$group3[d$taxon %in% Shallow_Trachy] <- "Shallow Trachy"
+d$group3[d$taxon %in% Shallow_Narco] <- "Shallow Narco"
+d$group3[d$taxon %in% Deep_Narco] <- "Deep Narco"
+d$group3[d$taxon %in% Other_Hydro] <- "Other Hydro"
+d$group3[d$taxon %in% Cydippida] <- "Cydippida"
+d$group3[d$taxon %in% Lobata] <- "Lobata"
+d$group3[d$taxon %in% Prayidae] <- "Prayidae"
+
+# exclude rare taxa
+`%ni%` <- Negate(`%in%`) 
+
+exclude <- c("Charistephane", "Dryodora glandiformis", "Pleurobrachia", "Unknown", "Annatiara", "h10_Pegantha", "h13", "h9_Arctapodema", "r1", "r2", "r3", "r4_Aegina", "r5_Eutonia")
+d <- d[d$group3 %ni% exclude,]
+
+# select which portions of the water column to sample
+drt <- d[d$transect==1 & d$cast %in% dcchoose,]
+drt <- rbind(drt, d[d$transect==2,])
+
+# compute total concentration per group
+drt <- ddply(drt, ~transect + cast + front + dateTimeB + group3, function(x) {
+  tot <- sum(x$concentration)
+  timeavg <- mean(x$dateTime)
+  return(data.frame(concentration=tot, dateTime=timeavg))
+}, .parallel=TRUE)
+
+# }
+
 dO=d[d$taxon=="Ocyropsis maculata",]
 dO$lconc=log1p(dO$concentration)
 dO$pres <- dO$concentration > 0
