@@ -12,6 +12,7 @@ library("vegan")
 library("mvpart")
 library("packfor")
 library("plyr")
+library("reshape2")
 library("ggplot2")
 library("foreach")
 library("doParallel")
@@ -21,19 +22,36 @@ registerDoParallel(cores=detectCores())
 
 # read data
 d <- read.csv("data/all_binned_by_depth.csv", stringsAsFactors=FALSE)
-d$dateTime <- as.POSIXct(d$dateTime, tz="GMT")
+d$dateTime <- as.POSIXct(d$dateTime, tz="America/Los_Angeles")
 # NB: make sure time is set in GMT (even if it wasn't) to avoid dealing with tz afterwards
 
+# define the front
+# initialize
+d$front <- NA
+
+# delineate the frontal region
+d[d$transect==1 & d$cast <=11,]$front <- "east"
+d[d$transect==1 & d$cast >=12 & d$cast <= 15,]$front <- "front"
+d[d$transect==1 & d$cast >=16,]$front <- "west"
+d[d$transect==2 & d$cast <=22,]$front <- "east"
+d[d$transect==2 & d$cast >=23 & d$cast <= 28,]$front <- "front"
+d[d$transect==2 & d$cast >=29,]$front <- "west"
+d[d$transect==3 & d$cast <=8,]$front <- "west"
+d[d$transect==3 & d$cast >=9 & d$cast <= 13,]$front <- "front"
+d[d$transect==3 & d$cast >=14,]$front <- "east"
+d$front <- factor(d$front, levels=c("west", "front", "east"))
 
 # identify explanatory variables of interest
 locVars <- c("depth", "long", "front")
 hydroVars <- c("temp", "salinity", "fluoro", "oxygen")
 vars <- c(locVars, hydroVars)
 
-# define new groups for the analysis
+# define broad groups for the analysis
 d$group2 <- d$group
 d$group2[d$group == "Solmaris"] <- d$taxon[d$group == "Solmaris"]
 d$group2[d$group == "Tunicates"] <- d$taxon[d$group == "Tunicates"]
+d[d$group2=="appendicularians","group2"] <- "Appendicularians"
+d[d$group2=="doliolids","group2"] <- "Doliolids"
 
 # compute total concentration per group
 dg <- ddply(d, ~transect + cast + down.up + dateTimeB + group2, function(x) {
@@ -42,15 +60,15 @@ dg <- ddply(d, ~transect + cast + down.up + dateTimeB + group2, function(x) {
   return(data.frame(x[1,vars], concentration=tot, dateTime=timeavg))
 }, .parallel=TRUE)
 
-ggplot(dg[which(dg$concentration > 0),]) + geom_histogram(aes(x=concentration)) + facet_wrap(~group2, scale="free")
-ggplot(dg[which(dg$concentration > 0),]) + geom_histogram(aes(x=log(concentration))) + facet_wrap(~group2, scale="free")
+# visualize
+# ggplot(dg[which(dg$concentration > 0),]) + geom_histogram(aes(x=concentration)) + facet_wrap(~group2, scale="free")
+# ggplot(dg[which(dg$concentration > 0),]) + geom_histogram(aes(x=log(concentration))) + facet_wrap(~group2, scale="free")
 
 # casing data into wide format with group 2
 dgC <- dcast (dg, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + fluoro + oxygen ~ group2, value.var="concentration")
 
 # }
 
-##{ Creating some species plots
 ## { Define secondary groups for analysis -------------------------------
 # use the ordination results to define groups for analysis
 # hydromedusae: excluding the species that are present in less than 1% of the population (and keeping broad taxonomic groups), these are the following groups:
@@ -101,6 +119,7 @@ drt <- ddply(drt, ~transect + cast + front + dateTimeB + group3, function(x) {
 
 # }
 
+##{ Creating some species plots ------------------------------------------
 dO=d[d$taxon=="Ocyropsis maculata",]
 dO$lconc=log1p(dO$concentration)
 dO$pres <- dO$concentration > 0
