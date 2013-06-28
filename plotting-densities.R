@@ -88,6 +88,17 @@ fplot <- ggplot(fi) + geom_tile(aes(x=dist/1000, y=-depth, fill=fluoro)) + geom_
 oplot <- ggplot(oi) + geom_tile(aes(x=dist/1000, y=-depth, fill=oxygen)) + geom_contour(aes(x=dist/1000, y=-depth, z=oxygen), colour="white", size=0.5, alpha=0.5, breaks=c("2", "3", "4", "5")) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth") + scale_fill_gradient("Oxygen", na.value="grey80", low = "#e9dfe3", high = "#825b6c")
 # }
 
+##{ Summarize counts and abundances -----------------------------------------
+res <- sort(daply(d[d$group=="Ctenophores",], ~taxon, function(x){sum(x$abund)}), decreasing=TRUE)
+res <- sort(daply(d[d$group=="Hydromedusae",], ~taxon, function(x){sum(x$abund)}), decreasing=TRUE)
+res <- sort(daply(d[d$group=="Siphonophores",], ~taxon, function(x){sum(x$abund)}), decreasing=TRUE)
+
+res <- sort(daply(d[d$group %in% c("Hydromedusae", "Solmaris"),], ~taxon, function(x){sum(x$abund)}), decreasing=TRUE)
+res/sum(res)
+# }
+
+##{ Plot concentrations on top of interpolated phy vars----------------------
+
 # plotting just the appendicularians only
 
 Tplot <- ggplot(ti[which(ti$transect!=3),]) + geom_tile(aes(x=dist/1000, y=-depth, fill=temp)) + geom_contour(aes(x=dist/1000, y=-depth, z=temp), colour="white", size=0.5, alpha=0.5, breaks=c(10, 15)) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth") + scale_fill_gradient("Temp (C)", na.value="grey80", low = "#2d669f", high = "#c8dcef")
