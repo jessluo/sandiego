@@ -482,6 +482,42 @@ ggplot(data=dcorWm) + geom_tile(aes(x=factor(Var1, levels=levels), y=factor(Var2
 ggplot(data=dcorFm) + geom_tile(aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels), fill=value >0, alpha=abs(value))) + theme_bw() + cortheme
 ggplot(data=dcorEm) + geom_tile(aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels), fill=value >0, alpha=abs(value))) + theme_bw() + cortheme
 
+#library(Hmisc)
+#P_corW <- rcorr(as.matrix(dcorW), type="spearman")
+#P_corF <- (rcorr(as.matrix(dcorF), type="spearman"))$P
+#P_corE <- (rcorr(as.matrix(dcorE), type="spearman"))$P
+
+# adding in significant values
+# try using corrplot package
+library(corrplot)
+cor.mtest <- function(mat, conf.level = 0.95) {
+  +     mat <- as.matrix(mat)
+  +     n <- ncol(mat)
+  +     p.mat <- lowCI.mat <- uppCI.mat <- matrix(NA, n, n)
+  +     diag(p.mat) <- 0
+  +     diag(lowCI.mat) <- diag(uppCI.mat) <- 1
+  +     for (i in 1:(n - 1)) {
+    +         for (j in (i + 1):n) {
+      +             tmp <- cor.test(mat[, i], mat[, j], conf.level = conf.level)
+      +             p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+      +             lowCI.mat[i, j] <- lowCI.mat[j, i] <- tmp$conf.int[1]
+      +             uppCI.mat[i, j] <- uppCI.mat[j, i] <- tmp$conf.int[2]
+      +         }
+    +     }
+  +     return(list(p.mat, lowCI.mat, uppCI.mat))
+  + }
+
+res1 <- cor.mtest(cor(dcorW, use="complete.obs", method="spearman"), 0.95)
+corrplot(cor(dcorW, use="complete.obs", method="spearman"), p.mat = res1[[1]], sig.level = 0.05)
+
+res1 <- cor.mtest(cor(dcorF, use="complete.obs", method="spearman"), 0.95)
+corrplot(cor(dcorF, use="complete.obs", method="spearman"), p.mat = res1[[1]], sig.level = 0.05)
+corrplot(cor(dcorF, use="complete.obs", method="spearman"), p.mat = res1[[1]], insig = "blank")
+
+res1 <- cor.mtest(cor(dcorE, use="complete.obs", method="spearman"), 0.95)
+corrplot(cor(dcorE, use="complete.obs", method="spearman"), p.mat = res1[[1]], sig.level = 0.05)
+corrplot(cor(dcorE, use="complete.obs", method="spearman"), p.mat = res1[[1]], insig = "blank")
+
 # }
 
 
