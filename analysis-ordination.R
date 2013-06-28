@@ -122,13 +122,26 @@ dCspp <- na.omit(dCspp)
 # log transform
 dCspp <- log(dCspp+1)
 allCA <- cca(dCspp)
-head(summary(allCA)) # first two CA axes explain 29% of the variance
+head(summary(allCA)) # first two CA axes explain 31% of the variance
 plot(allCA, scaling=2, main="CA biplot of species concentrations")
 text(allCA, dis="sp", col="red")
 # axes 2 and 3
 plot(allCA, scaling=2, main="CA biplot of species concentrations", choice=2:3)
 text(allCA, dis="sp", col="red", choice=2:3)
 #
+
+# cluster analysis on ordination results
+allCA$CA$v.eig # species scores
+# pick number of axes
+axes <- 3
+CAaxes <- allCA$CA$v.eig
+CAaxes <- CAaxes[1:nrow(CAaxes),1:axes]
+
+CAdist <- dist(CAaxes, method="euclidean")
+
+CAclust <- hclust(CAdist, method="ward")
+plot(CAclust, labels=dimnames(CAaxes)[[1]])
+
 # Hydromedusae
 # subsetting and casting data into wide format
 ds <- d[d$group=="Hydromedusae",]
@@ -150,7 +163,7 @@ dCspp <- dsC[,names(dsC) %in% c("Annatiara", "h1", "h10_Pegantha", "h11_Haliscer
 dCspp <- dCspp[-which(rowSums(dCspp)==0),]
 dCspp <- na.omit(dCspp)
 # log transform
-dCspp <- log(dCspp+1)
+dCspp <- log1p(dCspp)
 allCA <- cca(dCspp)
 head(summary(allCA)) # first two CA axes explain 29% of the variance
 plot(allCA, scaling=2, main="CA biplot of species concentrations")
@@ -159,11 +172,33 @@ text(allCA, dis="sp", col="red")
 plot(allCA, scaling=2, main="CA biplot of species concentrations", choice=2:3)
 text(allCA, dis="sp", col="red", choice=2:3)
 
+# cluster analysis on ordination results
+allCA$CA$v.eig # species scores
+# pick number of axes
+axes <- 4
+CAaxes <- allCA$CA$v.eig
+CAaxes <- CAaxes[1:nrow(CAaxes),1:axes]
 
-# TODO: Hierarchical clustering on CA results
+CAdist <- dist(CAaxes, method="euclidean")
 
+CAclust <- hclust(CAdist, method="ward")
+plot(CAclust, labels=dimnames(CAaxes)[[1]])
+rect.hclust(CAclust, k=4, border="red")
+# --> with 4 axes you get three groups: 1) h7-pegantha, h6-solmundella, h5-liriope, h5b, h15, vsh. 2) r3, h3-cunina, h2-haliscera, h7-rhopalonema. 3) h9-aglaura, h11-haliscera, r5-eutonina, h1, h10-pegantha, and then annatiara and r4-aegina are very different
+# --> with 3 CA axes you get two major groups, 1) h7-pegantha, h15, vsh, h6-solmundella, h5-liriope, h5b, h1, h10-pegantha. 2) r3, h9-aglaura, h2-haliscera, h7-rhopalonema, h3-cunina, r5-eutonia, and h11-haliscera. and annatiara and aegina are different.
+
+# order
+order <- c("Annatiara", "r4_Aegina", "h7_Pegantha", "h6_Solmundella", "h5_Liriope", "h5b", "h15", "vsh", "r3", "h3_Cunina", "h2_Haliscera", "h7_Rhopalonema", "h9_Aglaura", "h11_Haliscera", "r5_Eutonia", "h1", "h10_Pegantha")
+
+dh <- d[d$group=="Hydromedusae" & d$taxon %in% order,]
+dh$taxon <- factor(dh$taxon, levels=order)
+
+ggplot(dh[dh$concentration>0,]) + geom_violin(aes(x=taxon, y=-depth, weight=concentration, colour=taxon), alpha=0.7, scale="width") + labs(colour="Taxa", y="Depth (m)", x="Taxa")
 # }
 
+##{ Unconstrained Ordination: CA with all taxa, using results from previous ordination results ------------
+
+# }
 
 ##{ Constrained ordination: CCA ------------------------------------------------
 # which is better, RDA or CCA?
