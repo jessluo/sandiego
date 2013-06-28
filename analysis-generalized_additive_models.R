@@ -11,6 +11,7 @@ library(ggplot2)
 library(plyr)
 library(reshape2)
 library(mgcv)
+library(car)
 `%ni%` <- Negate(`%in%`) 
 
 ##{ Read data --------------------------------------------------------------
@@ -20,14 +21,15 @@ d$dateTime <- as.POSIXct(d$dateTime, tz="America/Los_Angeles")
 # }
 
 ##{ Define new groups & delineate the front ---------------------------------
+# identify explanatory variables of interest
+locVars <- c("depth", "long")
+hydroVars <- c("temp", "salinity", "fluoro", "oxygen")
+vars <- c(locVars, hydroVars)
 
 # define new groups for the analysis
 d$group2 <- d$group
 d$group2[d$group == "Solmaris"] <- d$taxon[d$group == "Solmaris"]
 d$group2[d$group == "Tunicates"] <- d$taxon[d$group == "Tunicates"]
-
-##### how to define the frontal water mass?
-ggplot(data=phy) + geom_point(aes(x=salinity, y=temp, colour=long)) + facet_grid(transect~.) + scale_colour_gradientn(colours=rainbow(10))
 
 # initialize
 d$front <- NA
@@ -60,7 +62,7 @@ ggplot(aes(x=salinity, y=concentration), data=dsol) + geom_point(color="#FF8000"
 ggplot(aes(x=salinity, y=concentration), data=dsol) + geom_point(color="#FF8000", alpha=0.75) + geom_smooth(se=F, method='gam', formula=y~s(x, bs="cr")) + facet_grid(transect~.)
 
 # gams will be developed for most abundant species:
-# solmaris - large and small, Liriope, Sphaeronectes, and Ocryopsis maculata
+# solmaris - large and small, Liriope, Sphaeronectes, and Ocyropsis maculata
 
 # solmaris
 sol_gam <- gam(concentration ~ s(temp, bs="cr") + s(salinity, bs="cr") + s(fluoro, bs="cr") + s(oxygen, bs="cr"), data=d[d$taxon=="sol_large",])
@@ -95,6 +97,9 @@ vis.gam(sol_gam, type="response", plot.type="persp")
 ggplot(aes(x=swRho, y=concentration), data=d[d$taxon=="sol_large",]) + geom_point(color="#FF8000", alpha=0.75) + geom_rug(sides="b") + geom_smooth(se=F, method='gam', formula=y~s(x, bs="cr")) + facet_grid(transect~front ,scales="free_y")
 
 ggplot(aes(x=salinity, y=concentration), data=d[d$taxon=="sol_large",]) + geom_point(color="#FF8000", alpha=0.75) + geom_rug(sides="b") + geom_smooth(se=F, method='gam', formula=y~s(x, bs="cr")) + facet_grid(transect~front ,scales="free_y")
+
+
+# }
 
 
 # }
