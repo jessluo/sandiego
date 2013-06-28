@@ -415,9 +415,8 @@ Narcomedusae <- c("h10_Pegantha", "h3_Cunina", "h6_Solmundella", "h7_Pegantha", 
 Trachymedusae <- c("h11_Haliscera", "h2_Haliscera", "h5_Liriope", "h5b", "h7_Rhopalonema", "h9_Aglaura", "h9_Arctapodema")
 Other_Hydro <- c("Annatiara", "h1", "h13", "h15", "r1", "r2", "r3", "r5_Eutonia", "vsh")
 Cydippida <- c("Haeckelia beehlri", "Hormiphora californiensis", "Mertensid", "Dryodora glandiformis", "Pleurobrachia", "Charistephane")
-Lobata_Adult <- c("Bolinopsis", "Ocyropsis maculata")
-Lobata_Young <- c("Juvenile Lobata", "Larval Lobata")
-Calycophoran <- c("Diphyidae", "Lilyopsis", "Prayidae", "Sphaeronectes")
+Lobata <- c("Bolinopsis", "Ocyropsis maculata", "Juvenile Lobata", "Larval Lobata")
+Prayidae <- c("Lilyopsis", "Prayidae")
 
 # assign these groups into a different column
 d$group2 <- d$taxon
@@ -425,9 +424,8 @@ d$group2[d$taxon %in% Narcomedusae] <- "Narcomedusae"
 d$group2[d$taxon %in% Trachymedusae] <- "Trachymedusae"
 d$group2[d$taxon %in% Other_Hydro] <- "Other Hydro"
 d$group2[d$taxon %in% Cydippida] <- "Cydippida"
-d$group2[d$taxon %in% Lobata_Adult] <- "Lobata_Adult"
-d$group2[d$taxon %in% Lobata_Young] <- "Lobata_Young"
-d$group2[d$taxon %in% Calycophoran] <- "Calycophoran"
+d$group2[d$taxon %in% Lobata] <- "Lobata"
+d$group2[d$taxon %in% Prayidae] <- "Prayidae"
 
 # exclude unknown ctenophores
 d <- d[d$group2 != "Unknown",]
@@ -460,18 +458,30 @@ dcorF <- rename(dcorF, rename)
 dcorE <- rename(dcorE, rename)
 
 # set the order
-levels <- c("Solmaris_Lg", "Solmaris_Sm", "Narcomedusae", "Trachymedusae", "Other Hydro", "Calycophoran", "Physonectae", "Lobata_Young", "Lobata_Adult", "Cydippida", "Beroida", "Thalassocalycidae", "Velamen", "Doliolids", "Appendicularians")
+levels <- c("Solmaris_Lg", "Solmaris_Sm", "Narcomedusae", "Trachymedusae", "Other Hydro", "Diphyidae", "Sphaeronectes", "Prayidae", "Physonectae", "Lobata", "Cydippida", "Beroida", "Thalassocalycidae", "Velamen", "Doliolids", "Appendicularians")
+
+# reorder the columns
+dcorW <- dcorW[,levels]
+dcorF <- dcorF[,levels]
+dcorE <- dcorE[,levels]
 
 # calculate the spearman's correlation coefficient and melt into a dataframe
-dcorWm <- melt(cor(dcorW[,-1], use="complete.obs", method="spearman"))
-dcorFm <- melt(cor(dcorF[,-1], use="complete.obs", method="spearman"))
-dcorEm <- melt(cor(dcorE[,-1], use="complete.obs", method="spearman"))
+dcorWm <- melt(cor(dcorW, use="complete.obs", method="spearman"))
+dcorFm <- melt(cor(dcorF, use="complete.obs", method="spearman"))
+dcorEm <- melt(cor(dcorE, use="complete.obs", method="spearman"))
 
 # plot the heatmap
 cortheme <- theme(axis.text.x=element_text(angle=45, vjust=0.5, size=14), axis.text.y=element_text(size=14), legend.text=element_text(size=12), legend.title=element_text(size=12), plot.title=element_text(size=26))
 ggplot(data=dcorWm) + geom_tile(aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels), fill=value >0, alpha=abs(value))) + labs(x="", y="", title="West", fill="Positive / Negative", alpha="Strength of Correlation") + scale_fill_discrete(labels=c("Negative", "Positive")) + theme_bw() + cortheme
 ggplot(data=dcorFm) + geom_tile(aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels), fill=value >0, alpha=abs(value))) + labs(x="", y="", title="Front", fill="Positive / Negative", alpha="Strength of Correlation") + scale_fill_discrete(labels=c("Negative", "Positive")) + theme_bw() + cortheme
 ggplot(data=dcorEm) + geom_tile(aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels), fill=value >0, alpha=abs(value))) + labs(x="", y="", title="East", fill="Positive / Negative", alpha="Strength of Correlation") + scale_fill_discrete(labels=c("Negative", "Positive")) + theme_bw() + cortheme
+
+# plots without the legends or the axes
+cortheme <- theme(axis.text=element_text("none"), legend.position="none")
+ggplot(data=dcorWm) + geom_tile(aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels), fill=value >0, alpha=abs(value))) + theme_bw() + cortheme
+ggplot(data=dcorFm) + geom_tile(aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels), fill=value >0, alpha=abs(value))) + theme_bw() + cortheme
+ggplot(data=dcorEm) + geom_tile(aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels), fill=value >0, alpha=abs(value))) + theme_bw() + cortheme
+
 # }
 
 
