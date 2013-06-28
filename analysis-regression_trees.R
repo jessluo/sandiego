@@ -112,33 +112,6 @@ dCbind <- cbind(dCspp, dCenv)
 m <- mvpart(data.matrix(decostand(dCbind[,names(dCbind) %in% spp], method="chi.square")) ~  temp + salinity + fluoro + oxygen, data=dCbind, xv=("min"), xval=5, xvmult=100)
 
 
-# # multivariate regression tree with all taxa
-# m <- mvpart(data.matrix(dgC[,names(dgC) %in% c("appendicularians", "Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]) ~ temp + salinity + fluoro + oxygen, data=dgC, xv=("min"), xval=5, xvmult=100)
-# # --> basically, when you look at the multivariate regression tree for everything, it is 27% explained by temperature (which is probably just a proxy for depth) and then nothing else
-# 
-# # multivariate regression tree without the apps
-# m <- mvpart(data.matrix(dgC[,names(dgC) %in% c("Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]) ~ temp + salinity + fluoro + oxygen, data=dgC, xv=("min"), xval=5, xvmult=100)
-# # --> much better. percentage of variance explained is 57%, which is pretty good. but most of the changes driven by temperature and salinity. bar plots appear to represent absolute abundances rather than proportion of abundances
-# 
-# # mvpart with scaled species abundances
-# m <- mvpart(scale(data.matrix(dgC[,names(dgC) %in% c("Ctenophores", "doliolids", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")])) ~ temp + salinity + fluoro + oxygen, data=dgC, xv=("min"), xval=5, xvmult=100)
-# 
-# # multivariate regression tree with just the jellies and the ctenophores
-# m <- mvpart(data.matrix(dgC[,names(dgC) %in% c("Ctenophores", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]) ~ temp + salinity + fluoro + oxygen, data=dgC, xv=("min"), xval=5, xvmult=100)
-# 
-# # multivariate regression tree with just the hydrozoans
-# m <- mvpart(data.matrix(dgC[,names(dgC) %in% c("Hydromedusae", "Siphonophores", "sol_large", "sol_small")]) ~ temp + salinity + fluoro + oxygen, data=dgC, xv=("min"), xval=5, xvmult=100)
-# # --> the latter three are about the same
-# # think about the interpretation for these plots ...
-
-# maybe perform a square root transformation on the species data for the multivariate regression tree
-
-
-
-# # multivariate regression tree with Principal components analysis of the group means
-# m <- mvpart(data.matrix(dgC[,names(dgC) %in% c("Ctenophores", "Hydromedusae", "Siphonophores", "sol_large", "sol_small")]) ~ temp + salinity + fluoro + oxygen, data=dgC, xv=("min"), xval=5, xvmult=100, pca=T)
-# # difficult to interpret
-
 # }
 
 ##{ Logistic Regression  ------------------------------------------------
