@@ -11,6 +11,8 @@ library("oce")
 `%ni%` <- Negate(`%in%`) 
 library("pastecs")
 
+# setup R to keep decimal seconds in the times
+options("digits.secs"=3)
 
 ##{ Read data ------------------------------------------------
 d <- read.csv("data/all_binned_by_depth.csv", stringsAsFactors=FALSE)
@@ -75,8 +77,7 @@ d2 <- rename(d2, c("depthBin" = "depth", "V1" = "concentration"))
 d2$group2 <- factor(d2$group2, levels=c("Solmaris", "Hydromedusae", "Siphonophores", "Ctenophores", "Appendicularians", "Doliolids"))
 
 # violin plot comparing depth distribution of all taxa with respect to transect and position relative to the front
-ggplot(d2[d2$concentration>0,]) + geom_violin(aes(x=front, y=-depth, weight=concentration, colour=group2), alpha=0.4) + facet_grid(transect~group2) + labs(colour="Taxon") + scale_colour_brewer(palette="Dark2")
-
+ggplot(d2[d2$concentration>0 & d2$transect==2,]) + geom_violin(aes(x=front, y=-depth, weight=concentration, colour=group2, fill=group2), alpha=0.7) + facet_grid(transect~group2) + labs(colour="Taxon") + scale_colour_brewer(palette="Dark2") + scale_fill_brewer(palette="Dark2") + theme(legend.position="none") + labs(x="", y="Depth (m)") + plottheme
 
 # }
 
@@ -115,7 +116,19 @@ df <- ddply(dsub, ~depthBin, function(x){
 }, .progress="text")
 df <- rename(df, replace=c("V1" = "avgConc"))
 
-ggplot(data=df) + geom_violin(aes(x=factor(1), y=-depthBin, weight=avgConc)) + labs(x="", y="Depth (m)") + plottheme + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+ggplot(data=df) + geom_violin(aes(x=factor(1), y=-depthBin, weight=avgConc), fill="black", alpha=0.4) + labs(x="", y="Depth (m)") + plottheme + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+
+
+##
+
+df <- ddply(dsub, ~depthBin + front + group2, function(x){
+  avgConc <- mean(x$concentration)
+  return(avgConc)
+}, .progress="text")
+df <- rename(df, replace=c("V1" = "avgConc"))
+
+ggplot(data=df) + geom_violin(aes(x=front, y=-depthBin, weight=avgConc, colour=group2), alpha=0.4) + labs(x="", y="Depth (m)") + facet_grid(~group2) + plottheme + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+
 
 # 3.  violin plot facetted by transect
 df <- ddply(dsub, ~depthBin + transect, function(x){
@@ -124,7 +137,7 @@ df <- ddply(dsub, ~depthBin + transect, function(x){
 }, .progress="text")
 df <- rename(df, replace=c("V1" = "avgConc"))
 
-ggplot(data=df) + geom_violin(aes(x=factor(1), y=-depthBin, weight=avgConc)) + labs(x="", y="Depth (m)") + facet_grid(transect~.) + plottheme + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+ggplot(data=df) + geom_violin(aes(x=factor(1), y=-depthBin, weight=avgConc), alpha=0.4) + labs(x="", y="Depth (m)") + facet_grid(transect~.) + plottheme + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
 
 # 4.  violin plot facetted by transect and taxonomic group
 df <- ddply(dsub, ~depthBin + transect + group2, function(x){
@@ -133,7 +146,7 @@ df <- ddply(dsub, ~depthBin + transect + group2, function(x){
 }, .progress="text")
 df <- rename(df, replace=c("V1" = "avgConc"))
 
-ggplot(data=df) + geom_violin(aes(x=factor(1), y=-depthBin, weight=avgConc, colour=group2)) + labs(x="", y="Depth (m)") + facet_grid(transect~group2) + plottheme + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), legend.position="none") + scale_colour_brewer(palette="Dark2")
+ggplot(data=df[df$transect==2,]) + geom_violin(aes(x=factor(1), y=-depthBin, weight=avgConc, colour=group2, fill=group2), alpha=0.7) + labs(x="", y="Depth (m)") + facet_grid(transect~group2) + plottheme + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), legend.position="none") + scale_colour_brewer(palette="Dark2") + scale_fill_brewer(palette="Dark2")
 
 # }
 
