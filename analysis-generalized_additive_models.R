@@ -102,4 +102,7 @@ ggplot(aes(x=salinity, y=concentration), data=d[d$taxon=="sol_large",]) + geom_p
 # }
 
 
+## { Generalized additive mixed models ------------------------------------------
+
+
 # }
