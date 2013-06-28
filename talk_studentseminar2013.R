@@ -162,13 +162,16 @@ d <- ddply(d, ~transect, function(x, lonR=lonRef) {
 }, .progress="text")
 
 # temperature
-tplot <- ggplot(ti) + geom_tile(aes(x=dist/1000, y=-depth, fill=temp)) + geom_contour(aes(x=dist/1000, y=-depth, z=temp), colour="white", size=0.5, alpha=0.5, breaks=c(10, 15)) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth") + scale_fill_gradient("Temp (C)", na.value="grey80", low = "#2d669f", high = "#c8dcef")
+tplot <- ggplot(ti) + geom_tile(aes(x=dist/1000, y=-depth, fill=temp)) + geom_contour(aes(x=dist/1000, y=-depth, z=temp), colour="white", size=0.5, alpha=0.5, breaks=c(10, 15)) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth (m)") + scale_fill_gradient("Temp (C)", na.value="grey80", low = "#2d669f", high = "#c8dcef")
 
 # seawater density
-swplot <- ggplot(swi) + geom_tile(aes(x=dist/1000, y=-depth, fill=swRho)) + geom_contour(aes(x=dist/1000, y=-depth, z=swRho), colour="white", size=0.5, alpha=0.5, breaks=c("1025", "1026", "1027")) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth") + scale_fill_gradient("Seawater Density", na.value="grey80", high = "#245280", low = "#a9c8e7")
+swplot <- ggplot(swi) + geom_tile(aes(x=dist/1000, y=-depth, fill=swRho)) + geom_contour(aes(x=dist/1000, y=-depth, z=swRho), colour="white", size=0.5, alpha=0.5, breaks=c("1025", "1026", "1027")) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth (m)") + scale_fill_gradientn("Seawater Density", na.value="grey80", colours=c("red", "orange", "yellow", "#7dff00", "cyan", "#007dff", "blue"))
 
 # salinity
-splot <- ggplot(si) + geom_tile(aes(x=dist/1000, y=-depth, fill=salinity)) + geom_contour(aes(x=dist/1000, y=-depth, z=salinity), colour="white", size=0.5, alpha=0.5, breaks=c("33", "33.25", "33.5", "33.75", "34")) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth") + scale_fill_gradient("Salinity", na.value="grey80", high = "#5b4581", low="white")# low = "#d5cde4")
+splot <- ggplot(si) + geom_tile(aes(x=dist/1000, y=-depth, fill=salinity)) + geom_contour(aes(x=dist/1000, y=-depth, z=salinity), colour="white", size=0.5, alpha=0.5, breaks=c("33", "33.25", "33.5", "33.75", "34")) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth (m)") + scale_fill_gradient("Salinity", na.value="grey80", high = "#5b4581", low="white")# low = "#d5cde4")
+
+# salinity with gradient colors
+splot <- ggplot(si) + geom_tile(aes(x=dist/1000, y=-depth, fill=salinity)) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth (m)") + scale_fill_gradientn("Salinity", colours=c("blue", "#007dff", "cyan", "#00ff7d", "green", "#7dff00", "yellow", "orange", "red"), na.value="grey85")
 
 plottheme <- theme(title=element_text(size=rel(1.8)), plot.title=element_text(size=rel(1.8)), axis.text=element_text(size=rel(1.3)), strip.text=element_text(size=rel(1.5)), legend.text=element_text(size=rel(1.2)))
 # plottheme <- theme(title=element_text(size=20), plot.title=element_text(size=24), axis.text=element_text(size=14), strip.text=element_text(size=14), legend.text=element_text(size=12))
@@ -317,7 +320,7 @@ ggplot(dct[dct$taxon %in% c("Ocyropsis maculata", "Larval Lobata"),]) + geom_poi
 ggplot(d[d$taxon=="h5_Liriope",]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 
 # plot Liriope concentrations on top of salinity profile
-splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="h5_Liriope" & d$concentration>0,]) + facet_grid(transect~.,) + scale_size_area("Conc.", max_size=13) + labs(title="Liriope tetraphylla") + plottheme + theme(legend.position=c(.1, .35)) + theme(plot.title=element_text(face="italic")) + labs(y="Depth (m)")
+splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="h5_Liriope" & d$concentration>0,]) + facet_grid(transect~.,) + scale_size_area("Conc.", max_size=13) + labs(title="Liriope tetraphylla") + plottheme + theme(legend.position=c(.1, .35)) + theme(plot.title=element_text(face="italic"))
 
 # Calculation of Liriope rate of movement
 # how fast are the liriope tetraphylla moving up in the water column?
