@@ -32,7 +32,13 @@ oi <- read.csv("data/interp_oxygen.csv", stringsAsFactors=FALSE)
 
 # }
 
-##{ Delineate the front -----------------------------------------------------
+##{ Define new groups & delineate the front ---------------------------------
+
+# define new groups for the analysis
+d$group2 <- d$group
+d$group2[d$group == "Solmaris"] <- d$taxon[d$group == "Solmaris"]
+d$group2[d$group == "Tunicates"] <- d$taxon[d$group == "Tunicates"]
+
 ##### how to define the frontal water mass?
 ggplot(data=phy) + geom_point(aes(x=salinity, y=temp, colour=long)) + facet_grid(transect~.) + scale_colour_gradientn(colours=rainbow(10))
 
@@ -51,10 +57,12 @@ d[d$transect==3 & d$cast >=9 & d$cast <= 13,]$front <- "front"
 d[d$transect==3 & d$cast >=14,]$front <- "east"
 d$front <- factor(d$front, levels=c("west", "front", "east"))
 
-
 # }
-##{ Plot concentrations on top of interpolated phy vars----------------------
-                                 
+
+
+
+##{ Create interpolated physical variables plots ----------------------------
+
 # calculate distances for the binned data matrix                                 
 lonRef <- min(phy$long)
 d <- ddply(d, ~transect, function(x, lonR=lonRef) {
@@ -63,6 +71,22 @@ d <- ddply(d, ~transect, function(x, lonR=lonRef) {
   # NB: geodDist computes in km
   return(x)
 }, .progress="text")
+
+# temperature
+tplot <- ggplot(ti) + geom_tile(aes(x=dist/1000, y=-depth, fill=temp)) + geom_contour(aes(x=dist/1000, y=-depth, z=temp), colour="white", size=0.5, alpha=0.5, breaks=c(10, 15)) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth") + scale_fill_gradient("Temp (C)", na.value="grey80", low = "#2d669f", high = "#c8dcef")
+
+# seawater density
+swplot <- ggplot(swi) + geom_tile(aes(x=dist/1000, y=-depth, fill=swRho)) + geom_contour(aes(x=dist/1000, y=-depth, z=swRho), colour="white", size=0.5, alpha=0.5, breaks=c("1025", "1026", "1027")) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth") + scale_fill_gradient("Seawater Density", na.value="grey80", high = "#245280", low = "#a9c8e7")
+
+# salinity
+splot <- ggplot(si) + geom_tile(aes(x=dist/1000, y=-depth, fill=salinity)) + geom_contour(aes(x=dist/1000, y=-depth, z=salinity), colour="white", size=0.5, alpha=0.5, breaks=c("33", "33.25", "33.5", "33.75", "34")) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth") + scale_fill_gradient("Salinity", na.value="grey80", high = "#5b4581", low = "#d5cde4")
+
+# fluorometry
+fplot <- ggplot(fi) + geom_tile(aes(x=dist/1000, y=-depth, fill=fluoro)) + geom_contour(aes(x=dist/1000, y=-depth, z=fluoro), colour="white", size=0.5, alpha=0.5, breaks=c("0.2", "0.4", "0.6", "0.8")) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth") + scale_fill_gradient("Fluorometry", na.value="grey80", high = "#4b6b5d", low = "#dfe9e5")
+
+# oxygen
+oplot <- ggplot(oi) + geom_tile(aes(x=dist/1000, y=-depth, fill=oxygen)) + geom_contour(aes(x=dist/1000, y=-depth, z=oxygen), colour="white", size=0.5, alpha=0.5, breaks=c("2", "3", "4", "5")) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth") + scale_fill_gradient("Oxygen", na.value="grey80", low = "#e9dfe3", high = "#825b6c")
+# }
 
 # plotting just the appendicularians only
 
