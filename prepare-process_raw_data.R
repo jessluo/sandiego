@@ -294,6 +294,23 @@ ggplot(data=phy) + geom_path(aes(x=long, y=-depth, colour=factor(cast), linetype
 # remove the flag column
 phy <- phy[, which(names(phy) != "flag")]
 
+# delineate the front
+# initialize
+phy$front <- NA
+
+# delineate the frontal region
+phy[phy$transect==1 & phy$cast <=11,]$front <- "east"
+phy[phy$transect==1 & phy$cast >=12 & phy$cast <= 15,]$front <- "front"
+phy[phy$transect==1 & phy$cast >=16,]$front <- "west"
+phy[phy$transect==2 & phy$cast <=22,]$front <- "east"
+phy[phy$transect==2 & phy$cast >=23 & phy$cast <= 28,]$front <- "front"
+phy[phy$transect==2 & phy$cast >=29,]$front <- "west"
+phy[phy$transect==3 & phy$cast <=8,]$front <- "west"
+phy[phy$transect==3 & phy$cast >=9 & phy$cast <= 13,]$front <- "front"
+phy[phy$transect==3 & phy$cast >=14,]$front <- "east"
+phy$front <- factor(phy$front, levels=c("west", "front", "east"))
+
+
 # }
 
 
