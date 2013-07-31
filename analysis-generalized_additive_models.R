@@ -30,22 +30,6 @@ vars <- c(locVars, hydroVars)
 d$group2 <- d$group
 d$group2[d$group == "Solmaris"] <- d$taxon[d$group == "Solmaris"]
 d$group2[d$group == "Tunicates"] <- d$taxon[d$group == "Tunicates"]
-
-# initialize
-d$front <- NA
-
-# delineate the frontal region
-d[d$transect==1 & d$cast <=11,]$front <- "east"
-d[d$transect==1 & d$cast >=12 & d$cast <= 15,]$front <- "front"
-d[d$transect==1 & d$cast >=16,]$front <- "west"
-d[d$transect==2 & d$cast <=22,]$front <- "east"
-d[d$transect==2 & d$cast >=23 & d$cast <= 28,]$front <- "front"
-d[d$transect==2 & d$cast >=29,]$front <- "west"
-d[d$transect==3 & d$cast <=8,]$front <- "west"
-d[d$transect==3 & d$cast >=9 & d$cast <= 13,]$front <- "front"
-d[d$transect==3 & d$cast >=14,]$front <- "east"
-d$front <- factor(d$front, levels=c("west", "front", "east"))
-
 # }
 
 ##{ Subset and scatterplot --------------------------------------------
