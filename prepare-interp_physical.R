@@ -138,7 +138,7 @@ ti <- ddply(phy, ~transect, function(x) {
 names(ti) <- c("transect", "dist", "depth", "temp")
 ti$dist <- ti$dist * f
 
-ggplot(ti) + geom_tile(aes(x=dist, y=-depth, fill=temp)) + geom_contour(aes(x=dist, y=-depth, z=temp), colour="white", size=0.5, alpha=0.5, breaks=c(10, 15)) + facet_grid(transect~.)
+ggplot(ti) + geom_tile(aes(x=dist, y=-depth, fill=temp)) + geom_contour(aes(x=dist, y=-depth, z=temp), colour="white", size=0.5, alpha=0.5, breaks=c(10, 15)) + facet_grid(transect~.) + scale_fill_gradientn(colours=jet.rainbow(10), guide="colourbar")
 
 ggplot(ti) + geom_tile(aes(x=dist/1000, y=-depth, fill=temp)) + geom_contour(aes(x=dist, y=-depth, z=temp), colour="white", size=0.5, alpha=0.5, breaks=c(10, 15)) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth") + scale_fill_gradient("Temp (C)", na.value="grey80", low = "#2d669f", high = "#c8dcef")
 
@@ -161,7 +161,10 @@ swi <- ddply(phy, ~transect, function(x) {
 names(swi) <- c("transect", "dist", "depth", "swRho")
 swi$dist <- swi$dist * f
 
-ggplot(swi) + geom_tile(aes(x=dist, y=-depth, fill=swRho)) + geom_contour(aes(x=dist, y=-depth, z=swRho), colour="white", swize=0.5, alpha=0.5) + facet_grid(transect~.)
+ggplot(swi) + geom_tile(aes(x=dist, y=-depth, fill=swRho)) + geom_contour(aes(x=dist, y=-depth, z=swRho), colour="white", swize=0.5, alpha=0.5) + facet_grid(transect~.) + scale_fill_gradientn(colours=jet.rainbowrev(10), guide="colourbar")
+
+# greatest difference? 
+ggplot(swi) + geom_tile(aes(x=dist, y=-depth, fill=c(NA, diff(swRho)))) + facet_grid(transect~.) + scale_fill_gradientn(colours=jet.rainbowrev(10), guide="colourbar")
 
 write.csv(swi, file="data/interp_swRho.csv", row.names=FALSE)
 
@@ -182,7 +185,10 @@ si <- ddply(phy, ~transect, function(x) {
 names(si) <- c("transect", "dist", "depth", "salinity")
 si$dist <- si$dist * f
 
-ggplot(si) + geom_tile(aes(x=dist, y=-depth, fill=salinity)) + geom_contour(aes(x=dist, y=-depth, z=salinity), colour="white", size=0.5, alpha=0.5) + facet_grid(transect~.)
+ggplot(si) + geom_tile(aes(x=dist, y=-depth, fill=salinity)) + geom_contour(aes(x=dist, y=-depth, z=salinity), colour="white", size=0.5, alpha=0.5) + facet_grid(transect~.) + scale_fill_gradientn(colours=jet.rainbow(10), guide="colourbar")
+
+ggplot(si) + geom_tile(aes(x=dist, y=-depth, fill=c(NA, diff(salinity)))) + geom_contour(aes(x=dist, y=-depth, z=salinity), colour="white", size=0.5, alpha=0.5) + facet_grid(transect~.) + scale_fill_gradientn(colours=jet.rainbow(10), guide="colourbar")
+
 
 write.csv(si, file="data/interp_salinity.csv", row.names=FALSE)
 
@@ -202,7 +208,7 @@ fi <- ddply(phy, ~transect, function(x) {
 names(fi) <- c("transect", "dist", "depth", "fluoro")
 fi$dist <- fi$dist * f
 
-ggplot(fi) + geom_tile(aes(x=dist, y=-depth, fill=fluoro)) + geom_contour(aes(x=dist, y=-depth, z=fluoro), colour="white", size=0.5, alpha=0.5) + facet_grid(transect~.)
+ggplot(fi) + geom_tile(aes(x=dist, y=-depth, fill=fluoro)) + geom_contour(aes(x=dist, y=-depth, z=fluoro), colour="white", size=0.5, alpha=0.5) + facet_grid(transect~.) + scale_fill_gradientn(colours=jet.rainbow(10), guide="colourbar")
 
 write.csv(fi, file="data/interp_fluoro.csv", row.names=FALSE)
 
@@ -222,7 +228,7 @@ oi <- ddply(phy, ~transect, function(x) {
 names(oi) <- c("transect", "dist", "depth", "oxygen")
 oi$dist <- oi$dist * f
 
-ggplot(oi) + geom_tile(aes(x=dist, y=-depth, fill=oxygen)) + geom_contour(aes(x=dist, y=-depth, z=oxygen), colour="white", size=0.5, alpha=0.5) + facet_grid(transect~.)
+ggplot(oi) + geom_tile(aes(x=dist, y=-depth, fill=oxygen)) + geom_contour(aes(x=dist, y=-depth, z=oxygen), colour="white", size=0.5, alpha=0.5) + facet_grid(transect~.) + scale_fill_gradientn(colours=jet.rainbow(10), guide="colourbar")
 
 write.csv(oi, file="data/interp_oxygen.csv", row.names=FALSE)
 # }
