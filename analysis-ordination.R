@@ -10,7 +10,7 @@
 
 library("vegan")
 library("mvpart")
-library("packfor")
+library("packfor") # what is this?
 library("plyr")
 library("ggplot2")
 library("foreach")
@@ -21,8 +21,7 @@ registerDoParallel(cores=detectCores())
 
 # read data
 d <- read.csv("data/all_binned_by_depth.csv", stringsAsFactors=FALSE)
-d$dateTime <- as.POSIXct(d$dateTime, tz="GMT")
-# NB: make sure time is set in GMT (even if it wasn't) to avoid dealing with tz afterwards
+d$dateTime <- as.POSIXct(d$dateTime, tz="America/Los_Angeles")
 
 # identify explanatory variables of interest
 locVars <- c("depth", "long")
@@ -33,6 +32,8 @@ vars <- c(locVars, hydroVars)
 d$group2 <- d$group
 d$group2[d$group == "Solmaris"] <- d$taxon[d$group == "Solmaris"]
 d$group2[d$group == "Tunicates"] <- d$taxon[d$group == "Tunicates"]
+d[d$group2=="appendicularians","group2"] <- "Appendicularians"
+d[d$group2=="doliolids","group2"] <- "Doliolids"
 
 # compute total concentration per group
 dg <- ddply(d, ~transect + cast + down.up + dateTimeB + group2, function(x) {
@@ -100,7 +101,7 @@ text(allCA, dis="sp", col="red")
 ## { CA on each taxon separately ----------------------------------- 
 library("pastecs")
 
-# Ctenophores
+# CTENOPHORES
 # subsetting and casting data into wide format
 ds <- d[d$group=="Ctenophores",]
 dsC <- dcast (ds, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + swRho + fluoro + oxygen ~ taxon, value.var="concentration")
@@ -136,13 +137,13 @@ allCA$CA$v.eig # species scores
 axes <- 3
 CAaxes <- allCA$CA$v.eig
 CAaxes <- CAaxes[1:nrow(CAaxes),1:axes]
-
 CAdist <- dist(CAaxes, method="euclidean")
-
 CAclust <- hclust(CAdist, method="ward")
 plot(CAclust, labels=dimnames(CAaxes)[[1]])
+rect.hclust(CAclust, k=4, border="red")
+# --> cluster splits into 4 groups: 1) velamen, 2) ocyropsis maculata, juvenile lobata and Thalasso; 3) hormiphora, 4) haeckelia beehlri, larval lobata, beroida and mertensid
 
-# Hydromedusae
+# HYDROMEDUSAE
 # subsetting and casting data into wide format
 ds <- d[d$group=="Hydromedusae",]
 dsC <- dcast (ds, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + swRho + fluoro + oxygen ~ taxon, value.var="concentration")
@@ -178,22 +179,28 @@ allCA$CA$v.eig # species scores
 axes <- 4
 CAaxes <- allCA$CA$v.eig
 CAaxes <- CAaxes[1:nrow(CAaxes),1:axes]
-
 CAdist <- dist(CAaxes, method="euclidean")
-
 CAclust <- hclust(CAdist, method="ward")
 plot(CAclust, labels=dimnames(CAaxes)[[1]])
 rect.hclust(CAclust, k=4, border="red")
-# --> with 4 axes you get three groups: 1) h7-pegantha, h6-solmundella, h5-liriope, h5b, h15, vsh. 2) r3, h3-cunina, h2-haliscera, h7-rhopalonema. 3) h9-aglaura, h11-haliscera, r5-eutonina, h1, h10-pegantha, and then annatiara and r4-aegina are very different
-# --> with 3 CA axes you get two major groups, 1) h7-pegantha, h15, vsh, h6-solmundella, h5-liriope, h5b, h1, h10-pegantha. 2) r3, h9-aglaura, h2-haliscera, h7-rhopalonema, h3-cunina, r5-eutonia, and h11-haliscera. and annatiara and aegina are different.
+# --> with 4 axes you get 4 groups: 1) h7-pegantha, h6-solmundella, h5-liriope, h5b, h15, vsh, h1, and h10-pegantha. 2) h11-haliscera, r3, h9-aglaura, h7-rhopalonema, r5-eutonia, h2-haliscera and h3-cunina, and then annatiara and r4-aegina are very different
+axes <- 3
+CAaxes <- CAaxes[1:nrow(CAaxes),1:axes]
+CAdist <- dist(CAaxes, method="euclidean")
+CAclust <- hclust(CAdist, method="ward")
+plot(CAclust, labels=dimnames(CAaxes)[[1]])
+rect.hclust(CAclust, k=5, border="red")
+# --> with 3 CA axes you get 5 groups, 1) h7-pegantha, h15, vsh, h6-solmundella, h5-liriope, h5b. 2) h2-haliscera, h7-rhopalonema, r3, h11-haliscera and h3-cunina. 3) h9-aglaura, r5-eutonia, h1, h10-pegantha. and annatiara and aegina are different.
 
 # order
-order <- c("Annatiara", "r4_Aegina", "h7_Pegantha", "h6_Solmundella", "h5_Liriope", "h5b", "h15", "vsh", "r3", "h3_Cunina", "h2_Haliscera", "h7_Rhopalonema", "h9_Aglaura", "h11_Haliscera", "r5_Eutonia", "h1", "h10_Pegantha")
+order <- c("r4_Aegina", "Annatiara", "h7_Pegantha", "h5_Liriope", "h5b", "h6_Solmundella", "vsh", "h15", "r3", "h11_Haliscera", "h3_Cunina", "h2_Haliscera", "h7_Rhopalonema", "h9_Aglaura", "r5_Eutonia", "h1", "h10_Pegantha")
 
 dh <- d[d$group=="Hydromedusae" & d$taxon %in% order,]
 dh$taxon <- factor(dh$taxon, levels=order)
 
 ggplot(dh[dh$concentration>0,]) + geom_violin(aes(x=taxon, y=-depth, weight=concentration, colour=taxon), alpha=0.7, scale="width") + labs(colour="Taxa", y="Depth (m)", x="Taxa")
+# --> depth is the major separator
+
 # }
 
 ##{ Unconstrained Ordination: CA with all taxa, using results from previous ordination results ------------
