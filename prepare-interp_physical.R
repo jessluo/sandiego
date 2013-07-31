@@ -122,6 +122,9 @@ n <- 50
 xo <- seq(min(phy$distTr, na.rm=T), max(phy$distTr, na.rm=T), length.out=n*4)
 yo <- seq(0, max(phy$depth, na.rm=T), length.out=n)
 
+# subset phy for only the upcasts for the salinity / seawater density because of some problems in the data
+phyup <- phy[phy$down.up=="up",]
+
 # Interpolate temperature
 ti <- ddply(phy, ~transect, function(x) {
   # have to subset otherwise interp fails
@@ -146,10 +149,10 @@ write.csv(ti, file="data/interp_temp.csv", row.names=FALSE)
 
 
 # Interpolate density
-swi <- ddply(phy, ~transect, function(x) {
+swi <- ddply(phyup, ~transect, function(x) {
   # have to subet otherwise interp fails
   # no idea why...
-  x <- x[seq(1, nrow(x), 3),]
+  x <- x[seq(1, nrow(x), 2),]
   
   # interpolate
   swi <- interp(x$distTr, x$depth, x$swRho, xo=xo, yo=yo, duplicate="mean")
@@ -170,10 +173,10 @@ write.csv(swi, file="data/interp_swRho.csv", row.names=FALSE)
 
 
 # Interpolate salinity
-si <- ddply(phy, ~transect, function(x) {
+si <- ddply(phyup, ~transect, function(x) {
   # have to subet otherwise interp fails
   # no idea why...
-  x <- x[seq(1, nrow(x), 3),]
+  x <- x[seq(1, nrow(x), 2),]
   
   # interpolate
   si <- interp(x$distTr, x$depth, x$salinity, xo=xo, yo=yo, duplicate="mean")
@@ -213,10 +216,12 @@ ggplot(fi) + geom_tile(aes(x=dist, y=-depth, fill=fluoro)) + geom_contour(aes(x=
 write.csv(fi, file="data/interp_fluoro.csv", row.names=FALSE)
 
 # Interpolate oxygen
-oi <- ddply(phy, ~transect, function(x) {
+# for some reason the oxygen downcasts vs upcasts are offset from each other (something to do with the distance calculation?)
+# choose to use just the upcasts
+oi <- ddply(phyup, ~transect, function(x) {
   # have to subet otherwise interp fails
   # no idea why...
-  x <- x[seq(1, nrow(x), 3),]
+  x <- x[seq(1, nrow(x), 2),]
   
   # interpolate
   oi <- interp(x$distTr, x$depth, x$oxygen, xo=xo, yo=yo, duplicate="mean")
