@@ -25,21 +25,6 @@ d <- read.csv("data/all_binned_by_depth.csv", stringsAsFactors=FALSE)
 d$dateTime <- as.POSIXct(d$dateTime, tz="America/Los_Angeles")
 # NB: make sure time is set in GMT (even if it wasn't) to avoid dealing with tz afterwards
 
-# define the front
-# initialize
-d$front <- NA
-
-# delineate the frontal region
-d[d$transect==1 & d$cast <=11,]$front <- "east"
-d[d$transect==1 & d$cast >=12 & d$cast <= 15,]$front <- "front"
-d[d$transect==1 & d$cast >=16,]$front <- "west"
-d[d$transect==2 & d$cast <=22,]$front <- "east"
-d[d$transect==2 & d$cast >=23 & d$cast <= 28,]$front <- "front"
-d[d$transect==2 & d$cast >=29,]$front <- "west"
-d[d$transect==3 & d$cast <=8,]$front <- "west"
-d[d$transect==3 & d$cast >=9 & d$cast <= 13,]$front <- "front"
-d[d$transect==3 & d$cast >=14,]$front <- "east"
-d$front <- factor(d$front, levels=c("west", "front", "east"))
 
 # identify explanatory variables of interest
 locVars <- c("depth", "long", "front")
