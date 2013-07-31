@@ -109,6 +109,9 @@ plot(V, main="oxygen, directional, distance / 1800")
 
 library("akima")
 source("lib_manip.R")
+# set plotting colors
+jet.rainbow = colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+jet.rainbowrev = colorRampPalette(c("#7F0000", "red", "#FF7F00", "yellow", "#7FFF7F", "cyan", "#007FFF", "blue", "#00007F"))
 
 # transform the distance to account for the anisotropy
 f <- 1800
