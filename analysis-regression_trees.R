@@ -25,10 +25,12 @@ d <- read.csv("data/all_binned_by_depth.csv", stringsAsFactors=FALSE)
 d$dateTime <- as.POSIXct(d$dateTime, tz="America/Los_Angeles")
 # NB: make sure time is set in GMT (even if it wasn't) to avoid dealing with tz afterwards
 
+# rename env var names
+d <- rename(d, replace=c("salinity" = "sal", "oxygen" = "oxy", "fluoro" = "flu", "swRho" = "rho"))
 
 # identify explanatory variables of interest
 locVars <- c("depth", "long", "front")
-hydroVars <- c("temp", "salinity", "fluoro", "oxygen")
+hydroVars <- c("temp", "sal", "flu", "oxy")
 vars <- c(locVars, hydroVars)
 
 # define broad groups for the analysis
@@ -50,7 +52,7 @@ dg <- ddply(d, ~transect + cast + down.up + dateTimeB + group2, function(x) {
 # ggplot(dg[which(dg$concentration > 0),]) + geom_histogram(aes(x=log(concentration))) + facet_wrap(~group2, scale="free")
 
 # casing data into wide format with group 2
-dgC <- dcast (dg, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + fluoro + oxygen ~ group2, value.var="concentration")
+dgC <- dcast (dg, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + sal + flu + oxy ~ group2, value.var="concentration")
 
 # }
 
