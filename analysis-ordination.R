@@ -254,6 +254,73 @@ plot(CAclust, labels=dimnames(CAaxes)[[1]])
 rect.hclust(CAclust, k=5, border="red")
 # --> with 3 CA axes you cut into 3 or 5 groups.
 
+##### What if grouped beforehand? #####
+# select casts
+ds <- d[d$transect==1 & d$cast %in% dcchoose,]
+ds <- rbind(ds, d[d$transect==2,])
+
+# new groups
+#hydro_grp1 <- c("h7_Pegantha", "h5_Liriope", "h5b", "h6_Solmundella", "vsh", "h15")
+#hydro_grp2 <- c("r3", "h11_Haliscera", "h3_Cunina", "h2_Haliscera", "h7_Rhopalonema")
+#hydro_grp3 <- c("h9_Aglaura", "r5_Eutonia", "h1", "h10_Pegantha")
+Deep_Trachy <- c("h11_Haliscera", "h2_Haliscera", "h7_Rhopalonema", "h9_Aglaura")
+Shallow_Trachy <- c("h5_Liriope", "h5b")
+Shallow_Narco <- c("h7_Pegantha", "h6_Solmundella")
+Deep_Narco <- c("h3_Cunina")
+Other_Hydro <- c("h1", "h15", "vsh")
+Cydippida <- c("Haeckelia beehlri", "Hormiphora californiensis", "Mertensid")
+Lobata <- c("Bolinopsis", "Ocyropsis maculata", "Juvenile Lobata", "Larval Lobata")
+Prayidae <- c("Lilyopsis", "Prayidae")
+
+# assign these groups into a different column
+ds$group3 <- ds$taxon
+ds$group3[ds$taxon %in% Deep_Trachy] <- "Deep Trachy"
+ds$group3[ds$taxon %in% Shallow_Trachy] <- "Shallow Trachy"
+ds$group3[ds$taxon %in% Shallow_Narco] <- "Shallow Narco"
+ds$group3[ds$taxon %in% Deep_Narco] <- "Deep Narco"
+ds$group3[ds$taxon %in% Other_Hydro] <- "Other Hydro"
+ds$group3[ds$taxon %in% Cydippida] <- "Cydippida"
+ds$group3[ds$taxon %in% Lobata] <- "Lobata"
+ds$group3[ds$taxon %in% Prayidae] <- "Prayidae"
+
+# exclude rare taxa
+`%ni%` <- Negate(`%in%`) 
+exclude <- c("Charistephane", "Dryodora glandiformis", "Pleurobrachia", "Unknown", "Annatiara", "h10_Pegantha", "h13", "h9_Arctapodema", "r1", "r2", "r3", "r4_Aegina", "r5_Eutonia")
+ds <- ds[ds$group3 %ni% exclude,]
+
+ds <- ddply(ds, ~transect + cast + front + dateTimeB + group3, function(x) {
+  tot <- sum(x$concentration)
+  timeavg <- mean(x$dateTime)
+  return(data.frame(concentration=tot, dateTime=timeavg))
+}, .parallel=TRUE)
+
+dsC <- dcast (ds, dateTimeB + transect + cast + front ~ group3, sum, value.var="concentration")
+
+dCspp <- dsC[,names(dsC) %in% c("appendicularians", "Beroida", "Cydippida", "Deep Narco", "Deep Trachy", "Diphyidae", "doliolids", "Lobata", "Other Hydro", "Physonect", "Prayidae", "Shallow Narco", "Shallow Trachy", "sol_large", "sol_small", "Sphaeronectes", "Thalassocalycidae inconstans", "Velamen")]
+  
+# removes rows that sum to zero and are also NAs
+dCspp <- dCspp[-which(rowSums(dCspp)==0),]
+dCspp <- na.omit(dCspp)
+# log transform
+dCspp <- log1p(dCspp)
+allCA <- cca(dCspp)
+head(summary(allCA)) # first two CA axes explain 26% of the variance
+# --> 4 axes explain 42.3% of the variance
+plot(allCA, scaling=2, main="CA biplot of species concentrations")
+text(allCA, dis="sp", col="red") # still hard to see
+
+# clustering
+allCA$CA$v.eig # species scores
+# pick number of axes
+axes <- 4
+CAaxes <- allCA$CA$v.eig
+CAaxes <- CAaxes[1:nrow(CAaxes),1:axes]
+CAdist <- dist(CAaxes, method="euclidean")
+CAclust <- hclust(CAdist, method="ward")
+plot(CAclust, labels=dimnames(CAaxes)[[1]])
+rect.hclust(CAclust, k=4, border="red")
+# --> can cut the tree into four different groups, 1) deep narco and deep trachy, 2) appendicularians, large solmaris, shallow trachy (Liriope), Velamen, doliolids, other Hydros, Shallow Narco, and small solmaris. 3) Lobata and Thalassocalycidae, and 4) Beroida, Cydippida, Diphyidae, Prayidae, Physonect and Sphaeronectes.
+
 
 # }
 
