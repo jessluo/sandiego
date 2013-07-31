@@ -399,13 +399,6 @@ cteT <- adply(cteFiles, 1, function(file){
   d$dateTime <- as.POSIXct(str_c(d$year, "-", sprintf("%02i",d$month), "-", sprintf("%02i",d$date), " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec)), tz="GMT")
   d$dateTime <- d$dateTime + 17.55 * d$x.300 / 300
   
-#   # extract downcast number
-#   downcast <- d$folder
-#   downcast <- str_sub(downcast, start=4, end=5)
-#   downcast <- str_trim(downcast)
-#   downcast <- as.numeric(downcast)
-#   d$downcast <- downcast
-  
   # add a reorder columns
   d$group <- "Ctenophores"
   d <- rename(d, c("species"="taxon"))
