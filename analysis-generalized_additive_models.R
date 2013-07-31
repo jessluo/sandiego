@@ -97,7 +97,60 @@ ggplot(aes(x=salinity, y=concentration), data=d[d$taxon=="sol_large",]) + geom_p
 # }
 
 
-## { Generalized additive mixed models ------------------------------------------
+##{ Scatterplot and GAM for other taxa --------------------------------------------
 
+# HYDROMEDUSAE
+# subset data frame
+ds <- dg[dg$group2=="Hydromedusae",]
+ds <- ds[,which(names(ds) %in% c(hydroVars, "front", "concentration", "transect"))]
+
+# plot a scatterplot with a smoothing line
+scatterplotMatrix(ds[,which(names(ds) != "front")], pch=19, cex=0.5, reg.line=F, lwd.smooth=1.25, spread=F, ellipse=F, col=c("gray60", "#2957FF", "#FF8000"), col.axis="gray50")
+
+# use ggplot to plot GAMS
+ggplot(aes(x=salinity, y=concentration), data=ds) + geom_point(color="#FF8000", alpha=0.75) + geom_smooth(se=F, method='gam', formula=y~s(x, bs="cr")) + facet_grid(transect~.) + labs(title="Hydromedusae GAM")
+
+ggplot(aes(x=salinity, y=concentration), data=ds) + geom_point(color="#FF8000", alpha=0.75) + geom_rug(sides="b") + geom_smooth(se=F, method='gam', formula=y~s(x, bs="cr")) + facet_grid(transect~front, scales="free_y") + labs(title="hydromedusae GAM with salinity")
+
+ggplot(aes(x=swRho, y=concentration), data=ds) + geom_point(color="#FF8000", alpha=0.75) + geom_rug(sides="b") + geom_smooth(se=F, method='gam', formula=y~s(x, bs="cr")) + facet_grid(transect~front ,scales="free_y") + labs(title="hydromedusae GAM with density")
+
+
+# SIPHONOPHORES
+# subset data frame
+ds <- dg[dg$group2=="Siphonophores",]
+ds <- ds[,which(names(ds) %in% c(hydroVars, "front", "concentration", "transect"))]
+
+# plot a scatterplot with a smoothing line
+scatterplotMatrix(ds[,which(names(ds) != "front")], pch=19, cex=0.5, reg.line=F, lwd.smooth=1.25, spread=F, ellipse=F, col=c("gray60", "#2957FF", "#FF8000"), col.axis="gray50")
+
+# use ggplot to plot GAMS
+ggplot(aes(x=salinity, y=concentration), data=ds) + geom_point(color="#FF8000", alpha=0.75) + geom_rug(sides="b") + geom_smooth(se=F, method='gam', formula=y~s(x, bs="cr")) + facet_grid(transect~front, scales="free_y") + labs(title="siphonophore GAM with salinity")
+
+ggplot(aes(x=swRho, y=concentration), data=ds) + geom_point(color="#FF8000", alpha=0.75) + geom_rug(sides="b") + geom_smooth(se=F, method='gam', formula=y~s(x, bs="cr")) + facet_grid(transect~front ,scales="free_y") + labs(title="siphonophores GAM with density")
+
+
+# CTENOPHORES
+# subset data frame
+ds <- dg[dg$group2=="Ctenophores",]
+ds <- ds[,which(names(ds) %in% c(hydroVars, "front", "concentration", "transect"))]
+
+# plot a scatterplot with a smoothing line
+scatterplotMatrix(ds[,which(names(ds) != "front")], pch=19, cex=0.5, reg.line=F, lwd.smooth=1.25, spread=F, ellipse=F, col=c("gray60", "#2957FF", "#FF8000"), col.axis="gray50")
+
+# use ggplot to plot GAMS
+ggplot(aes(x=salinity, y=concentration), data=ds) + geom_point(color="#FF8000", alpha=0.75) + geom_rug(sides="b") + geom_smooth(se=F, method='gam', formula=y~s(x, bs="cr")) + facet_grid(transect~front, scales="free_y") + labs(title="ctenophore GAM with salinity")
+
+ggplot(aes(x=swRho, y=concentration), data=ds) + geom_point(color="#FF8000", alpha=0.75) + geom_rug(sides="b") + geom_smooth(se=F, method='gam', formula=y~s(x, bs="cr")) + facet_grid(transect~front ,scales="free_y") + labs(title="ctenophore GAM with density")
+
+# APPENDICULARIANS
+scatterplotMatrix(d[d$taxon=="appendicularians", which(names(d) %in% c(hydroVars, "concentration", "transect"))], pch=19, cex=0.5, reg.line=F, lwd.smooth=1.25, spread=F, ellipse=F, col=c("gray60", "#2957FF", "#FF8000"), col.axis="gray50")
+
+ggplot(aes(x=salinity, y=concentration), data=d[d$taxon=="appendicularians",]) + geom_point(color="#FF8000", alpha=0.75) + geom_rug(sides="b") + geom_smooth(se=F, method='gam', formula=y~s(x, bs="cr")) + labs(title="appendicularian GAM with salinity")
+
+# DOLIOLIDS
+scatterplotMatrix(d[d$taxon=="doliolids", which(names(d) %in% c(hydroVars, "concentration", "transect"))], pch=19, cex=0.5, reg.line=F, lwd.smooth=1.25, spread=F, ellipse=F, col=c("gray60", "#2957FF", "#FF8000"), col.axis="gray50")
+
+ggplot(aes(x=swRho, y=concentration), data=d[d$taxon=="appendicularians",]) + geom_point(color="#FF8000", alpha=0.75) + geom_rug(sides="b") + geom_smooth(se=F, method='gam', formula=y~s(x, bs="cr")) + facet_grid(~front) + labs(title="doliolid GAM with density")
 
 # }
+
