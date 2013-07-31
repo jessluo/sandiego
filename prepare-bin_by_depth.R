@@ -31,7 +31,7 @@ bio$dateTime <- as.POSIXct(bio$dateTime, tz="GMT")
 ##{ Compute time bins on physical data ------------------------------------
 
 # depth bin size in m
-binSize <- 2
+binSize <- 1
 
 maxD <- max(phy$depth, na.rm=T)
 
@@ -131,7 +131,7 @@ phy$dateTimeB2 <- phy$dateTimeB
 
 # compute average properties per bin
 # TODO because we compute things by date bins but *also* cast and down.up, we are actually separating the descending and ascending part of the turn at depth, for example. There is no reason to think they would be different. We need the separation here because we only have downcasts in the biological data anyway but with the complete data, the binning should be by date bin only.
-phyB <- ddply(phy, ~transect+cast+down.up+dateTimeB, function(x) {
+phyB <- ddply(phy, ~transect+cast+front+down.up+dateTimeB, function(x) {
   
   # means of variables inside the bin
   out <- as.data.frame(as.list(colMeans(x[,c("depth", "lat", "long", "temp", "salinity", "swRho", "fluoro", "oxygen", "irradiance", "vertical.vel", "pitch", "velocity")], na.rm=T)))
