@@ -197,6 +197,56 @@ ggplot(dh[dh$concentration>0,]) + geom_violin(aes(x=taxon, y=-depth, weight=conc
 # }
 
 ##{ Unconstrained Ordination: CA with all taxa, using results from previous ordination results ------------
+dcchoose <- unique(d[d$group=="Hydromedusae" & d$transect==1,"cast"])
+
+ds <- d[d$transect==1 & d$cast %in% dcchoose,]
+ds <- rbind(ds, d[d$transect==2,])
+
+dsC <- dcast (ds, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + swRho + fluoro + oxygen ~ taxon, sum, value.var="concentration")
+
+dCspp <- dsC[,names(dsC) %in% c("Annatiara", "Beroida", "Diphyidae", "doliolids", "h1", "h10_Pegantha", "h11_Haliscera", "h15", "h2_Haliscera", "h3_Cunina", "h5_Liriope", "h5b", "h6_Solmundella", "h7_Pegantha", "h7_Rhopalonema", "h9_Aglaura", "h9_Arctapodema", "Haeckelia beehlri", "Hormiphora californiensis", "Juvenile Lobata", "Larval Lobata", "Lilyopsis", "Mertensid", "Ocyropsis maculata", "Physonect", "Prayidae", "r3", "r4_Aegina", "r5_Eutonia", "sol_large", "sol_small", "Sphaeronectes", "Thalassocalycidae inconstans", "Velamen", "vsh")]
+
+colSums (dCspp)
+# select some taxa
+# Compute Escoufier’s equivalent vectors using escouf on dCspp 
+all.escouf <- escouf(dCspp)
+plot(all.escouf)
+
+mmyLevel <- identify(all.escouf)
+selectedTaxa <- extract(all.escouf, level=mmyLevel)
+
+
+# removes rows that sum to zero and are also NAs
+dCspp <- dCspp[-which(rowSums(dCspp)==0),]
+dCspp <- na.omit(dCspp)
+# log transform
+dCspp <- log1p(dCspp)
+allCA <- cca(dCspp)
+head(summary(allCA)) 
+# --> the first two CA axes explain 14% of the variance. to get to a set of axes that explain close to 50% of the variance you have to go up to 10 axes at least. I think that analyzing all of the species like this without any groupings is problematic because of the low abundances of many species (more than half are less than 1% of the non-appendicularian gelatious population). So you must group them.
+
+plot(allCA, scaling=2, main="CA biplot of species concentrations")
+text(allCA, dis="sp", col="red") # no way to see
+
+# clustering
+allCA$CA$v.eig # species scores
+# pick number of axes
+axes <- 10
+CAaxes <- allCA$CA$v.eig
+CAaxes <- CAaxes[1:nrow(CAaxes),1:axes]
+CAdist <- dist(CAaxes, method="euclidean")
+CAclust <- hclust(CAdist, method="ward")
+plot(CAclust, labels=dimnames(CAaxes)[[1]])
+rect.hclust(CAclust, k=4, border="red")
+# --> with 4 axes you get 4 groups: 1) r5-eutonia, h2-haliscera, h3-cunina, r3, h7-rhopalonema, h9-aglaura, h1, h10-pegantha, h11-haliscera. 2) appendicularians, h15, h7-pegantha, solmaris large, doliolids, vsh, h6-solmundella, small solmaris, homiphora, velamen, h5-liriope, h5b. 3) h9-arctapodema, juv lobata, ocyropsis, thalasso. 4) aegina, annatiara, lilyopsis, diphyidae, haeckelia beehlri, mertensid, sphaeronectes, physonect, prayidae, beroida and larval lobata
+axes <- 3
+CAaxes <- CAaxes[1:nrow(CAaxes),1:axes]
+CAdist <- dist(CAaxes, method="euclidean")
+CAclust <- hclust(CAdist, method="ward")
+plot(CAclust, labels=dimnames(CAaxes)[[1]])
+rect.hclust(CAclust, k=5, border="red")
+# --> with 3 CA axes you cut into 3 or 5 groups.
+
 
 # }
 
