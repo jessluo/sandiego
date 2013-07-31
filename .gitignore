@@ -3,6 +3,7 @@ data/*
 # ignore plots
 *.png
 *.pdf
+plots/*
 # ignore RStudio stuff
 *.Rproj
 .Rhistory
@@ -10,3 +11,4 @@ data/*
 .Rproj.user
 .RData
 raw_particlecount_data/*
+analysis-orientation.R
