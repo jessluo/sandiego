@@ -43,24 +43,6 @@ d[d$group2=="doliolids","group2"] <- "Doliolids"
 
 d$group2 <- factor(d$group2, levels=c("Solmaris", "Hydromedusae", "Siphonophores", "Ctenophores", "Appendicularians", "Doliolids"))
 
-##### how to define the frontal water mass?
-ggplot(data=phy) + geom_point(aes(x=salinity, y=temp, colour=long)) + facet_grid(transect~.) + scale_colour_gradientn(colours=rainbow(10))
-
-# initialize
-d$front <- NA
-
-# delineate the frontal region
-d[d$transect==1 & d$cast <=11,]$front <- "east"
-d[d$transect==1 & d$cast >=12 & d$cast <= 15,]$front <- "front"
-d[d$transect==1 & d$cast >=16,]$front <- "west"
-d[d$transect==2 & d$cast <=22,]$front <- "east"
-d[d$transect==2 & d$cast >=23 & d$cast <= 28,]$front <- "front"
-d[d$transect==2 & d$cast >=29,]$front <- "west"
-d[d$transect==3 & d$cast <=8,]$front <- "west"
-d[d$transect==3 & d$cast >=9 & d$cast <= 13,]$front <- "front"
-d[d$transect==3 & d$cast >=14,]$front <- "east"
-d$front <- factor(d$front, levels=c("west", "front", "east"))
-
 # calculate an average value for each bin by frontal region
 # define which columns you want for the VIOLIN PLOT
 d2 <- d[,names(d) %in% c("transect", "cast", "down.up", "dateTime", "dateTimeB", "depth", "front", "group", "group2", "taxon", "abund", "concentration")]
