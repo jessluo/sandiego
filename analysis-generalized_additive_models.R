@@ -23,19 +23,31 @@ d$dateTime <- as.POSIXct(d$dateTime, tz="America/Los_Angeles")
 ##{ Define new groups & delineate the front ---------------------------------
 # identify explanatory variables of interest
 locVars <- c("depth", "long")
-hydroVars <- c("temp", "salinity", "fluoro", "oxygen")
+hydroVars <- c("temp", "salinity", "fluoro", "oxygen", "swRho")
 vars <- c(locVars, hydroVars)
 
 # define new groups for the analysis
 d$group2 <- d$group
 d$group2[d$group == "Solmaris"] <- d$taxon[d$group == "Solmaris"]
 d$group2[d$group == "Tunicates"] <- d$taxon[d$group == "Tunicates"]
+d[d$group2=="appendicularians","group2"] <- "Appendicularians"
+d[d$group2=="doliolids","group2"] <- "Doliolids"
+
+# compute total concentration per group
+dg <- ddply(d, ~transect + cast + down.up + front + dateTimeB + group2, function(x) {
+  tot <- sum(x$concentration)
+  timeavg <- mean(x$dateTime)
+  return(data.frame(x[1,vars], concentration=tot, dateTime=timeavg))
+}, .parallel=TRUE)
+
+dg$transect <- factor(dg$transect)
+dg$front <- factor(dg$front, levels=c("west", "front", "east"))
 # }
 
-##{ Subset and scatterplot --------------------------------------------
+##{ Scatterplot and GAM for solmaris--------------------------------------------
 dsol <- d[d$taxon=="sol_large",]
 
-dsol <- dsol[,which(names(dsol) %in% c(hydroVars, "swRho", "concentration", "front", "transect"))]
+dsol <- dsol[,which(names(dsol) %in% c(hydroVars, "swRho", "concentration", "transect"))]
 
 dsol$transect <- factor(dsol$transect)
 
@@ -43,7 +55,7 @@ scatterplotMatrix(dsol, pch=19, cex=0.5, reg.line=F, lwd.smooth=1.25, spread=F, 
 
 ggplot(aes(x=salinity, y=concentration), data=dsol) + geom_point(color="#FF8000", alpha=0.75) + facet_wrap(transect~front)
 
-ggplot(aes(x=salinity, y=concentration), data=dsol) + geom_point(color="#FF8000", alpha=0.75) + geom_smooth(se=F, method='gam', formula=y~s(x, bs="cr")) + facet_grid(transect~.)
+ggplot(aes(x=salinity, y=concentration), data=dsol) + geom_point(color="#FF8000", alpha=0.75) + geom_smooth(se=F, method='gam', formula=y~s(x, bs="cr")) + facet_grid(transect~.) + labs(title="Solmaris large GAM")
 
 # gams will be developed for most abundant species:
 # solmaris - large and small, Liriope, Sphaeronectes, and Ocyropsis maculata
@@ -81,7 +93,6 @@ vis.gam(sol_gam, type="response", plot.type="persp")
 ggplot(aes(x=swRho, y=concentration), data=d[d$taxon=="sol_large",]) + geom_point(color="#FF8000", alpha=0.75) + geom_rug(sides="b") + geom_smooth(se=F, method='gam', formula=y~s(x, bs="cr")) + facet_grid(transect~front ,scales="free_y")
 
 ggplot(aes(x=salinity, y=concentration), data=d[d$taxon=="sol_large",]) + geom_point(color="#FF8000", alpha=0.75) + geom_rug(sides="b") + geom_smooth(se=F, method='gam', formula=y~s(x, bs="cr")) + facet_grid(transect~front ,scales="free_y")
-
 
 # }
 
