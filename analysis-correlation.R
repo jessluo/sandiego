@@ -117,14 +117,38 @@ corrplot(cor(dW, use="complete.obs", method="spearman"), p.mat = res1[[1]], insi
 
 # }
 
+## { Construct a correlation heatmap for all groups together---------------------------
 
+# convert to wide format
+dW <- dcast(d, dateTimeB~taxon, sum, value.var="concentration")
 
+# rename columns
+# rename <- c("appendicularians" = "Apps", "doliolids" = "Doliolids", "Physonect" = "Physonectae")
+rename <- c("Thalassocalycidae inconstans" = "Thalassocalyce", "Hormiphora californiensis" = "Hormiphora", "Haeckelia beehlri" = "Haeckelia", "Ocyropsis maculata" = "Ocyropsis")
+dW <- rename(dW, rename)
+ 
+# use the results from the ungrouped CA
+levels <- c("h7_Pegantha", "h15", "sol_large", "sol_small", "vsh", "appendicularians", "h6_Solmundella", "h5_Liriope", "doliolids", "Hormiphora", "Velamen", "Haeckelia", "Physonect", "Sphaeronectes", "Diphyidae", "Mertensid", "Prayidae", "Beroida", "Larval Lobata", "Ocyropsis", "Thalassocalyce", "Lilyopsis", "h9_Aglaura", "h11_Haliscera", "h3_Cunina", "h2_Haliscera", "h7_Rhopalonema")
+# reorder the columns
+dW <- dW[,levels]
 
+# calculate the spearman's correlation coefficient
+dcorr <- cor(dW, use="complete.obs", method="spearman")
+dc <- melt(dcorr)
 
+# remove the identity values
+dc[which(dc$value==1),"value"] <- NA
 
+# save only the lower triangle's rho values (for text later)
+dcorr[upper.tri(dcorr,diag=T)] <- NA
+dctext <- melt(dcorr)
 
 # plot the heatmap
+cortheme <- theme(axis.text.x=element_text(angle=90, vjust=0.5, size=14), axis.text.y=element_text(size=14), legend.text=element_text(size=12), legend.title=element_text(size=12), plot.title=element_text(size=26))
 
+pdf("plots/corr_heatmap/all_withvalues.pdf", width=14, height=13)
+p <- ggplot(mapping=aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels))) + geom_tile(aes(fill=value), data=dc) + geom_text(aes(label=round(value,2)), size=3, data=dctext) + labs(x="", y="", title="", fill="") + scale_fill_gradient2(limits=c(-1,1), low="red", high="blue", na.value="grey90") + theme_bw() + cortheme
+print(p)
+dev.off()
 
 # }
-
