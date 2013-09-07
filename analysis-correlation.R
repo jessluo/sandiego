@@ -53,33 +53,38 @@ dg <- ddply(d, ~transect + cast + front + dateTimeB + group2, function(x) {
 
 # }
 
-## { Construct a correlation heatmap for all groups together---------------------------
+## { Construct a correlation heatmap for all taxa separately---------------------------
 
 # convert to wide format
-dcW <- dcast(dc, dateTimeB~group2, value.var="concentration")
+dW <- dcast(dg, dateTimeB~group2, value.var="concentration")
 
 # rename columns
-rename <- c("appendicularians" = "Appendicularians", "doliolids" = "Doliolids", "Physonect" = "Physonectae", "sol_large" = "Solmaris_Lg", "sol_small" = "Solmaris_Sm", "Thalassocalycidae inconstans" = "Thalassocalyce")
-dcW <- rename(dcW, rename)
+rename <- c("appendicularians" = "Apps", "doliolids" = "Doliolids", "Physonect" = "Physonectae")
+dW <- rename(dW, rename)
 
 # set the order
 # use the results of the correspondence analysis
-# --> CA showed that you can group the taxa into four different groups, 1) deep narco and deep trachy, 2) appendicularians, large solmaris, shallow trachy (Liriope), Velamen, doliolids, other Hydros, Shallow Narco, and small solmaris. 3) Lobata and Thalassocalycidae, and 4) Beroida, Cydippida, Diphyidae, Prayidae, Physonect and Sphaeronectes.
-levels <- c("Deep Narco", "Deep Trachy", "Appendicularians", "Solmaris_Lg", "Doliolids", "Other Hydro", "Shallow Narco", "Solmaris_Sm", "Shallow Trachy", "Velamen", "Lobata", "Thalassocalyce", "Beroida", "Cydippida", "Diphyidae", "Prayidae", "Physonectae", "Sphaeronectes")
+# --> CA showed that you can group the taxa into six different groups, 1) velamen, doliolids, liriope, appendicularians, shallow narco, other hydro and solmaris, 2) lobata_thalasso, 3) beroida, 4) cydippida, diphyidae, physonect and sphaeronectes, 5) deep hydro, 6) prayidae
+levels <- c("Velamen", "Doliolids", "Liriope", "Apps", "Shallow Narco", "Other Hydro", "Solmaris", "Lobata_Thalasso", "Beroida", "Cydippida", "Diphyidae", "Physonectae", "Sphaeronectes", "Deep Hydro", "Prayidae")
 
 # reorder the columns
-dcW <- dcW[,levels]
+dW <- dW[,levels]
 
-# calculate the spearman's correlation coefficient and melt into a dataframe
-dcWm <- melt(cor(dcW, use="complete.obs", method="spearman"))
+# calculate the spearman's correlation coefficient
+dcorr <- cor(dW, use="complete.obs", method="spearman")
+dc <- melt(dcorr)
 
 # remove the identity values
-dcWm[which(dcWm$value==1),"value"] <- NA
+dc[which(dc$value==1),"value"] <- NA
+
+# save only the lower triangle's rho values (for text later)
+dcorr[upper.tri(dcorr,diag=T)] <- NA
+dctext <- melt(dcorr)
 
 # plot the heatmap
-cortheme <- theme(axis.text.x=element_text(angle=45, vjust=0.5, size=14), axis.text.y=element_text(size=14), legend.text=element_text(size=12), legend.title=element_text(size=12), plot.title=element_text(size=26))
+cortheme <- theme(axis.text.x=element_text(angle=90, vjust=0.5, size=14), axis.text.y=element_text(size=14), legend.text=element_text(size=12), legend.title=element_text(size=12), plot.title=element_text(size=26))
 
-ggplot(data=dcWm) + geom_tile(aes(x=factor(X1, levels=levels), y=factor(X2, levels=levels), fill=value >0, alpha=abs(value))) + labs(x="", y="", title="", fill="Positive / Negative", alpha="Strength of Correlation") + scale_fill_discrete(labels=c("Negative", "Positive")) + theme_bw() + cortheme
+ggplot(mapping=aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels))) + geom_tile(aes(fill=value), data=dc) + geom_text(aes(label=round(value,2)), data=dctext) + labs(x="", y="", title="", fill="") + scale_fill_gradient2(limits=c(-1,1), low="red", high="blue", na.value="grey90") + theme_bw() + cortheme
 
 # adding in significant values
 # try using corrplot package
