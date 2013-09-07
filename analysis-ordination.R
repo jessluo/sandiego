@@ -10,12 +10,15 @@
 
 library("vegan")
 library("mvpart")
-library("packfor") # what is this?
+# library("packfor") # what is this?
+library("reshape2")
 library("plyr")
 library("ggplot2")
 library("foreach")
 library("doParallel")
 registerDoParallel(cores=detectCores())
+
+`%ni%` <- Negate(`%in%`) 
 
 ##{ Read and reformat data ------------------------------------------------
 
@@ -316,8 +319,8 @@ dCspp <- na.omit(dCspp)
 # log transform
 dCspp <- log1p(dCspp)
 allCA <- cca(dCspp)
-head(summary(allCA)) # first two CA axes explain 26% of the variance
-# --> 4 axes explain 42.3% of the variance
+head(summary(allCA)) # first two CA axes explain 28% of the variance
+# --> 4 axes explain 47% of the variance
 plot(allCA, scaling=2, main="CA biplot of species concentrations")
 text(allCA, dis="sp", col="red") # still hard to see
 
@@ -325,14 +328,17 @@ text(allCA, dis="sp", col="red") # still hard to see
 allCA$CA$v.eig # species scores
 # pick number of axes
 axes <- 4
+# extract the species scores (these spp scores are already weighted by the eigenvalue)
 CAaxes <- allCA$CA$v.eig
+# call the number of axes you're interested in
 CAaxes <- CAaxes[1:nrow(CAaxes),1:axes]
+# calculate the euclidean distance
 CAdist <- dist(CAaxes, method="euclidean")
 CAclust <- hclust(CAdist, method="ward")
 plot(CAclust, labels=dimnames(CAaxes)[[1]])
-rect.hclust(CAclust, k=4, border="red")
-# --> can cut the tree into four different groups, 1) deep narco and deep trachy, 2) appendicularians, large solmaris, shallow trachy (Liriope), Velamen, doliolids, other Hydros, Shallow Narco, and small solmaris. 3) Lobata and Thalassocalycidae, and 4) Beroida, Cydippida, Diphyidae, Prayidae, Physonect and Sphaeronectes.
-
+rect.hclust(CAclust, k=6, border="red")
+# --> can cut the tree into six different groups, 1) velamen, doliolids, liriope, appendicularians, shallow narco, other hydro and solmaris, 2) lobata_thalasso, 3) beroida, 4) cydippida, diphyidae, physonect and sphaeronectes, 5) deep hydro, 6) prayidae
+# --> there is a separation by depth and also by fishing strategy
 
 # }
 
