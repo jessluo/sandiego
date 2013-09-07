@@ -113,7 +113,7 @@ corrplot(cor(dW, use="complete.obs", method="spearman"), p.mat = res1[[1]], insi
 
 # }
 
-## { Construct a correlation heatmap for all groups together---------------------------
+## { Construct a correlation heatmap for all taxa without pre-defined groups ---------------------------
 
 # convert to wide format
 dW <- dcast(d, dateTimeB~taxon, sum, value.var="concentration")
