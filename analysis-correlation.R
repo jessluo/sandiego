@@ -16,18 +16,6 @@ options("digits.secs"=3)
 d <- read.csv("data/all_binned_by_depth.csv", stringsAsFactors=FALSE)
 d$dateTime <- as.POSIXct(d$dateTime, tz="America/Los_Angeles")
 
-# choose a portion of the data to analyze
-# when the dataset is complete this will not be necessary
-dcchoose <- unique(d[d$group=="Hydromedusae" & d$transect==1,"cast"])
-
-# there is still one downcast in transect 1 that has not been analyzed
-dc <- d[d$transect==1 & d$cast %in% dcchoose,]
-
-# all of transect 2 is complete
-dc <- rbind(dc, d[d$transect==2,])
-
-# transect 3 is not yet complete and thus is not included in this analysis
-
 # }
 
 ## { Define new groups for analysis ----------------------------------
