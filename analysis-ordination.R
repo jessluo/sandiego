@@ -203,11 +203,7 @@ ggplot(dh[dh$concentration>0,]) + geom_violin(aes(x=taxon, y=-depth, weight=conc
 
 # }
 
-##{ Unconstrained Ordination: CA with all taxa, using results from previous ordination results ------------
-dcchoose <- unique(d[d$group=="Hydromedusae" & d$transect==1,"cast"])
-
-ds <- d[d$transect==1 & d$cast %in% dcchoose,]
-ds <- rbind(ds, d[d$transect==2,])
+##{ Unconstrained Ordination: CA with all taxa ------------
 
 dsC <- dcast (ds, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + swRho + fluoro + oxygen ~ taxon, sum, value.var="concentration")
 
