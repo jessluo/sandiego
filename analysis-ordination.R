@@ -269,49 +269,46 @@ plot(CAclust, labels=dimnames(CAaxes)[[1]])
 rect.hclust(CAclust, k=5, border="red")
 # --> with 3 CA axes you cut into 3 or 5 groups.
 
-##### What if grouped beforehand? #####
-# select casts
-ds <- d[d$transect==1 & d$cast %in% dcchoose,]
-ds <- rbind(ds, d[d$transect==2,])
 
+##### What if grouped beforehand? #####
 # new groups
 #hydro_grp1 <- c("h7_Pegantha", "h5_Liriope", "h5b", "h6_Solmundella", "vsh", "h15")
 #hydro_grp2 <- c("r3", "h11_Haliscera", "h3_Cunina", "h2_Haliscera", "h7_Rhopalonema")
 #hydro_grp3 <- c("h9_Aglaura", "r5_Eutonia", "h1", "h10_Pegantha")
-Deep_Trachy <- c("h11_Haliscera", "h2_Haliscera", "h7_Rhopalonema", "h9_Aglaura")
-Shallow_Trachy <- c("h5_Liriope", "h5b")
+Deep_Hydro <- c("h11_Haliscera", "h2_Haliscera", "h7_Rhopalonema", "h9_Aglaura", "h3_Cunina")
+Liriope <- c("h5_Liriope", "h5b")
 Shallow_Narco <- c("h7_Pegantha", "h6_Solmundella")
-Deep_Narco <- c("h3_Cunina")
 Other_Hydro <- c("h1", "h15", "vsh")
 Cydippida <- c("Haeckelia beehlri", "Hormiphora californiensis", "Mertensid")
-Lobata <- c("Bolinopsis", "Ocyropsis maculata", "Juvenile Lobata", "Larval Lobata")
+Lobata_Thalasso <- c("Ocyropsis maculata", "Juvenile Lobata", "Larval Lobata", "Thalassocalycidae inconstans")
 Prayidae <- c("Lilyopsis", "Prayidae")
+Solmaris <- c("sol_large", "sol_small")
 
 # assign these groups into a different column
-ds$group3 <- ds$taxon
-ds$group3[ds$taxon %in% Deep_Trachy] <- "Deep Trachy"
-ds$group3[ds$taxon %in% Shallow_Trachy] <- "Shallow Trachy"
-ds$group3[ds$taxon %in% Shallow_Narco] <- "Shallow Narco"
-ds$group3[ds$taxon %in% Deep_Narco] <- "Deep Narco"
-ds$group3[ds$taxon %in% Other_Hydro] <- "Other Hydro"
-ds$group3[ds$taxon %in% Cydippida] <- "Cydippida"
-ds$group3[ds$taxon %in% Lobata] <- "Lobata"
-ds$group3[ds$taxon %in% Prayidae] <- "Prayidae"
+d$group3 <- d$taxon
+d$group3[d$taxon %in% Deep_Hydro] <- "Deep Hydro"
+d$group3[d$taxon %in% Liriope] <- "Liriope"
+d$group3[d$taxon %in% Shallow_Narco] <- "Shallow Narco"
+d$group3[d$taxon %in% Solmaris] <- "Solmaris"
+d$group3[d$taxon %in% Other_Hydro] <- "Other Hydro"
+d$group3[d$taxon %in% Cydippida] <- "Cydippida"
+d$group3[d$taxon %in% Lobata_Thalasso] <- "Lobata_Thalasso"
+d$group3[d$taxon %in% Prayidae] <- "Prayidae"
 
 # exclude rare taxa
 `%ni%` <- Negate(`%in%`) 
-exclude <- c("Charistephane", "Dryodora glandiformis", "Pleurobrachia", "Unknown", "Annatiara", "h10_Pegantha", "h13", "h9_Arctapodema", "r1", "r2", "r3", "r4_Aegina", "r5_Eutonia")
-ds <- ds[ds$group3 %ni% exclude,]
+exclude <- c("Charistephane", "Dryodora glandiformis", "Pleurobrachia", "Unknown", "Annatiara", "h10_Pegantha", "h13", "h9_Arctapodema", "r1", "r2", "r3", "r4_Aegina", "r5_Eutonia", "Bolinopsis")
+d <- d[d$group3 %ni% exclude,]
 
-ds <- ddply(ds, ~transect + cast + front + dateTimeB + group3, function(x) {
+ds <- ddply(d, ~transect + cast + front + dateTimeB + group3, function(x) {
   tot <- sum(x$concentration)
   timeavg <- mean(x$dateTime)
   return(data.frame(concentration=tot, dateTime=timeavg))
 }, .parallel=TRUE)
 
-dsC <- dcast (ds, dateTimeB + transect + cast + front ~ group3, sum, value.var="concentration")
+dC <- dcast (ds, dateTimeB + transect + cast + front ~ group3, sum, value.var="concentration")
 
-dCspp <- dsC[,names(dsC) %in% c("appendicularians", "Beroida", "Cydippida", "Deep Narco", "Deep Trachy", "Diphyidae", "doliolids", "Lobata", "Other Hydro", "Physonect", "Prayidae", "Shallow Narco", "Shallow Trachy", "sol_large", "sol_small", "Sphaeronectes", "Thalassocalycidae inconstans", "Velamen")]
+dCspp <- dC[,names(dC) %in% c("appendicularians", "Beroida", "Cydippida", "Deep Hydro", "Diphyidae", "doliolids", "Liriope", "Lobata_Thalasso", "Other Hydro", "Physonect", "Prayidae", "Shallow Narco", "Solmaris", "Sphaeronectes", "Velamen")]
   
 # removes rows that sum to zero and are also NAs
 dCspp <- dCspp[-which(rowSums(dCspp)==0),]
