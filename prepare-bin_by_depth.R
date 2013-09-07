@@ -221,11 +221,6 @@ bioB <- ddply(bio, ~ transect + cast.bio + dateTimeB + group + taxon, function(x
 # ---this section is commented out because the selection shouldn't be done manually before the binning---
 # select only downcasts since biological data was aquired only on down casts
 # phyB <- phyB[phyB$down.up == "down",]
-# # select only downcasts in which all the biological data is present (transect 2 only)
-# dc <- unique(bio$cast.bio[which(bio$group=="Hydromedusae" & bio$transect==2)])
-# phyB <- phyB[which(phyB$down.up=="down" & phyB$transect==2 & phyB$cast %in% dc),]
-# bioB <- bioB[which(bioB$transect==2 & bioB$cast.bio %in% dc),]
-# ---
 
 # one problem with selecting only downcasts is that if one depth bin spans both downcasts and upcasts, then both the duration of the depth bin as well as the volume sampled is wrong, which changes the calculated concentration of the organisms
 
@@ -298,7 +293,9 @@ ggplot(d[d$abund != 0,]) + geom_histogram(aes(x=concentration)) + facet_wrap(~ta
 
 ggplot(d) + geom_histogram(aes(x=volume), binwidth=0.1)
 
-# inspect concentrations
+# inspect concentrations and print them out into a PDF
+# pdf("binned_concentrations.pdf", width=14, height=10)
+# 
 alply(unique(d$group), 1, function(group) {
   ggplot(d[d$group==group,]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 })
@@ -307,8 +304,6 @@ alply(unique(d$group), 1, function(group) {
 alply(unique(d$group), 1, function(group) {
   ggplot(d[d$group==group,]) + geom_point(aes(x=long, y=-depth, size=abund, colour=abund>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 })
-# -> there seem to be a few very high values of abundance, particularly with rare taxa such as siphonophores
-# TODO find out whether this is present in the original data or is caused by the binning
 
 # subset plots
 ggplot(d[d$taxon %in% c("h5_Liriope", "h6_Solmundella", "vsh", "h7_Pegantha", "h7_Rhopalonema", "h9_Aglaura", "h2_Haliscera"),]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
