@@ -121,9 +121,9 @@ dCspp <- dsC[,names(dsC) %in% c("Beroida", "Haeckelia beehlri", "Hormiphora cali
 dCspp <- dCspp[-which(rowSums(dCspp)==0),]
 dCspp <- na.omit(dCspp)
 # log transform
-dCspp <- log(dCspp+1)
+dCspp <- log1p(dCspp)
 allCA <- cca(dCspp)
-head(summary(allCA)) # first two CA axes explain 31% of the variance
+head(summary(allCA)) # first two CA axes explain 29% of the variance
 plot(allCA, scaling=2, main="CA biplot of species concentrations")
 text(allCA, dis="sp", col="red")
 # axes 2 and 3
@@ -158,7 +158,8 @@ plot(hydro.escouf)
 # mmyLevel <- identify(hydro.escouf)
 # selectedTaxa <- extract(hydro.escouf, level=mmyLevel)
 
-dCspp <- dsC[,names(dsC) %in% c("Annatiara", "h1", "h10_Pegantha", "h11_Haliscera", "h15", "h2_Haliscera", "h3_Cunina", "h5_Liriope", "h5b", "h6_Solmundella", "h7_Pegantha",  "h7_Rhopalonema", "h9_Aglaura", "r3", "r4_Aegina", "r5_Eutonia", "vsh")]
+# if you were to remove those species that comprise less than 1% of the population (less the vsh individuals), you would be removing r2, r1, h13, h10_Pegantha, r4_Aegina, Annatiara, r3, r5_Eutonia, h9_Arctapodema
+dCspp <- dsC[,names(dsC) %in% c("h1", "h11_Haliscera", "h15", "h2_Haliscera", "h3_Cunina", "h5_Liriope", "h5b", "h6_Solmundella", "h7_Pegantha",  "h7_Rhopalonema", "h9_Aglaura", "vsh")]
 
 # removes rows that sum to zero and are also NAs
 dCspp <- dCspp[-which(rowSums(dCspp)==0),]
@@ -166,7 +167,7 @@ dCspp <- na.omit(dCspp)
 # log transform
 dCspp <- log1p(dCspp)
 allCA <- cca(dCspp)
-head(summary(allCA)) # first two CA axes explain 29% of the variance
+head(summary(allCA)) # first two CA axes explain 27% of the variance
 plot(allCA, scaling=2, main="CA biplot of species concentrations")
 text(allCA, dis="sp", col="red")
 # axes 2 and 3
@@ -182,18 +183,30 @@ CAaxes <- CAaxes[1:nrow(CAaxes),1:axes]
 CAdist <- dist(CAaxes, method="euclidean")
 CAclust <- hclust(CAdist, method="ward")
 plot(CAclust, labels=dimnames(CAaxes)[[1]])
-rect.hclust(CAclust, k=4, border="red")
-# --> with 4 axes you get 4 groups: 1) h7-pegantha, h6-solmundella, h5-liriope, h5b, h15, vsh, h1, and h10-pegantha. 2) h11-haliscera, r3, h9-aglaura, h7-rhopalonema, r5-eutonia, h2-haliscera and h3-cunina, and then annatiara and r4-aegina are very different
+rect.hclust(CAclust, k=3, border="red")
+# --> with 4 axes should separate into 2 major groups: 1) h1, h7_Pegantha, h5_liriope, h6_Solmundella, h5b, h15, vsh and 2) h7_Rhopalonema, h2_haliscera, h3_Cunina, h11_haliscera and h9_Aglaura. The second group can be separated into 2 groups, 1) h11 & h9, 2) h7, h2, and h3.
+
 axes <- 3
 CAaxes <- CAaxes[1:nrow(CAaxes),1:axes]
 CAdist <- dist(CAaxes, method="euclidean")
 CAclust <- hclust(CAdist, method="ward")
 plot(CAclust, labels=dimnames(CAaxes)[[1]])
-rect.hclust(CAclust, k=5, border="red")
-# --> with 3 CA axes you get 5 groups, 1) h7-pegantha, h15, vsh, h6-solmundella, h5-liriope, h5b. 2) h2-haliscera, h7-rhopalonema, r3, h11-haliscera and h3-cunina. 3) h9-aglaura, r5-eutonia, h1, h10-pegantha. and annatiara and aegina are different.
+rect.hclust(CAclust, k=4, border="red")
+# --> with 3 CA axes the 2 major groups remain the same. but the second group is now split up into 1) h11, 2) h7_rhopalonema and 3) h2, h3 and h9
 
 # order
-order <- c("r4_Aegina", "Annatiara", "h7_Pegantha", "h5_Liriope", "h5b", "h6_Solmundella", "vsh", "h15", "r3", "h11_Haliscera", "h3_Cunina", "h2_Haliscera", "h7_Rhopalonema", "h9_Aglaura", "r5_Eutonia", "h1", "h10_Pegantha")
+order <- c(
+  "h1", 
+  "h7_Pegantha", 
+  "h5_Liriope", "h5b", 
+  "h6_Solmundella", 
+  "vsh", 
+  "h15", 
+  "h11_Haliscera", 
+  "h7_Rhopalonema", 
+  "h3_Cunina", 
+  "h9_Aglaura", 
+  "h2_Haliscera")
 
 dh <- d[d$group=="Hydromedusae" & d$taxon %in% order,]
 dh$taxon <- factor(dh$taxon, levels=order)
