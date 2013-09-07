@@ -13,6 +13,8 @@ library("oce")
 registerDoParallel(cores=detectCores())
 parallel <- TRUE
 
+# setup R to keep decimal seconds in the times
+options("digits.secs"=3)
 
 ##{ Read data ------------------------------------------------
 d <- read.csv("data/all_binned_by_depth.csv", stringsAsFactors=FALSE)
@@ -31,35 +33,6 @@ fi <- read.csv("data/interp_fluoro.csv", stringsAsFactors=FALSE)
 oi <- read.csv("data/interp_oxygen.csv", stringsAsFactors=FALSE)
 
 # }
-
-##{ Define new groups & delineate the front ---------------------------------
-
-# define new groups for the analysis
-d$group2 <- d$group
-d$group2[d$group == "Solmaris"] <- d$taxon[d$group == "Solmaris"]
-d$group2[d$group == "Tunicates"] <- d$taxon[d$group == "Tunicates"]
-
-##### how to define the frontal water mass?
-ggplot(data=phy) + geom_point(aes(x=salinity, y=temp, colour=long)) + facet_grid(transect~.) + scale_colour_gradientn(colours=rainbow(10))
-
-# initialize
-d$front <- NA
-
-# delineate the frontal region
-d[d$transect==1 & d$cast <=11,]$front <- "east"
-d[d$transect==1 & d$cast >=12 & d$cast <= 15,]$front <- "front"
-d[d$transect==1 & d$cast >=16,]$front <- "west"
-d[d$transect==2 & d$cast <=22,]$front <- "east"
-d[d$transect==2 & d$cast >=23 & d$cast <= 28,]$front <- "front"
-d[d$transect==2 & d$cast >=29,]$front <- "west"
-d[d$transect==3 & d$cast <=8,]$front <- "west"
-d[d$transect==3 & d$cast >=9 & d$cast <= 13,]$front <- "front"
-d[d$transect==3 & d$cast >=14,]$front <- "east"
-d$front <- factor(d$front, levels=c("west", "front", "east"))
-
-# }
-
-
 
 ##{ Create interpolated physical variables plots ----------------------------
 
@@ -194,5 +167,6 @@ d2 <- rename(d2, c("depthBin" = "depth", "V1" = "concentration"))
 d2$group2 <- factor(d2$group2, levels=c("Solmaris", "Hydromedusae", "Siphonophores", "Ctenophores", "appendicularians", "doliolids"))
 
 # }
+
 
 
