@@ -218,19 +218,22 @@ ggplot(dh[dh$concentration>0,]) + geom_violin(aes(x=taxon, y=-depth, weight=conc
 
 ##{ Unconstrained Ordination: CA with all taxa ------------
 
-dsC <- dcast (ds, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + swRho + fluoro + oxygen ~ taxon, sum, value.var="concentration")
+dC <- dcast (d, dateTimeB + dateTime + transect + cast + down.up + depth + long + temp + salinity + swRho + fluoro + oxygen ~ taxon, sum, value.var="concentration")
 
-dCspp <- dsC[,names(dsC) %in% c("Annatiara", "Beroida", "Diphyidae", "doliolids", "h1", "h10_Pegantha", "h11_Haliscera", "h15", "h2_Haliscera", "h3_Cunina", "h5_Liriope", "h5b", "h6_Solmundella", "h7_Pegantha", "h7_Rhopalonema", "h9_Aglaura", "h9_Arctapodema", "Haeckelia beehlri", "Hormiphora californiensis", "Juvenile Lobata", "Larval Lobata", "Lilyopsis", "Mertensid", "Ocyropsis maculata", "Physonect", "Prayidae", "r3", "r4_Aegina", "r5_Eutonia", "sol_large", "sol_small", "Sphaeronectes", "Thalassocalycidae inconstans", "Velamen", "vsh")]
+# choose the species columns
+dCspp <- dC[,13:ncol(dC)]
 
-colSums (dCspp)
-# select some taxa
-# Compute Escoufier’s equivalent vectors using escouf on dCspp 
-all.escouf <- escouf(dCspp)
-plot(all.escouf)
+# sum the columns to figure out which species to exclude
+sort(colSums(dCspp))
+# percentage of total population
+(sort(colSums(dCspp))/sum(colSums(dCspp[,names(dCspp) %ni% c("doliolids", "appendicularians"),]))) *100
+# not including those in < 0.05% of the whole population
 
-mmyLevel <- identify(all.escouf)
-selectedTaxa <- extract(all.escouf, level=mmyLevel)
+# exclude rare taxa
+`%ni%` <- Negate(`%in%`) 
+exclude <- c("Pleurobrachia", "Bolinopsis", "Charistephane", "Dryodora glandiformis", "h1", "r2", "r1", "h13", "h10_Pegantha", "r4_Aegina", "Annatiara", "r3", "r5_Eutonia", "Unknown", "Juvenile Lobata", "h9_Arctapodema")
 
+dCspp <- dCspp[,names(dCspp) %ni% exclude]
 
 # removes rows that sum to zero and are also NAs
 dCspp <- dCspp[-which(rowSums(dCspp)==0),]
@@ -239,7 +242,7 @@ dCspp <- na.omit(dCspp)
 dCspp <- log1p(dCspp)
 allCA <- cca(dCspp)
 head(summary(allCA)) 
-# --> the first two CA axes explain 14% of the variance. to get to a set of axes that explain close to 50% of the variance you have to go up to 10 axes at least. I think that analyzing all of the species like this without any groupings is problematic because of the low abundances of many species (more than half are less than 1% of the non-appendicularian gelatious population). So you must group them.
+# --> the first two CA axes explain 13.8% of the variance. to get to a set of axes that explain close to 50% of the variance you have to go up to 10 axes. I think that analyzing all of the species like this without any groupings is problematic because of the low abundances of many species (more than half are less than 1% of the non-appendicularian gelatious population). So you must group them.
 
 plot(allCA, scaling=2, main="CA biplot of species concentrations")
 text(allCA, dis="sp", col="red") # no way to see
@@ -247,7 +250,7 @@ text(allCA, dis="sp", col="red") # no way to see
 # clustering
 allCA$CA$v.eig # species scores
 # pick number of axes
-axes <- 10
+axes <- 4
 CAaxes <- allCA$CA$v.eig
 CAaxes <- CAaxes[1:nrow(CAaxes),1:axes]
 CAdist <- dist(CAaxes, method="euclidean")
