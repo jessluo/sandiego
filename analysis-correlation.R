@@ -19,33 +19,33 @@ d$dateTime <- as.POSIXct(d$dateTime, tz="America/Los_Angeles")
 # }
 
 ## { Define new groups for analysis ----------------------------------
-Deep_Trachy <- c("h11_Haliscera", "h2_Haliscera", "h7_Rhopalonema", "h9_Aglaura")
-Shallow_Trachy <- c("h5_Liriope", "h5b")
+Deep_Hydro <- c("h11_Haliscera", "h2_Haliscera", "h7_Rhopalonema", "h9_Aglaura", "h3_Cunina")
+Liriope <- c("h5_Liriope", "h5b")
 Shallow_Narco <- c("h7_Pegantha", "h6_Solmundella")
-Deep_Narco <- c("h3_Cunina")
 Other_Hydro <- c("h1", "h15", "vsh")
 Cydippida <- c("Haeckelia beehlri", "Hormiphora californiensis", "Mertensid")
-Lobata <- c("Bolinopsis", "Ocyropsis maculata", "Juvenile Lobata", "Larval Lobata")
+Lobata_Thalasso <- c("Ocyropsis maculata", "Juvenile Lobata", "Larval Lobata", "Thalassocalycidae inconstans")
 Prayidae <- c("Lilyopsis", "Prayidae")
+Solmaris <- c("sol_large", "sol_small")
 
 # assign these groups into a different column
 d$group2 <- d$taxon
-d$group2[d$taxon %in% Deep_Trachy] <- "Deep Trachy"
-d$group2[d$taxon %in% Shallow_Trachy] <- "Shallow Trachy"
+d$group2[d$taxon %in% Deep_Hydro] <- "Deep Hydro"
+d$group2[d$taxon %in% Liriope] <- "Liriope"
 d$group2[d$taxon %in% Shallow_Narco] <- "Shallow Narco"
-d$group2[d$taxon %in% Deep_Narco] <- "Deep Narco"
+d$group2[d$taxon %in% Solmaris] <- "Solmaris"
 d$group2[d$taxon %in% Other_Hydro] <- "Other Hydro"
 d$group2[d$taxon %in% Cydippida] <- "Cydippida"
-d$group2[d$taxon %in% Lobata] <- "Lobata"
+d$group2[d$taxon %in% Lobata_Thalasso] <- "Lobata_Thalasso"
 d$group2[d$taxon %in% Prayidae] <- "Prayidae"
 
 # exclude rare taxa
 `%ni%` <- Negate(`%in%`) 
-exclude <- c("Charistephane", "Dryodora glandiformis", "Pleurobrachia", "Unknown", "Annatiara", "h10_Pegantha", "h13", "h9_Arctapodema", "r1", "r2", "r3", "r4_Aegina", "r5_Eutonia")
+exclude <- c("Charistephane", "Dryodora glandiformis", "Pleurobrachia", "Unknown", "Annatiara", "h10_Pegantha", "h13", "h9_Arctapodema", "r1", "r2", "r3", "r4_Aegina", "r5_Eutonia", "Bolinopsis", "h1")
 d <- d[d$group2 %ni% exclude,]
 
 # compute total concentration per group
-dc <- ddply(d, ~transect + cast + front + dateTimeB + group2, function(x) {
+dg <- ddply(d, ~transect + cast + front + dateTimeB + group2, function(x) {
   tot <- sum(x$concentration)
   timeavg <- mean(x$dateTime)
   return(data.frame(concentration=tot, dateTime=timeavg))
