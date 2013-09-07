@@ -18,7 +18,7 @@ d$dateTime <- as.POSIXct(d$dateTime, tz="America/Los_Angeles")
 
 # }
 
-## { Define new groups for analysis ----------------------------------
+## { Construct a correlation heatmap for all taxa w/ pre-defined groups ----------------------------------
 Deep_Hydro <- c("h11_Haliscera", "h2_Haliscera", "h7_Rhopalonema", "h9_Aglaura", "h3_Cunina")
 Liriope <- c("h5_Liriope", "h5b")
 Shallow_Narco <- c("h7_Pegantha", "h6_Solmundella")
@@ -50,10 +50,6 @@ dg <- ddply(d, ~transect + cast + front + dateTimeB + group2, function(x) {
   timeavg <- mean(x$dateTime)
   return(data.frame(concentration=tot, dateTime=timeavg))
 }, .parallel=TRUE)
-
-# }
-
-## { Construct a correlation heatmap for all taxa separately---------------------------
 
 # convert to wide format
 dW <- dcast(dg, dateTimeB~group2, value.var="concentration")
