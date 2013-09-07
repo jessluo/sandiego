@@ -297,8 +297,21 @@ ggplot(d) + geom_histogram(aes(x=volume), binwidth=0.1)
 # pdf("binned_concentrations.pdf", width=14, height=10)
 # 
 alply(unique(d$group), 1, function(group) {
-  ggplot(d[d$group==group,]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
+  print(ggplot(d[d$group==group,]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10)))
 })
+dev.off()
+
+# print a the range of concentrations into a PDF
+library(gridExtra)
+pdf("concentration_range.pdf", width=7, height=14)
+print_conc <- adply(unique(d$taxon), 1, function(taxon)
+  {
+      df <- data.frame(taxon, min=min(d[d$taxon==taxon,"concentration"]), max=max(d[d$taxon==taxon,"concentration"]))
+      return(df)
+  })
+print_conc <- print_conc[,-1]
+grid.table(print_conc)
+dev.off()
 
 # inspect abundances
 alply(unique(d$group), 1, function(group) {
