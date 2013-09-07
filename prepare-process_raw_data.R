@@ -435,10 +435,14 @@ h <- adply(hFiles, 1, function(file) {
   # TODO: consider whether you want to split up the H7 groups in the future, as Rhopalonema and Cucina are fairly different
   # in third transect, we took note of the differences between the two and recorded them as different
   # for the purposes of having a homogonized data set, we will combine them here
-    if ("h7.cucina" %in% names(d)){
+  if ("h7.cucina" %in% names(d)){
     d$h7 <- d$h7 + d$h7.cucina
     d <- d[,!names(d) %in% "h7.cucina"]
   }
+  
+  # combine the Liriope tetraphylla
+  d$h5a <- d$h5b + d$h5a
+  d <- d[,!names(d) %in% "h5b"]
   
   d$h14 <- ifelse (("h14" %in% names(d)), d$h14, 0)
   
