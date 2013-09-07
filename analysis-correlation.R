@@ -117,37 +117,14 @@ corrplot(cor(dW, use="complete.obs", method="spearman"), p.mat = res1[[1]], insi
 
 # }
 
-## { Correlation heatmap for groups separately -------------------------------------
 
-# define the groups separately
-group1 <- c("Deep Narco", "Deep Trachy")
-group2 <- c("Appendicularians", "Solmaris_Lg", "Doliolids", "Other Hydro", "Shallow Narco", "Solmaris_Sm", "Shallow Trachy", "Velamen")
-group3 <- c("Lobata", "Thalassocalyce")
-group4 <- c("Beroida", "Cydippida", "Diphyidae", "Prayidae", "Physonectae", "Sphaeronectes")
 
-# recast dc dataframe into wide format
-dcW <- dcast(dc, dateTimeB~group2, value.var="concentration")
 
-# subset into 4 groups
-dc1 <- dcW[, group1]
-dc2 <- dcW[, group2]
-dc3 <- dcW[, group3]
-dc4 <- dcW[, group4]
 
-# calculate the spearman's correlation coefficient and melt into a dataframe
-dc1m <- melt(cor(dc1, use="complete.obs", method="spearman"))
-dc2m <- melt(cor(dc2, use="complete.obs", method="spearman"))
-dc3m <- melt(cor(dc3, use="complete.obs", method="spearman"))
-dc4m <- melt(cor(dc4, use="complete.obs", method="spearman"))
 
 
 # plot the heatmap
-ggplot(data=dc1m) + geom_tile(aes(x=factor(X1, levels=group1), y=factor(X2, levels=group1), fill=value >0, alpha=abs(value))) + labs(x="", y="", title="", fill="Positive / Negative", alpha="Strength of Correlation") + scale_fill_discrete(labels=c("Negative", "Positive")) + theme_bw() + cortheme
-ggplot(data=dc2m) + geom_tile(aes(x=factor(X1, levels=group2), y=factor(X2, levels=group2), fill=value >0, alpha=abs(value))) + labs(x="", y="", title="", fill="Positive / Negative", alpha="Strength of Correlation") + scale_fill_discrete(labels=c("Negative", "Positive")) + theme_bw() + cortheme
-ggplot(data=dc3m) + geom_tile(aes(x=factor(X1, levels=group3), y=factor(X2, levels=group3), fill=value >0, alpha=abs(value))) + labs(x="", y="", title="", fill="Positive / Negative", alpha="Strength of Correlation") + scale_fill_discrete(labels=c("Negative", "Positive")) + theme_bw() + cortheme
-ggplot(data=dc4m) + geom_tile(aes(x=factor(X1, levels=group4), y=factor(X2, levels=group4), fill=value >0, alpha=abs(value))) + labs(x="", y="", title="", fill="Positive / Negative", alpha="Strength of Correlation") + scale_fill_discrete(labels=c("Negative", "Positive")) + theme_bw() + cortheme
 
-# --> splitting up the groups do not necessarily help the visualization. The correlation coefficients do not change. There are low (and insignificant) correlation coefficients for many of the ctenophores and siphonophores because they are not abundant in the water column. I could bin them in larger depth ranges but I'm not sure that it will be ecologically meaningful to do so. 
 
 # }
 
