@@ -106,16 +106,16 @@ cor.mtest <- function(mat, conf.level = 0.95) {
   return(list(p.mat, lowCI.mat, uppCI.mat))
 }
 
-res1 <- cor.mtest(cor(dcW, use="complete.obs", method="spearman"), 0.9)
-corr <- cor(dcW, use="complete.obs", method="spearman")
-corr[which(corr==1)] <- 0
+res1 <- cor.mtest(cor(dW, use="complete.obs", method="spearman"), 0.9)
+corr <- cor(dW, use="complete.obs", method="spearman")
 corrplot(corr, method="square")
 
-corrplot(cor(dcW, use="complete.obs", method="spearman"), p.mat = res1[[1]], sig.level = 0.1)
-corrplot(cor(dcW, use="complete.obs", method="spearman"), p.mat = res1[[1]], insig="blank")
+corrplot.mixed(corr, upper="color", lower="number")
+
+corrplot(cor(dW, use="complete.obs", method="spearman"), p.mat = res1[[1]], sig.level = 0.1)
+corrplot(cor(dW, use="complete.obs", method="spearman"), p.mat = res1[[1]], insig="blank")
 
 # }
-
 
 ## { Correlation heatmap for groups separately -------------------------------------
 
