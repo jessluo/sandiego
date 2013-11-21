@@ -343,8 +343,8 @@ sol$dateTime <- as.POSIXct(str_c(sol$date, " ", sprintf("%02i",sol$hour), ":", s
 # convert to the tall format
 sol <- sol[ , ! names(sol) %in% c("X1", "date", "hour", "min", "sec", "s.1000")]
 solT <- melt(sol, id.vars=c("transect", "downcast", "dateTime"), variable.name="taxon", value.name="count")
-solT$taxon <- as.character(solT$taxon)
-solT$group <- "Solmaris"
+solT$taxon <- "Solmaris"
+solT$group <- "Hydromedusae"
 # remove the zeros
 solT <- solT[solT$count != 0,]
 
@@ -362,7 +362,13 @@ siph$X1 <- str_replace(siph$X1, bioData, "")
 siph$transect <- as.numeric(str_sub(siph$X1, 4, 5)) - 14
 
 # create a true date+time column
-siph$dateTime <- as.POSIXct(str_c(siph$date, " ", sprintf("%02i",siph$hour), ":", sprintf("%02i",siph$min), ":", sprintf("%02i",siph$sec), ".", siph$s.1000), tz="GMT")
+siph$day <- as.numeric(str_sub(siph$X1, 4, 5))
+
+# shift by one day when we cross midnight
+siph$day <- ifelse(siph$hour >= 18 & siph$hour <= 23, siph$day, siph$day+1)
+
+# convert that into POSIXct
+siph$dateTime <- as.POSIXct(str_c("2010-10-", siph$day, " ", sprintf("%02i",siph$hour), ":", sprintf("%02i",siph$min), ":", sprintf("%02i",siph$sec), ".", siph$s.1000), tz="America/Los_Angeles")
 
 # combine with and without tail
 siph$Type1 <- siph$Type1 + siph$Type1_wotail
@@ -371,14 +377,16 @@ siph$Type3 <- siph$Type3 + siph$Type3_wotail
 siph <- siph[,-which(str_detect(names(siph), "_wotail"))]
 
 # give siphonophore taxa meaningful names
-siph <- rename(siph, c("Type1"="Diphyidae", "Type2"="Sphaeronectes", "Type3"="Physonect", "Type4"="Prayidae", "Type5"="Lilyopsis"))
+siph <- rename(siph, c("Type1"="Diphyidae", "Type2"="Sphaeronectes", "Type3"="Physonect", "Type4"="Prayidae", "Type5"="Lilyopsis", "LEMU"="lemu", "MUAT"="muat", "NABI"="nabi", "AGEL"="agel", "COOR"="coor", "FOED"="foed"))
 
 # convert to the tall format
-siph <- siph[ , ! names(siph) %in% c("X1", "date", "hour", "min", "sec", "s.1000")]
+siph <- siph[ , ! names(siph) %in% c("X1", "day", "hour", "min", "sec", "s.1000")]
 siphT <- melt(siph, id.vars=c("transect", "downcast", "dateTime"), variable.name="taxon", value.name="count")
 siphT$taxon <- as.character(siphT$taxon)
 siphT$group <- "Siphonophores"
-# remove the zeros
+
+# remove the zeros and NAs
+siphT <- siphT[complete.cases(siphT),]
 siphT <- siphT[siphT$count != 0,]
 
 # add subsampling interval (Siphonophores were looked for in every frame)
@@ -396,7 +404,7 @@ cteT <- adply(cteFiles, 1, function(file){
   # recompute the time
   # the record contains the time of the first frame in the stack and the frame number within the stack
   # there are 300 frames in a stack and they represent a time of 17.55 seconds
-  d$dateTime <- as.POSIXct(str_c(d$year, "-", sprintf("%02i",d$month), "-", sprintf("%02i",d$date), " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec)), tz="GMT")
+  d$dateTime <- as.POSIXct(str_c(d$year, "-", sprintf("%02i",d$month), "-", sprintf("%02i",d$date), " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec)), tz="America/Los_Angeles")
   d$dateTime <- d$dateTime + 17.55 * d$x.300 / 300
   
   # add a reorder columns
@@ -455,12 +463,40 @@ h <- adply(hFiles, 1, function(file) {
   # shift by one day when we cross midnight
   d$day <- ifelse(d$hour >= 18 & d$hour <= 23, day, day+1)
   # convert that into POSIXct
-  d$dateTime <- as.POSIXct(str_c("2010-10-", d$day, " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec), ".", d$s.1000), tz="GMT")
+  d$dateTime <- as.POSIXct(str_c("2010-10-", d$day, " ", sprintf("%02i",d$hour), ":", sprintf("%02i",d$min), ":", sprintf("%02i",d$sec), ".", d$s.1000), tz="America/Los_Angeles")
   # remove extraneous date columns
   d <- d[,!names(d) %in% c("day", "hour", "min", "sec", "s.1000")]
   
   return(d)
 })
+
+# pull out the other siphonophores
+# subset the hydromedusae, apps and siphs dataframe for just the siphs
+siph2 <- h[,c("downcast", "transect", "dateTime", "muat", "lemu", "nabi", "agel", "coor", "foed", "spko", "si.2.eu")]
+
+# probably not necessary to include spko and si.2.eu in this case
+siph2 <- siph2[, !names(siph2) %in% c("spko", "si.2.eu")]
+
+# replace the rest of the NAs with zeros
+siph2$lemu[is.na(siph2$lemu)] <- 0
+siph2$muat[is.na(siph2$muat)] <- 0
+siph2$nabi[is.na(siph2$nabi)] <- 0
+siph2$foed[is.na(siph2$foed)] <- 0
+siph2$agel[is.na(siph2$agel)] <- 0
+siph2$coor[is.na(siph2$coor)] <- 0
+
+# convert to tall format
+siph2T <- melt(siph2, id.vars=c("transect", "downcast", "dateTime"), variable.name="taxon", value.name="count")
+siph2T$taxon <- as.character(siph2T$taxon)
+# remove the zeros
+siph2T <- siph2T[siph2T$count != 0,]
+
+# add subsampling rate
+siph2T$sub <- 1
+
+# add group name
+siph2T$group <- "Siphonophores"
+
 
 # remove taxa we are not interested in
 h <- h[,!names(h) %in% c("h8", "muat", "lemu", "spko", "si.2.eu", "nabi", "agel", "coor", "foed")]
@@ -494,7 +530,8 @@ appT$sub[which(appT$transect == 1 & appT$downcast == 1)] <- 50
 
 
 # put all the data together
-bio <- rbind.fill(solT, siphT, cteT, appT, hT)
+bio <- rbind.fill(solT, siphT, siph2T, cteT, appT, hT)
+# bio <- rbind.fill(solT, siphT, cteT, appT, hT)
 
 # shift the time by 3 hours
 bio$dateTime <- bio$dateTime - 3 * 3600
