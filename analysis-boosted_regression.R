@@ -545,10 +545,255 @@ results <- rbind(results,data.frame(taxa="Hormiphora", gbm.resultsdf(m)))
 
 # }
 
+##{ GBM Without Front ---------------------------------------------------------------
+
+results <- data.frame()
+
+#  solmaris
+m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
+         data=d[d$taxon=="Solmaris",],
+         distribution="gaussian",
+         n.trees=11000,
+         shrinkage=0.02,
+         interaction.depth=3,
+         bag.fraction=0.5,
+         cv.folds=5)
+
+sink("plots/gbm/nofront/gbm_Solmaris.txt")
+gbm.results(m)
+sink()
+
+results <- rbind(results,data.frame(taxa="Solmaris", gbm.resultsdf(m)))
+
+# liriope tetraphylla
+m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
+         data=d[d$taxon=="h5_Liriope",],
+         distribution="gaussian",
+         n.trees=10000,
+         shrinkage=0.03,
+         interaction.depth=3,
+         bag.fraction=0.5,
+         cv.folds=5)
+
+sink("plots/gbm/nofront/gbm_Liriope.txt")
+gbm.results(m)
+sink()
+
+results <- rbind(results,data.frame(taxa="h5_Liriope", gbm.resultsdf(m)))
+
+# vsh
+m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
+         data=d[d$taxon=="vsh",],
+         distribution="gaussian",
+         n.trees=10000,
+         shrinkage=0.015,
+         interaction.depth=3,
+         bag.fraction=0.5,
+         cv.folds=5)
+
+sink("plots/gbm/nofront/gbm_vsh.txt")
+gbm.results(m)
+sink()
+
+results <- rbind(results,data.frame(taxa="vsh", gbm.resultsdf(m)))
+
+# h7_pegantha
+m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
+         data=d[d$taxon=="h7_Pegantha",],
+         distribution="gaussian",
+         n.trees=10000,
+         shrinkage=0.001,
+         interaction.depth=3,
+         bag.fraction=0.5,
+         cv.folds=5)
+
+sink("plots/gbm/nofront/gbm_h7Pegantha.txt")
+gbm.results(m)
+sink()
+
+results <- rbind(results,data.frame(taxa="h7_Pegantha", gbm.resultsdf(m)))
 
 
+# h15
+m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
+         data=d[d$taxon=="h15",],
+         distribution="gaussian",
+         n.trees=10000,
+         shrinkage=0.0075,
+         interaction.depth=3,
+         bag.fraction=0.5,
+         cv.folds=5)
+
+sink("plots/gbm/nofront/gbm_h15.txt")
+gbm.results(m)
+sink()
+
+results <- rbind(results,data.frame(taxa="h15", gbm.resultsdf(m)))
 
 
+# h6_Solmundella
+m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
+         data=d[d$taxon=="h6_Solmundella",],
+         distribution="gaussian",
+         n.trees=10000,
+         shrinkage=0.003,
+         interaction.depth=3,
+         bag.fraction=0.5,
+         cv.folds=5)
+
+sink("plots/gbm/nofront/gbm_Solmundella.txt")
+gbm.results(m)
+sink()
+
+results <- rbind(results,data.frame(taxa="h6_Solmundella", gbm.resultsdf(m)))
+
+
+# h3_Cunina
+m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
+         data=d[d$taxon=="h3_Cunina",],
+         distribution="gaussian",
+         n.trees=10000,
+         shrinkage=0.001,
+         interaction.depth=3,
+         bag.fraction=0.5,
+         cv.folds=5)
+
+sink("plots/gbm/nofront/gbm_h3Cunina.txt")
+gbm.results(m)
+sink()
+
+results <- rbind(results,data.frame(taxa="h3_Cunina", gbm.resultsdf(m)))
+
+
+# sphaeronectes
+m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
+         data=d[d$taxon=="Sphaeronectes",],
+         distribution="gaussian",
+         n.trees=10000,
+         shrinkage=0.005,
+         interaction.depth=3,
+         bag.fraction=0.5,
+         cv.folds=5)
+
+sink("plots/gbm/nofront/gbm_Sphaeronectes.txt")
+gbm.results(m)
+sink()
+
+results <- rbind(results,data.frame(taxa="Sphaeronectes", gbm.resultsdf(m)))
+
+# diphyidae
+m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
+         data=d[d$taxon=="lemu",],
+         distribution="gaussian",
+         n.trees=10000,
+         shrinkage=0.002,
+         interaction.depth=3,
+         bag.fraction=0.5,
+         cv.folds=5)
+
+sink("plots/gbm/nofront/gbm_Diphyidae(lemu).txt")
+gbm.results(m)
+sink()
+
+results <- rbind(results,data.frame(taxa="Diphyidae", gbm.resultsdf(m)))
+
+# muggiaea
+m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
+         data=d[d$taxon=="muat",],
+         distribution="gaussian",
+         n.trees=10000,
+         shrinkage=0.003,
+         interaction.depth=3,
+         bag.fraction=0.5,
+         cv.folds=5)
+
+sink("plots/gbm/nofront/gbm_MUAT.txt")
+gbm.results(m)
+sink()
+
+results <- rbind(results,data.frame(taxa="Muggiaea", gbm.resultsdf(m)))
+
+# Nanomia bijuga
+m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
+         data=d[d$taxon=="nabi",],
+         distribution="gaussian",
+         n.trees=10000,
+         shrinkage=0.005,
+         interaction.depth=3,
+         bag.fraction=0.5,
+         cv.folds=5)
+
+sink("plots/gbm/nofront/gbm_NABI.txt")
+gbm.results(m)
+sink()
+
+results <- rbind(results,data.frame(taxa="Nanomia", gbm.resultsdf(m)))
+
+# Agalma elegans
+m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
+         data=d[d$taxon=="agel",],
+         distribution="gaussian",
+         n.trees=10000,
+         shrinkage=0.003,
+         interaction.depth=3,
+         bag.fraction=0.5,
+         cv.folds=5)
+
+sink("plots/gbm/nofront/gbm_AGEL.txt")
+gbm.results(m)
+sink()
+
+results <- rbind(results,data.frame(taxa="Agalma", gbm.resultsdf(m)))
+
+# Ocyropsis
+m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
+         data=d[d$taxon=="Ocyropsis maculata",],
+         distribution="gaussian",
+         n.trees=10000,
+         shrinkage=0.001,
+         interaction.depth=3,
+         bag.fraction=0.5,
+         cv.folds=5)
+
+sink("plots/gbm/nofront/gbm_Ocyropsis.txt")
+gbm.results(m)
+sink()
+
+results <- rbind(results,data.frame(taxa="Ocyropsis", gbm.resultsdf(m)))
+
+# Beroida
+m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
+         data=d[d$taxon=="Beroida",],
+         distribution="gaussian",
+         n.trees=10000,
+         shrinkage=0.001,
+         interaction.depth=3,
+         bag.fraction=0.5,
+         cv.folds=5)
+
+sink("plots/gbm/nofront/gbm_Beroida.txt")
+gbm.results(m)
+sink()
+
+results <- rbind(results,data.frame(taxa="Beroida", gbm.resultsdf(m)))
+
+# hormiphora
+m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
+         data=d[d$taxon=="Hormiphora californiensis",],
+         distribution="gaussian",
+         n.trees=10000,
+         shrinkage=0.001,
+         interaction.depth=3,
+         bag.fraction=0.5,
+         cv.folds=5)
+
+sink("plots/gbm/nofront/gbm_Hormiphora.txt")
+gbm.results(m)
+sink()
+
+results <- rbind(results,data.frame(taxa="Hormiphora", gbm.resultsdf(m)))
+
+# }
 
 ##{ Print and save results ----------------------------------------------------------
 row.names(results) <- 1:nrow(results)
@@ -578,3 +823,4 @@ p <- ggplot(data=resultsM[resultsM$taxa %ni% exclude,])+ geom_bar(aes(y=value, x
 pdf("plots/gbm/gbm_skinny_new.pdf", width=4.5, height=11)
 print(p)
 dev.off()
+# }
