@@ -119,12 +119,12 @@ corrplot(cor(dW, use="complete.obs", method="spearman"), p.mat = res1[[1]], insi
 dW <- dcast(d, dateTimeB~taxon, sum, value.var="concentration")
 
 # rename columns
-# rename <- c("appendicularians" = "Apps", "doliolids" = "Doliolids", "Physonect" = "Physonectae")
-rename <- c("Thalassocalycidae inconstans" = "Thalassocalyce", "Hormiphora californiensis" = "Hormiphora", "Haeckelia beehlri" = "Haeckelia", "Ocyropsis maculata" = "Ocyropsis")
+rename <- c("agel" = "A. elegans", "appendicularians" = "Appendicularians", "doliolids" = "Doliolids", "h11_Haliscera" = "Haliscera sp.2", "h2_Haliscera" = "H. conica", "h3_Cunina" = "Solmaris sp.2", "h5_Liriope" = "L. tetraphylla", "h6_Solmundella" = "S. bitentaculata", "h7_Pegantha" = "Pegantha", "h7_Rhopalonema" = "R. velatum", "h9_Aglaura" = "Aglantha", "Haeckelia beehlri" = "H. beehlri","Hormiphora californiensis" = "H. californiensis", "lemu" = "Diphyidae", "Lilyopsis" = "L. rosea", "Mertensid" = "Mertensiid", "muat" = "M. atlantica", "nabi" = "N. bijuga", "Ocyropsis maculata" = "O. maculata","Solmaris" = "S. rhodoloma", "Thalassocalycidae inconstans" = "T. inconstans", "Velamen" = "V. parallelum")
 dW <- rename(dW, rename)
  
 # use the results from the ungrouped CA
-levels <- c("h7_Pegantha", "h15", "sol_large", "sol_small", "vsh", "appendicularians", "h6_Solmundella", "h5_Liriope", "doliolids", "Hormiphora", "Velamen", "Haeckelia", "Physonect", "Sphaeronectes", "Diphyidae", "Mertensid", "Prayidae", "Beroida", "Larval Lobata", "Ocyropsis", "Thalassocalyce", "Lilyopsis", "h9_Aglaura", "h11_Haliscera", "h3_Cunina", "h2_Haliscera", "h7_Rhopalonema")
+levels <- c("Pegantha", "Appendicularians", "h15", "S. rhodoloma", "vsh", "S. bitentaculata", "L. tetraphylla", "Doliolids", "V. parallelum", "H. californiensis", "A. elegans", "M. atlantica", "Mertensiid", "N. bijuga", "H. beehlri", "Sphaeronectes", "Beroida", "Larval Lobata", "Prayidae", "T. inconstans", "O. maculata", "L. rosea", "Aglantha", "Diphyidae", "Haliscera sp.2",  "Solmaris sp.2", "R. velatum", "H. conica")
+
 # reorder the columns
 dW <- dW[,levels]
 
@@ -142,8 +142,11 @@ dctext <- melt(dcorr)
 # plot the heatmap
 cortheme <- theme(axis.text.x=element_text(angle=90, vjust=0.5, size=14), axis.text.y=element_text(size=14), legend.text=element_text(size=12), legend.title=element_text(size=12), plot.title=element_text(size=26))
 
-pdf("plots/corr_heatmap/all_withvalues.pdf", width=14, height=13)
-p <- ggplot(mapping=aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels))) + geom_tile(aes(fill=value), data=dc) + geom_text(aes(label=round(value,2)), size=3, data=dctext) + labs(x="", y="", title="", fill="") + scale_fill_gradient2(limits=c(-1,1), low="red", high="blue", na.value="grey90") + theme_bw() + cortheme
+# axis text
+axis.text <- expression(italic("Pegantha"), "Appendicularians", "h15", italic("S. rhodoloma"), "vsh", italic("S. bitentaculata"), italic("L. tetraphylla"), "Doliolids", italic("V. parallelum"), italic("H. californiensis"), italic("A. elegans"), italic("M. atlantica"), "Mertensiid", italic("N. bijuga"), italic("H. beehlri"), italic("Sphaeronectes"), "Beroida", "Larval Lobata", "Prayidae", italic("T. inconstans"), italic("O. maculata"), italic("L. rosea"), italic("Aglantha"), "Diphyidae", paste(italic("Haliscera")," sp.2"), paste(italic("Solmaris"), " sp.2"), italic("R. velatum"), italic("H. conica"))
+
+pdf("plots/corr_heatmap/all_withvalues_italics.pdf", width=14, height=13)
+p <- ggplot(mapping=aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels))) + geom_tile(aes(fill=value), data=dc) + geom_text(aes(label=round(value,2)), size=3, data=dctext) + labs(x="", y="", title="", fill="") + scale_fill_gradient2(limits=c(-1,1), low="red", high="blue", na.value="grey90") + scale_x_discrete(labels=axis.text) + scale_y_discrete(labels=axis.text) + theme_bw() + cortheme
 print(p)
 dev.off()
 
