@@ -297,13 +297,26 @@ ggplot(d) + geom_histogram(aes(x=volume), binwidth=0.1)
 # pdf("binned_concentrations.pdf", width=14, height=10)
 # 
 alply(unique(d$group), 1, function(group) {
-  print(ggplot(d[d$group==group,]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10)))
+	g <- ggplot(d[d$group==group,]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + 
+  facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_size_area(max_size=12)
+  print(g)
 })
-dev.off()
+# dev.off()
+
+d$front <- factor(d$front)
+d$front2 <- d$front
+d$front2[d$front2 !="front"] <- "not_front"
+d$front2 <- factor(d$front2)
+
+for(i in 1:length(unique(d$taxon))) {
+   taxon <- unique(d$taxon)[i]
+    print(taxon)
+    print(kruskal.test(concentration~front, data=d[d$taxon==taxon & d$front !="west",]))
+}
 
 # print a the range of concentrations into a PDF
 library(gridExtra)
-pdf("concentration_range.pdf", width=7, height=14)
+pdf("orig_concentration_range.pdf", width=7, height=14)
 print_conc <- adply(unique(d$taxon), 1, function(taxon)
   {
       df <- data.frame(taxon, min=min(d[d$taxon==taxon,"concentration"]), max=max(d[d$taxon==taxon,"concentration"]))
@@ -318,10 +331,20 @@ alply(unique(d$group), 1, function(group) {
   ggplot(d[d$group==group,]) + geom_point(aes(x=long, y=-depth, size=abund, colour=abund>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 })
 
+pdf("group_abund.pdf", width=8.5, height=11)
+print_conc <- adply(unique(d$group), 1, function(group)
+{
+  df <- data.frame(group, conc=mean(d[d$group==group,"concentration"]), abund=sum(d[d$group==group,"abund"]))
+  return(df)
+})
+print_conc <- print_conc[,-1]
+grid.table(print_conc)
+dev.off()
+
 # subset plots
 ggplot(d[d$taxon %in% c("h5_Liriope", "h6_Solmundella", "vsh", "h7_Pegantha", "h7_Rhopalonema", "h9_Aglaura", "h2_Haliscera"),]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 
-ggplot(d[d$taxon %in% c("h5_Liriope"),]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
+ggplot(d[d$taxon=="lemu",]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 
 ggplot(d[d$taxon %in% c("Beroida", "Hormiphora californiensis", "Larval Lobata", "Ocyropsis maculata", "Velamen"),]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 
