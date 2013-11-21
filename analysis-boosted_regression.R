@@ -550,3 +550,31 @@ results <- rbind(results,data.frame(taxa="Hormiphora", gbm.resultsdf(m)))
 
 
 
+##{ Print and save results ----------------------------------------------------------
+row.names(results) <- 1:nrow(results)
+
+write.csv(results, "data/gbm_results.csv", row.names=F)
+
+# }
+
+## { Manipulate & analyze results ----------------------------------------------------
+results <- read.csv("data/gbm_results.csv", stringsAsFactors=FALSE)
+
+levels <-  c("Pegantha", "Apps", "h15", "Solmaris", "vsh", "Solmun.", "Liriope", 
+           "doliolids", "Hormiphora", "Agalma", "Muggiaea", "Nanomia", "Sphaero.", 
+           "Beroid", "LarvLob", "Ocyropsis", "Diphyidae", "Cunina")
+labels <- c("Peg.", "Apps", "h15", "SORH", "vsh",  "SOBI", "LITE", 
+            "doliolids", "HOCA", "AGEL", "MUAT", "NABI", "Sphaero.", 
+            "Beroid", "LarvLob", "OCMA", "Diphy.", "Sol sp.2")
+
+
+results$taxa <- factor(results$taxa, levels=levels, labels=labels)
+resultsM <- melt(results, id.vars="taxa", measure.vars=c("depth", "temp", "oxygen", "fluoro", "salinity", "front"))
+resultsM$value <- as.numeric(resultsM$value)
+
+exclude <- c("LarvLob")
+p <- ggplot(data=resultsM[resultsM$taxa %ni% exclude,])+ geom_bar(aes(y=value, x=variable, fill=value), stat="identity") + facet_grid(taxa~.) + scale_fill_gradient("% influence", low="grey80", high="black") + scale_x_discrete(labels=c("temp" = "T", "depth"= "D", "fluoro" = "F", "oxygen"="O", "salinity" = "S", "front"="Fr")) + scale_y_continuous(breaks=c(20, 40)) + labs(y="Relative influence (%)") + theme_bw()
+
+pdf("plots/gbm/gbm_skinny_new.pdf", width=4.5, height=11)
+print(p)
+dev.off()
