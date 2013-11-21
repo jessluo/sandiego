@@ -216,9 +216,8 @@ ggplot(fi) + geom_tile(aes(x=dist, y=-depth, fill=fluoro)) + geom_contour(aes(x=
 write.csv(fi, file="data/interp_fluoro.csv", row.names=FALSE)
 
 # Interpolate oxygen
-# for some reason the oxygen downcasts vs upcasts are offset from each other (something to do with the distance calculation?)
-# choose to use just the upcasts
-oi <- ddply(phyup, ~transect, function(x) {
+
+oi <- ddply(phy, ~transect, function(x) {
   # have to subet otherwise interp fails
   # no idea why...
   x <- x[seq(1, nrow(x), 2),]
