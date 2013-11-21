@@ -114,19 +114,23 @@ dev.off()
 # }
 
 ##{ Frequency distribution table ---------------------------------------
-pdf("concentration_range.pdf", width=7, height=10)
-print_conc <- adply(order, 1, function(taxon)
+pdf("concentration_range_new.pdf", width=12, height=15)
+print_conc <- adply(unique(d$taxon), 1, function(taxon)
 {
-  df <- data.frame(taxon, 
+  df <- data.frame(taxon, group=unique(d[d$taxon==taxon,"group"]),
                    PA=round((length(which(d[d$taxon==taxon,"abund"] != 0))/nrow(d[d$taxon==taxon,]))*100,2),
+                   max_Conc=round(max(d[d$taxon==taxon,"concentration"]), 2),
                    max_Abund=max(d[d$taxon==taxon,"abund"]), 
-                   max_Conc=round(max(d[d$taxon==taxon,"concentration"]), 2))
+                   total_Abund=sum(d[d$taxon==taxon,"abund"]),
+                   Agg_FrontE = round(mean(d[d$taxon==taxon & d$front=="front","concentration"])/mean(d[d$taxon==taxon & d$front =="east","concentration"]),2),
+                   Agg_Front = round(mean(d[d$taxon==taxon & d$front=="front","concentration"])/mean(d[d$taxon==taxon & d$front != "front","concentration"]),2))
   return(df)
 })
 # NB: there seems to be a problem with the adply when the d$taxon is an ordered factor. If you get an error when running this code, replace "unique(d$taxon)" in the adply call with "order"
-
+print_conc <- rename(print_conc, c("PA" = "% Present", "max_Abund" = "Max Counts", "max_Conc" = "Max Conc.", "total_Abund" = "Total Abund"))
 print_conc <- print_conc[,-1]
 grid.table(print_conc)
 dev.off()
 
+write.csv(print_conc, "data/concentration_range.csv", row.names=F)
 # }
