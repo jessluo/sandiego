@@ -12,6 +12,30 @@ d$front <- factor(d$front, levels=c("west", "front", "east"))
 
 hist(log(d[d$taxon=="h5_Liriope","concentration"]))
 hist(log(d[d$taxon=="sol_large","concentration"]))
+# function for R^2 for gbm
+gbm.r2 <- function(gbm.obj){
+	# calculate a pseudo R^2 value for a gbm model
+	
+	# original and fitted values
+	y <- gbm.obj$data$y
+	fitted <- predict.gbm(gbm.obj)
+	
+	# number of predictors & degrees of freedom
+	n <- dim(gbm.obj$data$x.order)[1]
+	p <- dim(gbm.obj$data$x.order)[2]
+	df <- n - p - 1
+	
+	# mean squared error from fitted values
+	MSE <- sum((y-fitted)^2)/df
+	
+	# mean sum of squares total
+	MST <- var(y)
+	
+	# R2-adjusted for fitted values
+	R2 <- 1 - (MSE / MST)
+	
+	return(R2)
+}
 
 ?gbm
 # n.trees - want something in the 1000's
