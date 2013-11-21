@@ -150,4 +150,36 @@ p <- ggplot(mapping=aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=lev
 print(p)
 dev.off()
 
+
+# average rho by assemblage
+assemA <- c("Pegantha", "h15", "S. rhodoloma", "vsh", "Appendicularians", "S. bitentaculata", "L. tetraphylla", "Doliolids", "V. parallelum", "H. californiensis", "A. elegans")
+assemB <- c( "M. atlantica", "Mertensiid", "N. bijuga", "H. beehlri", "Sphaeronectes", "Beroida", "Larval Lobata", "Prayidae")
+assemC <- c("T. inconstans", "O. maculata")
+assemD <- c("Diphyidae", "L. rosea", "Aglantha", "Solmaris sp.2", "Haliscera sp.2")
+
+avgrho <- data.frame()
+
+dx <- dW[,assemA]
+dxc <- cor(dx, use="complete.obs", method="spearman")
+diag(dxc) <- NA
+avgrho <- rbind(avgrho, data.frame(assemblage="A", avgrho=mean(dxc, na.rm=T)))
+
+dx <- dW[,assemB]
+dxc <- cor(dx, use="complete.obs", method="spearman")
+diag(xc) <- NA
+avgrho <- rbind(avgrho, data.frame(assemblage="B", avgrho=mean(dxc, na.rm=T)))
+
+dx <- dW[,assemC]
+dxc <- cor(dx, use="complete.obs", method="spearman")
+diag(dxc) <- NA
+avgrho <- rbind(avgrho, data.frame(assemblage="C", avgrho=mean(dxc, na.rm=T)))
+
+dx <- dW[,assemD]
+dxc <- cor(dx, use="complete.obs", method="spearman")
+diag(dxc) <- NA
+avgrho <- rbind(avgrho, data.frame(assemblage="D", avgrho=mean(dxc, na.rm=T)))
+
+
+avgrho
+
 # }
