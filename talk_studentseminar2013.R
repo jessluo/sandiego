@@ -82,7 +82,7 @@ df$percentage <- df$counts / (sum(df$counts)) * 100
 df$percent_woapps <- df$counts / (sum(df$counts[df$group2 != "Appendicularians"])) * 100
 
 # plot (pie charts are plotted as bar graphs in the polar coordinate scale)
-ggplot(data=df) + geom_bar(aes(x=factor(1), y=percentage, fill=group2), width=1) + coord_polar(theta="y") + scale_fill_brewer(palette="Dark2") + labs(x="", y="", fill="Taxon") +   theme(panel.background=element_rect(fill="white", colour="white"), line=element_blank(), axis.text=element_blank())
+ggplot(data=df) + geom_bar(aes(x=factor(1), y=percentage, fill=group2), width=1) + coord_polar(theta="y") + scale_fill_brewer(palette="Set1") + labs(x="", y="", fill="Taxon") +   theme(panel.background=element_rect(fill="white", colour="white"), line=element_blank(), axis.text=element_blank())
 
 ggplot(data=df[df$group2 != "Appendicularians",], aes(x=factor(1), y=percent_woapps,)) + geom_bar(aes(fill=group2), width=1) + coord_polar(theta="y") + 
   labs(x="", y="", fill="Taxon") + theme(panel.background=element_rect(fill="white", colour="white"), line=element_blank(), axis.text=element_blank()) + 
