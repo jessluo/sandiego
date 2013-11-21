@@ -48,6 +48,9 @@ spectral <- function(n=6) {
 }
 
 # }
+# where's the pycnocline
+ggplot(phy) + geom_point(aes(x=long, y=-depth, colour=c(0,abs(diff(swRho))))) + facet_grid(transect~.) + scale_colour_gradient("Pycnocline strength", limits=c(0,0.12), low="white", high="black") + theme_bw()
+
 # temperature
 tplot <- ggplot(ti) + geom_tile(aes(x=dist/1000, y=-depth, fill=temp)) + geom_contour(aes(x=dist/1000, y=-depth, z=temp), colour="white", size=0.5, alpha=0.5, breaks=c(10, 15)) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth") + scale_fill_gradient("Temp (C)", na.value="grey80", low = "#2d669f", high = "#c8dcef")
 
