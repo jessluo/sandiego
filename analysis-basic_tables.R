@@ -23,23 +23,21 @@ d$dateTime <- as.POSIXct(d$dateTime, tz="America/Los_Angeles")
 colToKeep <- c("transect", "cast", "dateTime", "depth", "lat", "long", "temp", "salinity", "swRho", "fluoro", "oxygen", "group", "taxon", "abund", "concentration")
 
 # exclude rare taxa
-exclude <- c("Pleurobrachia", "Bolinopsis", "Charistephane", "Dryodora glandiformis", "h1", "r2", "r1", "h13", "h10_Pegantha", "r4_Aegina", "Annatiara", "r3", "r5_Eutonia", "Unknown", "Juvenile Lobata", "h9_Arctapodema")
+exclude <- c("Pleurobrachia", "Bolinopsis", "Charistephane", "Dryodora glandiformis", "h1", "r2", "r1", "h13", "h10_Pegantha", "r4_Aegina", "Annatiara", "r3", "r5_Eutonia", "Unknown", "Juvenile Lobata", "h9_Arctapodema", "coor", "foed", "Physonect", "Diphyidae")
 d <- d[d$taxon %ni% exclude,]
 
-# rename long taxa names
-d[d$taxon=="Thalassocalycidae inconstans", "taxon"] <- "Thalassocalyce"
-d[d$taxon=="Hormiphora californiensis", "taxon"] <- "Hormiphora"
-d[d$taxon=="Haeckelia beehlri", "taxon"] <- "Haeckelia"
-d[d$taxon=="Ocyropsis maculata", "taxon"] <- "Ocyropsis"
+# set factor order
+order <- c("h7_Pegantha", "appendicularians", "h15", "Solmaris", "vsh", "h6_Solmundella", "h5_Liriope", "doliolids", "Velamen", "Hormiphora californiensis", "agel", "muat", "Mertensid", "nabi", "Haeckelia beehlri", "Sphaeronectes",  "Beroida", "Larval Lobata", "Prayidae", "Thalassocalycidae inconstans", "Ocyropsis maculata", "Lilyopsis", "h9_Aglaura",  "lemu", "h11_Haliscera", "h3_Cunina", "h7_Rhopalonema", "h2_Haliscera")
 
-# reorder taxon factor levels
-order <- c("h7_Pegantha", "h15", "sol_large", "sol_small", "vsh", "appendicularians", "h6_Solmundella", "h5_Liriope", "doliolids", "Hormiphora", "Velamen", "Haeckelia", "Physonect", "Sphaeronectes", "Diphyidae", "Mertensid", "Prayidae", "Beroida", "Larval Lobata", "Ocyropsis", "Thalassocalyce", "Lilyopsis", "h9_Aglaura", "h11_Haliscera", "h3_Cunina", "h2_Haliscera", "h7_Rhopalonema")
+# rename as labels
+labels <- c("Pegantha", "Appendicularians", "h15", "S. rhodoloma", "vsh", "S. bitentaculata", "L. tetraphylla", "Doliolids", "V. parallelum", "H. californiensis", "A. elegans", "M. atlantica", "Mertensiid", "N. bijuga", "H. beehlri", "Sphaeronectes", "Beroida", "Larval Lobata", "Prayidae", "T. inconstans", "O. maculata", "L. rosea", "Aglantha", "Diphyidae", "Haliscera sp.2",  "Solmaris sp.2", "R. velatum", "H. conica")
 
-d$taxon <- factor(d$taxon, levels=order)
+
+d$taxon <- factor(d$taxon, levels=order, labels=labels)
 
 # separate the appendicularians and the rest of the taxa
-dapp <- d[d$taxon=="appendicularians", colToKeep]
-dn <- d[d$taxon!= "appendicularians", colToKeep]
+dapp <- d[d$taxon=="Appendicularians", colToKeep]
+dn <- d[d$taxon!= "Appendicularians", colToKeep]
 
 # copy down rows based on the concentration of organisms per bin
 dn <- dn[rep(seq_len(nrow(dn)), round(dn[,"concentration"])), ]
@@ -52,7 +50,7 @@ row.names(dapp) <- seq(nrow(dapp))
 dn <- rbind(dn, dapp)
 
 # reverse order for the boxplots because of coord_flip
-dn$taxon <- factor(dn$taxon, levels=rev(order))
+dn$taxon <- factor(dn$taxon, levels=rev(labels))
 
 # }
 
