@@ -25,16 +25,12 @@ phy <- read.csv("data/phy.csv", stringsAsFactors=FALSE)
 phy$dateTime <- as.POSIXct(phy$dateTime, tz="America/Los_Angeles")
 # NB: make sure time is set in GMT (even if it wasn't) to avoid dealing with tz afterwards
 
-
+# import interpolated physical data
 ti <- read.csv("data/interp_temp.csv", stringsAsFactors=FALSE)
 si <- read.csv("data/interp_salinity.csv", stringsAsFactors=FALSE)
 swi <- read.csv("data/interp_swRho.csv", stringsAsFactors=FALSE)
 fi <- read.csv("data/interp_fluoro.csv", stringsAsFactors=FALSE)
 oi <- read.csv("data/interp_oxygen.csv", stringsAsFactors=FALSE)
-
-# }
-
-##{ Create interpolated physical variables plots ----------------------------
 
 # calculate distances for the binned data matrix                                 
 lonRef <- min(phy$long)
@@ -45,6 +41,13 @@ d <- ddply(d, ~transect, function(x, lonR=lonRef) {
   return(x)
 }, .progress="text")
 
+# Spectral colour map from ColorBrewer
+spectral <- function(n=6) {
+  library("RColorBrewer")
+  rev(brewer.pal(name="Spectral", n=n))
+}
+
+# }
 # temperature
 tplot <- ggplot(ti) + geom_tile(aes(x=dist/1000, y=-depth, fill=temp)) + geom_contour(aes(x=dist/1000, y=-depth, z=temp), colour="white", size=0.5, alpha=0.5, breaks=c(10, 15)) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth") + scale_fill_gradient("Temp (C)", na.value="grey80", low = "#2d669f", high = "#c8dcef")
 
