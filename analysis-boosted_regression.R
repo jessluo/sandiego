@@ -12,6 +12,7 @@ d$front <- factor(d$front, levels=c("west", "front", "east"))
 
 hist(log(d[d$taxon=="h5_Liriope","concentration"]))
 hist(log(d[d$taxon=="sol_large","concentration"]))
+## { Boosted Regression Trees with gbm package -------------------------------
 # function for R^2 for gbm
 gbm.r2 <- function(gbm.obj){
 	# calculate a pseudo R^2 value for a gbm model
@@ -55,6 +56,22 @@ gbm.results <- function(gbm.obj){
   
   return(out)
 }
+
+gbm.resultsdf <- function(gbm.obj){
+  # function call
+  shrinkage <- gbm.obj$shrinkage
+  
+  best.iter <- gbm.perf(gbm.obj, method="cv", plot.it=F)
+  
+  summary <- summary(gbm.obj, n.trees=best.iter, plotit=F)
+  
+  r2 <- gbm.r2(gbm.obj)
+  
+  out <- data.frame(shrinkage, best.iter, r2, t(summary))[2,]
+  
+  return(out)
+}
+
 ?gbm
 # n.trees - want something in the 1000's
 # the more trees you have the more variance you can explain
