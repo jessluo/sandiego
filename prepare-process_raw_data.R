@@ -64,8 +64,8 @@ phy <- adply(phyFiles, 1, function(file) {
   d$hour <- as.numeric(str_sub(d$time,1,2))
   d$date <- ifelse(d$hour >= 18 & d$hour <= 23, date, dateNextDay)
   d$dateTime <- str_c(d$date, d$time, sep=" ")
-  d$dateTime <- as.POSIXct(strptime(d$dateTime, format="%m/%d/%y %H:%M:%OS", tz="GMT"))
-  # NB: we say it is GMT when it is in fact local time, just to avoid having to deal with time zones
+  d$dateTime <- as.POSIXct(strptime(d$dateTime, format="%m/%d/%y %H:%M:%OS", tz="America/Los_Angeles"))
+  # NB: we say it is America/Los_Angeles when it is in fact local time, just to avoid having to deal with time zones
   
   # shift all physical data back 3 hours
   # NB: this is specific for the San Diego dataset, as the physical data was recorded in Eastern Time
@@ -338,7 +338,7 @@ sol$X1 <- str_replace(sol$X1, bioData, "")
 sol$transect <- as.numeric(str_sub(sol$X1, 4, 5)) - 14
 
 # create a true date+time column
-sol$dateTime <- as.POSIXct(str_c(sol$date, " ", sprintf("%02i",sol$hour), ":", sprintf("%02i",sol$min), ":", sprintf("%02i",sol$sec), ".", sol$s.1000), tz="GMT")
+sol$dateTime <- as.POSIXct(str_c(sol$date, " ", sprintf("%02i",sol$hour), ":", sprintf("%02i",sol$min), ":", sprintf("%02i",sol$sec), ".", sol$s.1000), tz="America/Los_Angeles")
 
 # convert to the tall format
 sol <- sol[ , ! names(sol) %in% c("X1", "date", "hour", "min", "sec", "s.1000")]
