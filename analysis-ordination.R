@@ -229,14 +229,16 @@ dCspp <- dC[,13:ncol(dC)]
 # sum the columns to figure out which species to exclude
 sort(colSums(dCspp))
 # percentage of total population
-(sort(colSums(dCspp))/sum(colSums(dCspp[,names(dCspp) %ni% c("doliolids", "appendicularians"),]))) *100
+(sort(colSums(dCspp))/sum(colSums(dCspp))) *100
 # not including those in < 0.05% of the whole population
 
 # exclude rare taxa
-`%ni%` <- Negate(`%in%`) 
-exclude <- c("Pleurobrachia", "Bolinopsis", "Charistephane", "Dryodora glandiformis", "h1", "r2", "r1", "h13", "h10_Pegantha", "r4_Aegina", "Annatiara", "r3", "r5_Eutonia", "Unknown", "Juvenile Lobata", "h9_Arctapodema")
-
+exclude <- c("Pleurobrachia", "Bolinopsis", "Charistephane", "Dryodora glandiformis", "h1", "r2", "r1", "h13", "h10_Pegantha", "r4_Aegina", "Annatiara", "r3", "r5_Eutonia", "Unknown", "Juvenile Lobata", "h9_Arctapodema", "foed", "coor")
 dCspp <- dCspp[,names(dCspp) %ni% exclude]
+
+rename <- c("agel" = "A. elegans", "appendicularians" = "Appendicularians", "doliolids" = "Doliolids", "h11_Haliscera" = "Haliscera sp.2", "h2_Haliscera" = "H. conica", "h3_Cunina" = "Solmaris sp.2", "h5_Liriope" = "L. tetraphylla", "h6_Solmundella" = "S. bitentaculata", "h7_Pegantha" = "Pegantha", "h7_Rhopalonema" = "R. velatum", "h9_Aglaura" = "Aglantha", "Haeckelia beehlri" = "H. beehlri","Hormiphora californiensis" = "H. californiensis", "lemu" = "Diphyidae", "Lilyopsis" = "L. rosea", "Mertensid" = "Mertensiid", "muat" = "M. atlantica", "nabi" = "N. bijuga", "Ocyropsis maculata" = "O. maculata","Solmaris" = "S. rhodoloma", "Thalassocalycidae inconstans" = "T. inconstans", "Velamen" = "V. parallelum")
+
+dCspp <- rename(dCspp, replace=rename)
 
 # removes rows that sum to zero and are also NAs
 dCspp <- dCspp[-which(rowSums(dCspp)==0),]
@@ -246,6 +248,8 @@ dCspp <- log1p(dCspp)
 allCA <- cca(dCspp)
 head(summary(allCA)) 
 # --> the first two CA axes explain 13.8% of the variance. to get to a set of axes that explain close to 50% of the variance you have to go up to 10 axes. I think that analyzing all of the species like this without any groupings is problematic because of the low abundances of many species (more than half are less than 1% of the non-appendicularian gelatious population). So you must group them.
+# Kaiser guttman test
+num <- length(which(allCA$CA$eig > mean(allCA$CA$eig)))
 
 plot(allCA, scaling=2, main="CA biplot of species concentrations")
 text(allCA, dis="sp", col="red") # no way to see
@@ -259,20 +263,14 @@ CAaxes <- CAaxes[1:nrow(CAaxes),1:axes]
 CAdist <- dist(CAaxes, method="euclidean")
 CAclust <- hclust(CAdist, method="ward")
 
-pdf("plots/ordination/all_ungrouped_4axes.pdf", width=13, height=11)
+# labels
+# axis.text <- expression(italics("A. elegans"), "Appendicularians", "Beroida", "Doliolids", paste(italic("Haliscera")," sp.2"), "h15", italic("H. conica"), paste(italic("Solmaris"), " sp.2"), italic("L. tetraphylla"), italic("S. bitentaculata"), "Pegantha", italic("R. velatum"), italic("Aglantha"), italic("H. beehlri"), italic("H. californiensis"), "Larval Lobata", "Diphyidae", italic("L. rosea"), "Mertensiid", italic("M. atlantica"), italic("N. bijuga"), italic("O. maculata"), "Prayidae", italic("S. rhodoloma"), "Sphaeronectes", italic("T. inconstans"), italic("V. parallelum"), "vsh")
+
+pdf("plots/ordination/all_ungrouped_4axes_4assemb.pdf", width=9, height=7)
 print(plot(CAclust, labels=dimnames(CAaxes)[[1]], main="CA ungrouped 4 axes"))
-print(rect.hclust(CAclust, k=7, border="red"))
+print(rect.hclust(CAclust, k=6, border="red"))
 dev.off()
 # --> with 4 axes you get 4 groups: 1) r5-eutonia, h2-haliscera, h3-cunina, r3, h7-rhopalonema, h9-aglaura, h1, h10-pegantha, h11-haliscera. 2) appendicularians, h15, h7-pegantha, solmaris large, doliolids, vsh, h6-solmundella, small solmaris, homiphora, velamen, h5-liriope, h5b. 3) h9-arctapodema, juv lobata, ocyropsis, thalasso. 4) aegina, annatiara, lilyopsis, diphyidae, haeckelia beehlri, mertensid, sphaeronectes, physonect, prayidae, beroida and larval lobata
-axes <- 3
-CAaxes <- CAaxes[1:nrow(CAaxes),1:axes]
-CAdist <- dist(CAaxes, method="euclidean")
-CAclust <- hclust(CAdist, method="ward")
-plot(CAclust, labels=dimnames(CAaxes)[[1]])
-rect.hclust(CAclust, k=5, border="red")
-# --> with 3 CA axes you cut into 3 or 5 groups.
-
-
 
 # }
 
