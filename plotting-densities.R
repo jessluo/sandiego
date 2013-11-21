@@ -10,6 +10,8 @@ library("ggplot2")
 library("foreach")
 library("doParallel")
 library("oce")
+library("gridExtra")
+
 registerDoParallel(cores=detectCores())
 parallel <- TRUE
 
@@ -94,6 +96,69 @@ res/sum(res)
 # }
 
 ##{ Plot concentrations on top of interpolated phy vars----------------------
+# according to GBM results
+
+# Plots for the paper
+
+# solmundella - temperature
+Solmundella <-  plot + 
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.5, data=d[d$taxon=="h6_Solmundella" & d$concentration > 0,]) + 
+  facet_grid(transect~.,) + scale_size_area("Density", max_size=10) + 
+  labs(title=expression(paste(italic("Solmundella bitentaculata")))) + 
+  theme(legend.position=c(.1, .35), plot.margin=unit(c(1,0,0.5,0), "lines")) + 
+  guides(size=guide_legend(order=1), fill=guide_colourbar(order=2))
+
+# Pegantha - temperature + fluorometry: fluoro base plot + isothermals
+Pegantha <- fplot + 
+  geom_contour(aes(x=dist/1000, y=-depth, z=temp), colour="black", size=1, alpha=0.4, breaks=c(10, 13, 16), data=ti) + 
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.5, data=d[d$taxon=="h7_Pegantha" & d$concentration > 0,]) +
+  scale_size_area("Density", max_size=7) + labs(title=expression(paste(italic("Pegantha")," sp."))) + 
+  theme(legend.position=c(.1, .36), axis.title.y=element_blank()) + 
+  guides(size=guide_legend(order=1), fill=guide_colourbar(order=2))
+
+pdf("plots/bubble/Solmundella_Pegantha.pdf", height=8.5, width=11)
+grid.arrange(Solmundella, Pegantha, nrow=1, widths=c(1,1.03))                                                                                                                                                                                                                                                                             
+dev.off()
+
+# solmaris - temperature
+Solmaris <- tplot + 
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.5, data=d[d$taxon=="Solmaris" & d$concentration > 0,]) +
+  facet_grid(transect~.,) + scale_size_area("Density", max_size=10) + 
+  labs(title=expression(paste(italic("Solmaris rhodoloma")))) + 
+  theme(legend.position=c(.1, .35), plot.margin=unit(c(1,0,0.5,0), "lines")) +
+  guides(size=guide_legend(order=1), fill=guide_colourbar(order=2))
+
+# doliolids - fluoro
+Doliolids <- fplot + 
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.5, data=d[d$taxon=="doliolids" & d$concentration > 0,]) +
+  facet_grid(transect~.,) + scale_size_area("Density", max_size=7) + 
+  labs(title="Doliolids") + theme(legend.position=c(.1, .38), axis.title.y=element_blank()) +
+  guides(size=guide_legend(order=1), fill=guide_colourbar(order=2))
+
+pdf("plots/bubble/Solmaris_doliolids.pdf", height=8.5, width=11)
+grid.arrange(Solmaris, Doliolids, nrow=1, widths=c(1,1.03))                                                                                                                                                                                                                                                                             
+dev.off()
+
+# Sphaeronectes - temp + oxygen
+Sphaeronectes <- oplot + 
+  geom_contour(aes(x=dist/1000, y=-depth, z=temp), colour="black", size=1, alpha=0.4, breaks=c(10, 13, 16), data=ti) + 
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.5, data=d[d$taxon=="Sphaeronectes" & d$concentration > 0,]) +
+  facet_grid(transect~.,) + scale_size_area("Density", max_size=9) + 
+  labs(title=expression(paste(italic("Sphaeronectes")," sp."))) + 
+  theme(legend.position=c(.1, .39), plot.margin=unit(c(1,0,0.5,0), "lines")) +
+  guides(size=guide_legend(order=1), fill=guide_colourbar(order=2))
+
+# Ocyropsis - oxygen
+Ocyropsis <- oplot +
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.5, data=d[d$taxon=="Ocyropsis maculata" & d$concentration > 0,]) + 
+  facet_grid(transect~.,) + scale_size_area("Density", max_size=7) + 
+  labs(title=expression(paste(italic("Ocyropsis maculata")))) + 
+  theme(legend.position=c(.1, .35), axis.title.y=element_blank()) +
+  guides(size=guide_legend(order=1), fill=guide_colourbar(order=2))
+
+pdf("plots/bubble/Sphaeronectes_Ocyropsis.pdf", height=8.5, width=11)
+grid.arrange(Sphaeronectes, Ocyropsis, nrow=1, widths=c(1,1.03))  
+dev.off()
 
 # plotting just the appendicularians only
 
