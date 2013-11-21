@@ -37,6 +37,24 @@ gbm.r2 <- function(gbm.obj){
 	return(R2)
 }
 
+gbm.results <- function(gbm.obj){
+  # function call
+  max.trees <- gbm.obj$n.trees
+  shrinkage <- gbm.obj$shrinkage
+  
+  best.iter <- gbm.perf(gbm.obj, method="cv", plot.it=F)
+  
+  summary <- summary(gbm.obj, n.trees=best.iter, plotit=F)
+  
+  r2 <- gbm.r2(gbm.obj)
+  
+  outdf <- data.frame(max.trees, shrinkage, best.iter, r2, t(summary))[2,]
+  row.names(outdf) <- 1
+  
+  out <- list(model_call=gbm.obj, max_trees=max.trees, shrinkage=shrinkage, best_iteration=best.iter, relative_influence=summary, r2_value=r2)
+  
+  return(out)
+}
 ?gbm
 # n.trees - want something in the 1000's
 # the more trees you have the more variance you can explain
