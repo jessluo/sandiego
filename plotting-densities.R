@@ -160,18 +160,71 @@ pdf("plots/bubble/Sphaeronectes_Ocyropsis.pdf", height=8.5, width=11)
 grid.arrange(Sphaeronectes, Ocyropsis, nrow=1, widths=c(1,1.03))  
 dev.off()
 
-# plotting just the appendicularians only
+# h15 - temperature
+h15 <- tplot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="h15" & d$concentration > 0,]) + facet_grid(transect~.,) + scale_area("Density", range=c(1,10)) + labs(title="h15")
 
-Tplot <- ggplot(ti[which(ti$transect!=3),]) + geom_tile(aes(x=dist/1000, y=-depth, fill=temp)) + geom_contour(aes(x=dist/1000, y=-depth, z=temp), colour="white", size=0.5, alpha=0.5, breaks=c(10, 15)) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth") + scale_fill_gradient("Temp (C)", na.value="grey80", low = "#2d669f", high = "#c8dcef")
 
-Tplot + geom_point(aes(x=dist/1000, y=-depth, size=concentration, colour=concentration>0), alpha=0.7, data=d[d$taxon=="appendicularians",]) + facet_grid(transect~.,) + scale_colour_manual("Presence / Absence", values=c("grey60", "black")) + scale_area("Density", range=c(1,10)) + labs(title="Appendicularians")
+# vsh - (depth) + temperature
+vsh <- tplot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="vsh" & d$concentration > 0,]) + facet_grid(transect~.,) + scale_area("Density", range=c(1,10)) + labs(title="Very Small Hydromedusae")
+
+# apps - depth
+apps <- ggplot() + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="appendicularians" & d$concentration > 0,]) + facet_grid(transect~.,) + scale_area("Density", range=c(1,10)) + labs(title="Appendicularians") + theme_bw()
+                                                                                                                                                                                                                                                                            
+# Liriope - temperature + fluoro
+Liriope <- tplot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.4, data=d[d$taxon=="h5_Liriope" & d$concentration > 0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=10) + labs(title=expression(paste(italic("Liriope tetraphylla"))))
+
+Liriope2 <- tplot + 
+  geom_contour(aes(x=dist/1000, y=-depth, z=fluoro), colour="black", size=1, alpha=0.5, breaks=c(0.2, 0.4, 0.6, 0.8), data=fi) + 
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="h5_Liriope" & d$concentration > 0,]) + facet_grid(transect~.,) + scale_area("Density", range=c(1,10)) + labs(title="Liriope tetraphylla")
+
+Liriope2 <- fplot + 
+  geom_contour(aes(x=dist/1000, y=-depth, z=temp), colour="black", size=1, alpha=0.5, breaks=c(10, 15), data=ti) + 
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="h5_Liriope" & d$concentration > 0,]) + facet_grid(transect~.,) + scale_area("Density", range=c(1,10)) + labs(title="Liriope tetraphylla")
+
+
+# physonect - fluoro
+Physonect <- fplot + 
+  ggplot() + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="Physonect" & d$concentration > 0,]) + facet_grid(transect~.,) + scale_area("Density", range=c(1,10)) + labs(title="Physonect")
+
+# diphyidae - fluoro
+Diphyidae <- fplot + geom_contour(aes(x=dist/1000, y=-depth, z=salinity), colour="black", size=1, alpha=0.7, breaks=c("33.3", "33.45"), data=si) +
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="Diphyidae" & d$concentration > 0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=10) + labs(title="Diphyidae")
+
+# NEW SIPHS
+# muggiaea - fluoro
+muat <- fplot + 
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="muat" & d$concentration > 0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=10) + labs(title="Muggiaea")
+
+# lensia - oxygen / salinity
+lemu <- oplot +  geom_contour(aes(x=dist/1000, y=-depth, z=salinity), colour="black", size=1, alpha=0.7, breaks=c("33.3", "33.45"), data=si) +
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="lemu" & d$concentration > 0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=10) + labs(title="Lensia sp.")
+
+# nanomia - oxygen / salinity
+nabi <- oplot +  geom_contour(aes(x=dist/1000, y=-depth, z=fluoro), colour="black", size=1, alpha=0.5, breaks=c(0.2, 0.4, 0.6, 0.8), data=fi) + 
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="nabi" & d$concentration > 0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=10) + labs(title="Nanomia bijuga")
+
+# agalma - fluoro + oxygen
+agel <- fplot +  geom_contour(aes(x=dist/1000, y=-depth, z=oxygen), colour="black", size=1, alpha=0.5, breaks=c("2", "3", "4", "5"), data=oi) +
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="agel" & d$concentration > 0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=10) + labs(title="Agalma elegans")
+
+
+# Beroida - temp
+Beroida <- tplot +
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="Beroida" & d$concentration > 0,]) + facet_grid(transect~.,) + scale_size_area("Density", max_size=10) + labs(title="Beroida")
+
+# Cunina - temp
+Cunina <- tplot +
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.7, data=d[d$taxon=="h3_Cunina" & d$concentration > 0,]) + facet_grid(transect~.,) + scale_size_area("Density") + labs(title="Cunina")
+
 
 
 # just a simple app concentrations by depth plot
 df <- d[which(d$taxon=="appendicularians"),]
 ggplot(data=df[which(df$concentration > 0),]) + geom_point(mapping=aes(x=-depth, y=log(concentration)), stat="identity") + labs(title="Appendicularian densities depth profile", x="Depth", y="Log-Density") + xlim(-135, 0) + geom_smooth(aes(x=-depth, y=log(concentration)), method="loess") + coord_flip()
 
-# ggplot(data=df[which(df$concentration > 0),]) + geom_point(mapping=aes(x=concentration, y=-depth), stat="identity") + labs(title="Appendicularian densities depth profile", x="Density", y="Depth") + ylim(-135, 0) + scale_x_continuous(guide=list(guide_axis(), guide_axis(position="top", trans = function(x) x * 2)))
+# }
+
+##{ Violin plots ------------------------------------------------------------
 
 # everything together
 
