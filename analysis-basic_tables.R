@@ -91,6 +91,24 @@ grid.arrange(pd, pt, po, pf, ps, nrow=1, widths=c(1.6,1,1,1,1.09))
 dev.off()
 
 
+
+# by group
+
+grouplvls <- rev(c("Hydromedusae", "Tunicates", "Siphonophores", "Ctenophores"))
+
+pd <- ggplot(data=dn) + geom_boxplot(aes(x=factor(group, levels=grouplvls), y=depth, fill=group), outlier.colour="grey70") + coord_flip() + labs(x="") + scale_fill_brewer("Taxon", palette="Set1") + labs(x="Depth (m)") + theme_bw() + theme(legend.position="none", plot.margin=unit(c(1,0,0.5,0), "lines"))
+
+pt <- ggplot(data=dn) + geom_boxplot(aes(x=factor(group, levels=grouplvls), y=temp, fill=group), outlier.colour="grey70") + coord_flip() + scale_fill_brewer("Taxon", palette="Set1") + labs(x=expression(paste("Temp. [",degree,"C]"))) + plottheme
+
+po <- ggplot(data=dn) + geom_boxplot(aes(x=factor(group, levels=grouplvls), y=oxygen, fill=group), outlier.colour="grey70") + coord_flip() + labs(x="") + scale_fill_brewer("Taxon", palette="Set1") + labs(x=paste("Oxygen (ml)") + plottheme 
+
+pf <- ggplot(data=dn) + geom_boxplot(aes(x=factor(group, levels=grouplvls), y=fluoro, fill=group), outlier.colour="grey70") + coord_flip() + scale_fill_brewer("Taxon", palette="Set1") + plottheme
+
+
+ps <- ggplot(data=dn) + geom_boxplot(aes(x=factor(group, levels=grouplvls), y=salinity, fill=group), outlier.colour="grey70") + coord_flip() + labs(x="") + scale_fill_brewer("Taxon", palette="Set1") + plottheme + theme(plot.margin=unit(c(1,1,0.5,0), "lines"))
+
+pdf("plots/boxplots_all_bygroup.pdf", height=3, width=11)
+grid.arrange(pd, pt, po, pf, ps, nrow=1, widths=c(1.57,1,1,1,1.1))
 dev.off()
 
 # }
