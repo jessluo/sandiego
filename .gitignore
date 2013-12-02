@@ -1,5 +1,6 @@
 # ignore intermediate data
 data/*
+carbon/export/*
 # ignore plots
 *.png
 *.pdf
