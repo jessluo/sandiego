@@ -664,6 +664,38 @@ sink()
 
 results <- rbind(results,data.frame(taxa="h3_Cunina", gbm.resultsdf(m)))
 
+# Appendicularians
+m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
+         data=d[d$taxon=="appendicularians",],
+         distribution="gaussian",
+         n.trees=10000,
+         shrinkage=0.005,
+         interaction.depth=3,
+         bag.fraction=0.5,
+         cv.folds=5)
+
+sink("plots/gbm/nofront/gbm_appendicularians.txt")
+gbm.results(m)
+sink()
+
+results <- rbind(results,data.frame(taxa="appendicularians", gbm.resultsdf(m)))
+
+# Doliolids
+m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
+         data=d[d$taxon=="doliolids",],
+         distribution="gaussian",
+         n.trees=10000,
+         shrinkage=0.0075,
+         interaction.depth=3,
+         bag.fraction=0.5,
+         cv.folds=5)
+
+sink("plots/gbm/nofront/regbm_doliolids.txt")
+gbm.results(m)
+sink()
+
+results <- rbind(results,data.frame(taxa="doliolids", gbm.resultsdf(m)))
+
 
 # sphaeronectes
 m <- gbm(concentration~temp+salinity+fluoro+oxygen+depth,
