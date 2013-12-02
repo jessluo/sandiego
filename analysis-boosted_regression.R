@@ -195,35 +195,6 @@ sink()
 
 results <- rbind(results,data.frame(taxa="h6_Solmundella", gbm.resultsdf(m)))
 
-# # h9_Aglaura
-# m <- gbm(concentration~front+temp+salinity+fluoro+oxygen+depth,
-#          data=d[d$taxon=="h9_Aglaura",],
-#          distribution="gaussian",
-#          n.trees=10000,
-#          shrinkage=0.001,
-#          interaction.depth=3,
-#          bag.fraction=0.5,
-#          cv.folds=5)
-# 
-# sink("plots/gbm/gbm_h9Aglaura.txt")
-# gbm.results(m)
-# sink()
-# 
-# 
-# # h11_Haliscera
-# m <- gbm(concentration~front+temp+salinity+fluoro+oxygen+depth,
-#          data=d[d$taxon=="h11_Haliscera",],
-#          distribution="gaussian",
-#          n.trees=10000,
-#          shrinkage=0.0005,
-#          interaction.depth=3,
-#          bag.fraction=0.5,
-#          cv.folds=5)
-# 
-# sink("plots/gbm/gbm_h11Haliscera.txt")
-# gbm.results(m)
-# sink()
-# 
 # h3_Cunina
 m <- gbm(concentration~front+temp+salinity+fluoro+oxygen+depth,
          data=d[d$taxon=="h3_Cunina",],
@@ -239,35 +210,6 @@ gbm.results(m)
 sink()
 
 results <- rbind(results,data.frame(taxa="h3_Cunina", gbm.resultsdf(m)))
-
-# 
-# # h2_Haliscera
-# m <- gbm(concentration~front+temp+salinity+fluoro+oxygen+depth,
-#          data=d[d$taxon=="h2_Haliscera",],
-#          distribution="gaussian",
-#          n.trees=10000,
-#          shrinkage=0.0005,
-#          interaction.depth=3,
-#          bag.fraction=0.5,
-#          cv.folds=5)
-# 
-# sink("plots/gbm/gbm_h2Haliscera.txt")
-# gbm.results(m)
-# sink()
-# 
-# # h7_Rhopalonema
-# m <- gbm(concentration~front+temp+salinity+fluoro+oxygen+depth,
-#          data=d[d$taxon=="h7_Rhopalonema",],
-#          distribution="gaussian",
-#          n.trees=10000,
-#          shrinkage=0.0005,
-#          interaction.depth=3,
-#          bag.fraction=0.5,
-#          cv.folds=5)
-# 
-# sink("plots/gbm/gbm_h7Rhopalonema.txt")
-# gbm.results(m)
-# sink()
 
 # } 
 
@@ -388,34 +330,6 @@ sink()
 
 results <- rbind(results,data.frame(taxa="Agalma", gbm.resultsdf(m)))
 
-# # Prayidae
-# m <- gbm(concentration~front+temp+salinity+fluoro+oxygen+depth,
-#          data=d[d$taxon=="Prayidae",],
-#          distribution="gaussian",
-#          n.trees=10000,
-#          shrinkage=0.001,
-#          interaction.depth=3,
-#          bag.fraction=0.5,
-#          cv.folds=5)
-# 
-# sink("plots/gbm/gbm_Prayidae.txt")
-# gbm.results(m)
-# sink()
-# 
-# # Lilyopsis
-# m <- gbm(concentration~front+temp+salinity+fluoro+oxygen+depth,
-#          data=d[d$taxon=="Lilyopsis",],
-#          distribution="gaussian",
-#          n.trees=10000,
-#          shrinkage=0.001,
-#          interaction.depth=3,
-#          bag.fraction=0.5,
-#          cv.folds=5)
-# 
-# sink("plots/gbm/gbm_Lilyopsis.txt")
-# gbm.results(m)
-# sink()
-
 # }
 
 ## { Ctenophores ----------------------------------------------------
@@ -436,19 +350,6 @@ sink()
 
 results <- rbind(results,data.frame(taxa="Ocyropsis", gbm.resultsdf(m)))
 
-# # thalasso
-# m <- gbm(concentration~front+temp+salinity+fluoro+oxygen+depth,
-#          data=d[d$taxon=="Thalassocalycidae inconstans",],
-#          distribution="gaussian",
-#          n.trees=10000,
-#          shrinkage=0.001,
-#          interaction.depth=3,
-#          bag.fraction=0.5,
-#          cv.folds=5)
-# 
-# sink("plots/gbm/gbm_Thalassocalycidae.txt")
-# gbm.results(m)
-# sink()
 # 
 # Larval Lobata
 # m <- gbm(concentration~front+temp+salinity+fluoro+oxygen+depth,
@@ -482,50 +383,6 @@ sink()
 
 results <- rbind(results,data.frame(taxa="Beroida", gbm.resultsdf(m)))
 
-# 
-# # Mertensid
-# m <- gbm(concentration~front+temp+salinity+fluoro+oxygen+depth,
-#          data=d[d$taxon=="Mertensid",],
-#          distribution="gaussian",
-#          n.trees=10000,
-#          shrinkage=0.001,
-#          interaction.depth=3,
-#          bag.fraction=0.5,
-#          cv.folds=5)
-# 
-# sink("plots/gbm/gbm_Mertensid.txt")
-# gbm.results(m)
-# sink()
-# 
-# # Haeckelia beehlri
-# m <- gbm(concentration~front+temp+salinity+fluoro+oxygen+depth,
-#          data=d[d$taxon=="Haeckelia beehlri",],
-#          distribution="gaussian",
-#          n.trees=10000,
-#          shrinkage=0.001,
-#          interaction.depth=3,
-#          bag.fraction=0.5,
-#          cv.folds=5)
-# 
-# sink("plots/gbm/gbm_Haeckelia.txt")
-# gbm.results(m)
-# sink()
-# 
-# # Velamen
-# m <- gbm(concentration~front+temp+salinity+fluoro+oxygen+depth,
-#          data=d[d$taxon=="Velamen",],
-#          distribution="gaussian",
-#          n.trees=10000,
-#          shrinkage=0.001,
-#          interaction.depth=3,
-#          bag.fraction=0.5,
-#          cv.folds=3)
-# 
-# sink("plots/gbm/gbm_Velamen.txt")
-# gbm.results(m)
-# sink()
-# 
-
 # hormiphora
 m <- gbm(concentration~front+temp+salinity+fluoro+oxygen+depth,
                data=d[d$taxon=="Hormiphora californiensis",],
@@ -544,6 +401,14 @@ results <- rbind(results,data.frame(taxa="Hormiphora", gbm.resultsdf(m)))
 
 
 # }
+
+##{ Print and save results ----------------------------------------------------------
+row.names(results) <- 1:nrow(results)
+
+write.csv(results, "data/gbm_results.csv", row.names=F)
+
+# }
+
 
 ##{ GBM Without Front ---------------------------------------------------------------
 
@@ -825,12 +690,9 @@ sink()
 
 results <- rbind(results,data.frame(taxa="Hormiphora", gbm.resultsdf(m)))
 
-# }
-
-##{ Print and save results ----------------------------------------------------------
 row.names(results) <- 1:nrow(results)
 
-write.csv(results, "data/gbm_results.csv", row.names=F)
+write.csv(results, "plots/gbm/nofront/gbm_results.csv", row.names=F)
 
 # }
 
