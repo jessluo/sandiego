@@ -22,10 +22,9 @@ options("digits.secs"=3)
 
 # read data
 phy <- read.csv("data/phy.csv", stringsAsFactors=FALSE)
-phy$dateTime <- as.POSIXct(phy$dateTime, tz="GMT")
-# NB: make sure time is set in GMT (even if it wasn't) to avoid dealing with tz afterwards
+phy$dateTime <- as.POSIXct(phy$dateTime, tz="America/Los_Angeles")
 bio <- read.csv("data/bio.csv", stringsAsFactors=FALSE)
-bio$dateTime <- as.POSIXct(bio$dateTime, tz="GMT")
+bio$dateTime <- as.POSIXct(bio$dateTime, tz="America/Los_Angeles")
 
 
 ##{ Compute time bins on physical data ------------------------------------
@@ -331,10 +330,10 @@ alply(unique(d$group), 1, function(group) {
   ggplot(d[d$group==group,]) + geom_point(aes(x=long, y=-depth, size=abund, colour=abund>0), alpha=0.7) + facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_area(range=c(1,10))
 })
 
-pdf("group_abund.pdf", width=8.5, height=11)
+pdf("group_abund_nosol.pdf", width=4, height=3)
 print_conc <- adply(unique(d$group), 1, function(group)
 {
-  df <- data.frame(group, conc=mean(d[d$group==group,"concentration"]), abund=sum(d[d$group==group,"abund"]))
+  df <- data.frame(group, Conc=mean(d[d$group==group,"concentration"]), TotCounts=sum(d[d$group==group,"abund"]))
   return(df)
 })
 print_conc <- print_conc[,-1]
