@@ -272,6 +272,17 @@ print(rect.hclust(CAclust, k=6, border="red"))
 dev.off()
 # --> with 4 axes you get 4 groups: 1) r5-eutonia, h2-haliscera, h3-cunina, r3, h7-rhopalonema, h9-aglaura, h1, h10-pegantha, h11-haliscera. 2) appendicularians, h15, h7-pegantha, solmaris large, doliolids, vsh, h6-solmundella, small solmaris, homiphora, velamen, h5-liriope, h5b. 3) h9-arctapodema, juv lobata, ocyropsis, thalasso. 4) aegina, annatiara, lilyopsis, diphyidae, haeckelia beehlri, mertensid, sphaeronectes, physonect, prayidae, beroida and larval lobata
 
+
+# Detrended correspondence analysis?
+dca <- decorana(dCspp)
+plot(dca, main="Detrended Correspondence Analysis")
+text(dca,display="species", col="red")
+
+dca.scores <- scores(dca, display="species")
+dca.dist <- dist(dca.scores, method="euclidean")
+dca.clust <- hclust(dca.dist, method="ward")
+plot(dca.clust, labels=dimnames(dca.scores)[[1]], main="DCA 4 axes")
+rect.hclust(dca.clust, k=6, border="red")
 # }
 
 ##{ Constrained ordination: CCA ------------------------------------------------
