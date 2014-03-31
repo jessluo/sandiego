@@ -43,6 +43,15 @@ d <- ddply(d, ~transect, function(x, lonR=lonRef) {
   return(x)
 }, .progress="text")
 
+
+phy <- ddply(phy, ~transect, function(x, lonR=lonRef) {
+  latRef <- mean(x$lat)
+  x$dist <- geodDist(x$lat, x$lon, latRef, lonR) * 1000
+  # NB: geodDist computes in km
+  return(x)
+}, .progress="text")
+
+
 # Spectral colour map from ColorBrewer
 spectral <- function(n=6) {
   library("RColorBrewer")
