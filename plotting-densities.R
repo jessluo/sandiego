@@ -82,6 +82,9 @@ splot <- ggplot(si) + geom_tile(aes(x=dist/1000, y=-depth, fill=salinity)) + geo
 
 ggplot(phy) + geom_point(aes(x=long, y=-depth, colour=salinity)) + facet_grid(transect~.) + scale_colour_gradientn(colours=spectral()) + labs(x="Longitude", y="Depth (m)") + theme_bw()
 
+# salinity on top of sampling tracks (fig 2 modification)
+splot <- ggplot() + geom_tile(aes(x=dist/1000, y=-depth, fill=salinity), data=si) + geom_contour(aes(x=dist/1000, y=-depth, z=salinity), colour="black", size=1, alpha=0.7, breaks=c("33.3", "33.45"), data=si) + geom_point(aes(x=dist/1000, y=-depth), colour="grey80", alpha=0.35, size=0.75, data=phy) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth (m)") + scale_fill_gradientn("Salinity", na.value=NA, colours=spectral()) + theme_bw() + theme(legend.position=c(.1, .35))
+
 # fluorometry
 fplot <- ggplot(fi) + geom_tile(aes(x=dist/1000, y=-depth, fill=fluoro)) + geom_contour(aes(x=dist/1000, y=-depth, z=fluoro), colour="black", size=0.5, alpha=0.5, breaks=c("0.2", "0.4", "0.6", "0.8")) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth (m)") + scale_fill_gradientn("Fluoro. (V)", na.value=NA, colours=spectral()) + theme_bw()
 
