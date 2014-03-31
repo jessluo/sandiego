@@ -8,6 +8,7 @@
 library("plyr")
 library("reshape2")
 library("ggplot2")
+library("grid")
 #library("corrplot")
 
 # setup R to keep decimal seconds in the times
@@ -60,20 +61,41 @@ dc <- melt(dcorr)
 # remove the identity values
 dc[which(dc$value==1),"value"] <- NA
 
-# save only the lower triangle's rho values (for text later)
-dcorr[upper.tri(dcorr,diag=T)] <- NA
-dctext <- melt(dcorr)
+# extract the p values
+res1 <- cor.mtest(dcorr, 0.95)
+p.values <- res1[[1]]
+
+# remove the top half
+p.values[upper.tri(p.values,diag=T)] <- NA
+
+# remove not significant p values
+p.values[which(p.values>0.1)] <- NA
+
+# determine number of stars
+p.values[which(p.values<=0.001)] <- 3
+p.values[which(p.values<=0.05)] <- 2
+p.values[which(p.values<=0.1)] <- 1
+
+p.values[which(p.values==3)] <- "***"
+p.values[which(p.values==2)] <- "**"
+p.values[which(p.values==1)] <- "*"
+
+p.valuesM <- melt(p.values)
+
+p.valuesM$Var1 <- dc$Var1
+p.valuesM$Var2 <- dc$Var2
 
 # plot the heatmap
-cortheme <- theme(axis.text.x=element_text(angle=90, vjust=0.5, size=14), axis.text.y=element_text(size=14), legend.text=element_text(size=12), legend.title=element_text(size=12), plot.title=element_text(size=26))
+cortheme <- theme(axis.text.x=element_text(angle=90, vjust=0.5, size=14), axis.text.y=element_text(size=14), legend.text=element_text(size=12), legend.title=element_text(size=12), legend.key.height=unit(1.5, "cm"), plot.title=element_text(size=26))
 
 # axis text
 axis.text <- expression(italic("Pegantha"), "Appendicularians", "h15", italic("S. rhodoloma"), "vsh", italic("S. bitentaculata"), italic("L. tetraphylla"), "Doliolids", italic("V. parallelum"), italic("H. californiensis"), italic("A. elegans"), italic("M. atlantica"), "Mertensiid", italic("N. bijuga"), italic("H. beehlri"), italic("Sphaeronectes"), "Beroida", "Larval Lobata", "Prayidae", italic("T. inconstans"), italic("O. maculata"), italic("L. rosea"), italic("Aglantha"), "Diphyidae", paste(italic("Haliscera")," sp.2"), paste(italic("Solmaris"), " sp.2"), italic("R. velatum"), italic("H. conica"))
 
-pdf("plots/corr_heatmap/all_withvalues_italics.pdf", width=14, height=13)
-p <- ggplot(mapping=aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels))) + geom_tile(aes(fill=value), data=dc) + geom_text(aes(label=round(value,2)), size=3, data=dctext) + labs(x="", y="", title="", fill="") + scale_fill_gradient2(limits=c(-1,1), low="red", high="blue", na.value="grey90") + scale_x_discrete(labels=axis.text) + scale_y_discrete(labels=axis.text) + theme_bw() + cortheme
+pdf("plots/corr_heatmap/all_pvalues_italics.pdf", width=14, height=13)
+p <- ggplot(mapping=aes(x=factor(Var1, levels=levels), y=factor(Var2, levels=levels))) + geom_tile(aes(fill=value), data=dc) + geom_text(aes(label=value), data=p.valuesM) + labs(x="", y="", title="", fill="") + scale_fill_gradient2(limits=c(-1,1), low="red", high="blue", na.value="grey90") + scale_x_discrete(labels=axis.text) + scale_y_discrete(labels=axis.text) + theme_bw() + cortheme
 print(p)
 dev.off()
+
 
 
 # average rho by assemblage
