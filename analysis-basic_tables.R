@@ -7,6 +7,7 @@ library("plyr")
 library("reshape2")
 library("ggplot2")
 library("gridExtra")
+library("scales")
 
 `%ni%` <- Negate(`%in%`) 
 
@@ -61,17 +62,17 @@ plottheme <- theme_bw() + theme(axis.text.y=element_blank(), plot.margin = unit(
 # axis text
 axis.text <- expression(italic("Pegantha"), "Appendicularians", "h15", italic("S. rhodoloma"), "vsh", italic("S. bitentaculata"), italic("L. tetraphylla"), "Doliolids", italic("V. parallelum"), italic("H. californiensis"), italic("A. elegans"), italic("M. atlantica"), "Mertensiid", italic("N. bijuga"), italic("H. beehlri"), italic("Sphaeronectes"), "Beroida", "Larval Lobata", "Prayidae", italic("T. inconstans"), italic("O. maculata"), italic("L. rosea"), italic("Aglantha"), "Diphyidae", paste(italic("Haliscera")," sp.2"), paste(italic("Solmaris"), " sp.2"), italic("R. velatum"), italic("H. conica"))
 
-pd <- ggplot(data=dn) + geom_boxplot(aes(x=factor(taxon), y=depth, fill=group), outlier.colour="grey70") + coord_flip() + scale_fill_brewer("Taxon", palette="Set1") + scale_x_discrete("", labels=rev(axis.text)) + theme_bw() + theme(legend.position="none", plot.margin=unit(c(1,0,0.5,0), "lines")) + labs(y="Depth (m)")
+pd <- ggplot(data=dn) + geom_boxplot(aes(x=factor(taxon), y=depth, fill=group), outlier.colour=alpha("black", 0.2), outlier.size=1) + coord_flip() + scale_fill_brewer("Taxon", palette="Set1") + scale_x_discrete("", labels=rev(axis.text)) + theme_bw() + theme(legend.position="none", plot.margin=unit(c(1,0,0.5,0), "lines")) + labs(y="Depth (m)")
 
-pt <- ggplot(data=dn) + geom_boxplot(aes(x=factor(taxon), y=temp, fill=group), outlier.colour="grey70") + coord_flip() + scale_fill_brewer("Taxon", palette="Set1") + plottheme + labs(y=expression(paste("Temp. (",degree,"C)")))
+pt <- ggplot(data=dn) + geom_boxplot(aes(x=factor(taxon), y=temp, fill=group), outlier.colour=alpha("black", 0.2), outlier.size=1) + coord_flip() + scale_fill_brewer("Taxon", palette="Set1") + plottheme + labs(y=expression(paste("Temp. (",degree,"C)")))
 
-po <- ggplot(data=dn) + geom_boxplot(aes(x=factor(taxon), y=oxygen, fill=group), outlier.colour="grey70") + coord_flip() + labs(x="") + scale_fill_brewer("Taxon", palette="Set1") + plottheme + labs(y=expression(paste("Oxygen (ml ",L^-1,")")))
+po <- ggplot(data=dn) + geom_boxplot(aes(x=factor(taxon), y=oxygen, fill=group), outlier.colour=alpha("black", 0.2), outlier.size=1) + coord_flip() + labs(x="") + scale_fill_brewer("Taxon", palette="Set1") + plottheme + labs(y=expression(paste("Oxygen (ml ",L^-1,")")))
 
-pf <- ggplot(data=dn) + geom_boxplot(aes(x=factor(taxon), y=fluoro, fill=group), outlier.colour="grey70") + coord_flip() + scale_fill_brewer("Taxon", palette="Set1") + plottheme + labs(y="Fluoro (V)")
+pf <- ggplot(data=dn) + geom_boxplot(aes(x=factor(taxon), y=fluoro, fill=group), outlier.colour=alpha("black", 0.2), outlier.size=1) + coord_flip() + scale_fill_brewer("Taxon", palette="Set1") + plottheme + labs(y="Fluoro (V)")
 
-ps <- ggplot(data=dn) + geom_boxplot(aes(x=factor(taxon), y=salinity, fill=group), outlier.colour="grey70") + coord_flip() + labs(x="") + scale_fill_brewer("Taxon", palette="Set1") + plottheme + theme(plot.margin=unit(c(1,1,0.5,0), "lines")) + labs(y="Salinity")
+ps <- ggplot(data=dn) + geom_boxplot(aes(x=factor(taxon), y=salinity, fill=group), outlier.colour=alpha("black", 0.2), outlier.size=1) + coord_flip() + labs(x="") + scale_fill_brewer("Taxon", palette="Set1") + plottheme + theme(plot.margin=unit(c(1,1,0.5,0), "lines")) + labs(y="Salinity")
 
-pdf("plots/boxplots_all.pdf", height=8.5, width=11)
+pdf("plots/boxplots_all2.pdf", height=8.5, width=11)
 grid.arrange(pd, pt, po, pf, ps, nrow=1, widths=c(1.6,1,1,1,1.09))
 dev.off()
 
