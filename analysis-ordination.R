@@ -266,8 +266,8 @@ CAclust <- hclust(CAdist, method="ward")
 # labels
 # axis.text <- expression(italics("A. elegans"), "Appendicularians", "Beroida", "Doliolids", paste(italic("Haliscera")," sp.2"), "h15", italic("H. conica"), paste(italic("Solmaris"), " sp.2"), italic("L. tetraphylla"), italic("S. bitentaculata"), "Pegantha", italic("R. velatum"), italic("Aglantha"), italic("H. beehlri"), italic("H. californiensis"), "Larval Lobata", "Diphyidae", italic("L. rosea"), "Mertensiid", italic("M. atlantica"), italic("N. bijuga"), italic("O. maculata"), "Prayidae", italic("S. rhodoloma"), "Sphaeronectes", italic("T. inconstans"), italic("V. parallelum"), "vsh")
 
-pdf("plots/ordination/all_ungrouped_4axes_4assemb.pdf", width=9, height=7)
-print(plot(CAclust, labels=dimnames(CAaxes)[[1]], main="CA ungrouped 4 axes"))
+pdf("plots/ordination/all_ungrouped_4axes_4assemb_hang.pdf", width=9, height=7)
+print(plot(CAclust, labels=dimnames(CAaxes)[[1]], main="CA ungrouped 4 axes", hang=-1))
 print(rect.hclust(CAclust, k=6, border="red"))
 dev.off()
 # --> with 4 axes you get 4 groups: 1) r5-eutonia, h2-haliscera, h3-cunina, r3, h7-rhopalonema, h9-aglaura, h1, h10-pegantha, h11-haliscera. 2) appendicularians, h15, h7-pegantha, solmaris large, doliolids, vsh, h6-solmundella, small solmaris, homiphora, velamen, h5-liriope, h5b. 3) h9-arctapodema, juv lobata, ocyropsis, thalasso. 4) aegina, annatiara, lilyopsis, diphyidae, haeckelia beehlri, mertensid, sphaeronectes, physonect, prayidae, beroida and larval lobata
