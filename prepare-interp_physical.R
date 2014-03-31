@@ -113,6 +113,12 @@ source("lib_manip.R")
 jet.rainbow = colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
 jet.rainbowrev = colorRampPalette(c("#7F0000", "red", "#FF7F00", "yellow", "#7FFF7F", "cyan", "#007FFF", "blue", "#00007F"))
 
+# Spectral colour map from ColorBrewer
+spectral <- function(n=6) {
+  library("RColorBrewer")
+  rev(brewer.pal(name="Spectral", n=n))
+}
+
 # transform the distance to account for the anisotropy
 f <- 1800
 phy$distTr <- phy$dist / f
@@ -232,7 +238,7 @@ oi <- ddply(phy, ~transect, function(x) {
 names(oi) <- c("transect", "dist", "depth", "oxygen")
 oi$dist <- oi$dist * f
 
-ggplot(oi) + geom_tile(aes(x=dist, y=-depth, fill=oxygen)) + geom_contour(aes(x=dist, y=-depth, z=oxygen), colour="white", size=0.5, alpha=0.5) + facet_grid(transect~.) + scale_fill_gradientn(colours=jet.rainbow(10), guide="colourbar")
+ggplot(oi) + geom_tile(aes(x=dist, y=-depth, fill=oxygen)) + facet_grid(transect~.) + scale_fill_gradientn("Oxygen", colours=spectral(), guide="colourbar", na.value=NA) + labs(x="Distance (km)", y="Depth (m)")
 
 write.csv(oi, file="data/interp_oxygen.csv", row.names=FALSE)
 # }
