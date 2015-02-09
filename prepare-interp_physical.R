@@ -223,7 +223,7 @@ write.csv(fi, file="data/interp_fluoro.csv", row.names=FALSE)
 
 # Interpolate oxygen
 
-oi <- ddply(phy, ~transect, function(x) {
+oi <- ddply(phy[phy$down.up=="down",], ~transect, function(x) {
   # have to subet otherwise interp fails
   # no idea why...
   x <- x[seq(1, nrow(x), 2),]
