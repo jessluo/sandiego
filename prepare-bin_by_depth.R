@@ -65,6 +65,7 @@ dd <- data.frame(dateTime=timeBins)
 dd$depth <- approx(phy$dateTime, phy$depth, timeBins)$y
 dd$long <- approx(phy$dateTime, phy$long, timeBins)$y
 dd$transect <- approx(phy$dateTime, phy$transect, timeBins)$y
+
 # plot the top and bottom of the yos
 p <- ggplot(mapping=aes(x=long, y=-depth)) + geom_point(data=phy[phy$transect==1,], size=0.5) + facet_grid(transect~.) + geom_point(data=dd[dd$transect==1,], size=2)
 p + coord_cartesian(ylim=c(-4, 0))
