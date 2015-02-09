@@ -27,4 +27,4 @@ You can access this repo through SSH or HTTPS.
 ###UPDATE: 
 Study is now published:  
 **Luo Jessica Y**, Grassian B, Tang D, Irisson J-O, Greer AT, Guigand CG, and Cowen RK. (2014) Environmental drivers of fine-scale distributions of the gelatinous zooplankton community across a mesoscale front. _Marine Ecology Progress Series_, 510:129-149. doi: 10.3354/meps10908.  
-Open access link: [http://www.int-res.com/abstracts/meps/v510/p129-149/]
+Link: http://www.int-res.com/abstracts/meps/v510/p129-149/
