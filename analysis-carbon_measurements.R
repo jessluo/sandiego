@@ -3,6 +3,7 @@ library("plyr")
 library("reshape2")
 library("ggplot2")
 library("oce")
+library("gridExtra")
 
 # setup R to keep decimal seconds in the times
 options("digits.secs"=3)
@@ -116,19 +117,22 @@ massSum <- sum(d$biomass)
 # total volume sampled in downcasts is 5450 m-3 
 vol <- 5450
 
+massD <- as.data.frame(cbind(tot_massSum=massSum, vol=vol))
+
 # average density for all groups in m
-massSum / vol
+massD$avg_all <- massSum / massD$vol
 # [1] 10.95323
 
-sum(d[d$group == "Tunicates", "biomass"]) / vol
+massD$Tunicates <- sum(d[d$group == "Tunicates", "biomass"]) / vol
 # [1] 9.369919
-sum(d[d$group == "Ctenophores", "biomass"]) / vol
+massD$Ctenophores <- sum(d[d$group == "Ctenophores", "biomass"]) / vol
 # [1] 0.3599686
-sum(d[d$group %in% c("Hydromedusae", "Solmaris", "Siphonophores"), "biomass"]) / vol
+massD$Cnidarians <- sum(d[d$group %in% c("Hydromedusae", "Solmaris", "Siphonophores"), "biomass"]) / vol
 # [1] 1.223343
 
-
-
+pdf("plots/biomass_estimates.pdf",width = 6, height=4)
+grid.table(round(massD, 4))
+dev.off()
 # }
 
 
