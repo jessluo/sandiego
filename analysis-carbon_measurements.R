@@ -2,7 +2,7 @@
 library("plyr")
 library("reshape2")
 library("ggplot2")
-
+library("oce")
 
 # setup R to keep decimal seconds in the times
 options("digits.secs"=3)
@@ -16,7 +16,7 @@ da <- read.csv("data/apps_binned_by_depth.csv", stringsAsFactors=FALSE)
 da$dateTime <- as.POSIXct(da$dateTime, tz="America/Los_Angeles")
 
 # append apps data to regular data
-d <- rbind(d, da)
+d <- rbind(d[,-26], da)
 
 phy <- read.csv("data/phy.csv", stringsAsFactors=FALSE)
 phy$dateTime <- as.POSIXct(phy$dateTime, tz="America/Los_Angeles")
@@ -48,9 +48,9 @@ spectral <- function(n=6) {
 ##{ analysis ----------------------------------------------------
 # plotting
 
-ggplot(d[d$taxon == "appendicularians" & d$concentration >0,]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=taxon), alpha=0.6) + labs(x="Longitude", y="Depth (m)") + facet_grid(transect~.) + scale_colour_manual(values=c("black","red", "yellow")) + scale_area(range=c(1,13)) + guides(size=guide_legend(order=1), colour=guide_legend(order=2))
+ggplot(d[d$taxon == "appendicularians" & d$concentration >0,]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=taxon), alpha=0.6) + labs(x="Longitude", y="Depth (m)") + facet_grid(transect~.) + scale_colour_manual(values=c("black","red", "yellow")) + scale_size_area(max_size=13) + guides(size=guide_legend(order=1), colour=guide_legend(order=2))
 
-ggplot(d[d$taxon %in% c("appendicularians", "kowalevskiid", "fritillarid") & d$concentration >0,]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=taxon), alpha=0.6) + labs(x="Longitude", y="Depth (m)") +  facet_grid(transect~.) + scale_colour_manual(values=c("black","red", "yellow")) + scale_area(range=c(1,13))
+ggplot(d[d$taxon %in% c("appendicularians", "kowalevskiid", "fritillarid") & d$concentration >0,]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=taxon), alpha=0.6) + labs(x="Longitude", y="Depth (m)") +  facet_grid(transect~.) + scale_colour_manual(values=c("black","red", "yellow")) + scale_size_area(max_size=13) 
 
 # import length measurements
 l <- read.csv("raw_biological_data/length_measurements.csv", stringsAsFactors=F)
@@ -103,15 +103,31 @@ Ldol <- mean(l[l$group =="Doliolids", "length"])
 d$massSingle <- NA
 d[d$taxon %in% c("appendicularians", "kowalevskiid", "fritillarid"),]$massSingle <- 29.49 * (Lapp ^ 2.88) # assume generalized Oikopleura (combining wet weight and C biomass together)
 d[d$group=="Ctenophores",]$massSingle <- 4.8 * (Lct ^ 1.775) # this result in micrograms
-d[d$group=="Hydromedusae",]$massSingle <- 1.8885 * (Lhy ^ 2.619)
+d[d$group %in% c("Hydromedusae", "Solmaris"),]$massSingle <- 1.8885 * (Lhy ^ 2.619)
 d[d$group=="Siphonophores",]$massSingle <- 20.47 * (Lsiph ^ 0.834)
 d[d$taxon=="doliolids",]$massSingle <- 0.51 * (Ldol ^ 2.28)
 
 d$biomass <- d$abund * d$massSingle
+
+d$biomass <- d$biomass * 10^-3 # convert to milligrams
+
 massSum <- sum(d$biomass)
 
-# convert to grams
-massSum * 10^-6
+# total volume sampled in downcasts is 5450 m-3 
+vol <- 5450
+
+# average density for all groups in m
+massSum / vol
+# [1] 10.95323
+
+sum(d[d$group == "Tunicates", "biomass"]) / vol
+# [1] 9.369919
+sum(d[d$group == "Ctenophores", "biomass"]) / vol
+# [1] 0.3599686
+sum(d[d$group %in% c("Hydromedusae", "Solmaris", "Siphonophores"), "biomass"]) / vol
+# [1] 1.223343
+
+
 
 # }
 
