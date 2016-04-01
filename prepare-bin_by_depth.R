@@ -285,23 +285,23 @@ d <- d[,-which(names(d)=="tfzero")]#
 ##{ Inspect joined data ---------------------------------------------------
 
 summary(d)
-
-ggplot(d[d$abund != 0,]) + geom_histogram(aes(x=abund)) + facet_wrap(~group, scales="free")
-ggplot(d[d$abund != 0,]) + geom_histogram(aes(x=concentration)) + facet_wrap(~group, scales="free")
-ggplot(d[d$abund != 0,]) + geom_histogram(aes(x=abund)) + facet_wrap(~taxon, scales="free")
-ggplot(d[d$abund != 0,]) + geom_histogram(aes(x=concentration)) + facet_wrap(~taxon, scales="free")
-
-ggplot(d) + geom_histogram(aes(x=volume), binwidth=0.1)
-
-# inspect concentrations and print them out into a PDF
-# pdf("binned_concentrations.pdf", width=14, height=10)
 # 
-alply(unique(d$group), 1, function(group) {
-	g <- ggplot(d[d$group==group,]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + 
-  facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_size_area(max_size=12)
-  print(g)
-})
-# dev.off()
+# ggplot(d[d$abund != 0,]) + geom_histogram(aes(x=abund)) + facet_wrap(~group, scales="free")
+# ggplot(d[d$abund != 0,]) + geom_histogram(aes(x=concentration)) + facet_wrap(~group, scales="free")
+# ggplot(d[d$abund != 0,]) + geom_histogram(aes(x=abund)) + facet_wrap(~taxon, scales="free")
+# ggplot(d[d$abund != 0,]) + geom_histogram(aes(x=concentration)) + facet_wrap(~taxon, scales="free")
+# 
+# ggplot(d) + geom_histogram(aes(x=volume), binwidth=0.1)
+# 
+# # inspect concentrations and print them out into a PDF
+# # pdf("binned_concentrations.pdf", width=14, height=10)
+# # 
+# alply(unique(d$group), 1, function(group) {
+# 	g <- ggplot(d[d$group==group,]) + geom_point(aes(x=long, y=-depth, size=concentration, colour=concentration>0), alpha=0.7) + 
+#   facet_grid(transect~taxon) + scale_colour_manual(values=c("grey70", "black")) + scale_size_area(max_size=12)
+#   print(g)
+# })
+# # dev.off()
 
 d$front <- factor(d$front)
 d$front2 <- d$front
