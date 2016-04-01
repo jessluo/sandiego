@@ -100,7 +100,7 @@ Ldol <- mean(l[l$group =="Doliolids", "length"])
 
 
 # biomass calculations (in micrograms)
-# from Lavaniegos and Ohman 2007
+# from Lavaniegos and Ohman 2007 Supplemental Tables
 d$massSingle <- NA
 d[d$taxon %in% c("appendicularians", "kowalevskiid", "fritillarid"),]$massSingle <- 29.49 * (Lapp ^ 2.88) # assume generalized Oikopleura (combining wet weight and C biomass together)
 d[d$group=="Ctenophores",]$massSingle <- 4.8 * (Lct ^ 1.775) # this result in micrograms
@@ -111,6 +111,8 @@ d[d$taxon=="doliolids",]$massSingle <- 0.51 * (Ldol ^ 2.28)
 d$biomass <- d$abund * d$massSingle
 
 d$biomass <- d$biomass * 10^-3 # convert to milligrams
+
+d$biomass.mg.m3 <- d$biomass / d$volume
 
 massSum <- sum(d$biomass)
 
@@ -133,6 +135,19 @@ massD$Cnidarians <- sum(d[d$group %in% c("Hydromedusae", "Solmaris", "Siphonopho
 pdf("plots/biomass_estimates.pdf",width = 6, height=4)
 grid.table(round(massD, 4))
 dev.off()
+
+
+# collapse the transects 
+d$depthbin_10_top <- round(d$depth / 10) * 10
+# pull only the thaliaceans
+d[d$taxon %in% c("appendicularians", "fritillarid", "kowalevskiid"), "group"] <- "Appendicularian"
+d[d$group %in% c("Hydromedusae", "Solmaris", "Siphonophores"), "group"] <- "Cnidarians"
+biomass <- ddply(d, ~depthbin_10_top + group, summarize, biomass.mg.m3=mean(biomass.mg.m3))
+
+ggplot(biomass[biomass$group != "Appendicularian",]) + geom_bar(aes(y=biomass.mg.m3, x=-depthbin_10_top, fill=group), stat="identity", position="dodge") + coord_flip() + labs(x="Depth (m)", y="Biomass (mg C m^-3)", title="Carbon biomass of cnidarians, ctenophores, and tunicates in Southern California Bight, Oct 2010")
+
+ggsave(filename = "plots/carbon_biomass_by_group_ISIIS_SCB.pdf", width=10, height=8)
+
 # }
 
 
