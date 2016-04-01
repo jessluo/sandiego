@@ -156,7 +156,7 @@ write.csv(ti, file="data/interp_temp.csv", row.names=FALSE)
 
 # Interpolate density
 swi <- ddply(phyup, ~transect, function(x) {
-  # have to subet otherwise interp fails
+  # have to subset otherwise interp fails
   # no idea why...
   x <- x[seq(1, nrow(x), 2),]
   
@@ -170,7 +170,7 @@ swi <- ddply(phyup, ~transect, function(x) {
 names(swi) <- c("transect", "dist", "depth", "swRho")
 swi$dist <- swi$dist * f
 
-ggplot(swi) + geom_tile(aes(x=dist, y=-depth, fill=swRho)) + geom_contour(aes(x=dist, y=-depth, z=swRho), colour="white", swize=0.5, alpha=0.5) + facet_grid(transect~.) + scale_fill_gradientn(colours=jet.rainbowrev(10), guide="colourbar")
+ggplot(swi) + geom_tile(aes(x=dist, y=-depth, fill=swRho)) + geom_contour(aes(x=dist, y=-depth, z=swRho), colour="white", size=0.5, alpha=0.5) + facet_grid(transect~.) + scale_fill_gradientn(colours=jet.rainbowrev(10), guide="colourbar")
 
 # greatest difference? 
 ggplot(swi) + geom_tile(aes(x=dist, y=-depth, fill=c(NA, diff(swRho)))) + facet_grid(transect~.) + scale_fill_gradientn(colours=jet.rainbowrev(10), guide="colourbar")
@@ -180,7 +180,7 @@ write.csv(swi, file="data/interp_swRho.csv", row.names=FALSE)
 
 # Interpolate salinity
 si <- ddply(phyup, ~transect, function(x) {
-  # have to subet otherwise interp fails
+  # have to subset otherwise interp fails
   # no idea why...
   x <- x[seq(1, nrow(x), 2),]
   
@@ -203,7 +203,7 @@ write.csv(si, file="data/interp_salinity.csv", row.names=FALSE)
 
 # Interpolate fluorometry
 fi <- ddply(phy, ~transect, function(x) {
-  # have to subet otherwise interp fails
+  # have to subset otherwise interp fails
   # no idea why...
   x <- x[seq(1, nrow(x), 3),]
   
@@ -224,7 +224,7 @@ write.csv(fi, file="data/interp_fluoro.csv", row.names=FALSE)
 # Interpolate oxygen
 
 oi <- ddply(phy[phy$down.up=="down",], ~transect, function(x) {
-  # have to subet otherwise interp fails
+  # have to subset otherwise interp fails
   # no idea why...
   x <- x[seq(1, nrow(x), 2),]
   
