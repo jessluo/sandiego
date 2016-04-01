@@ -127,20 +127,28 @@ d$taxon <- factor(d$taxon, levels=rev(labels))
 #ggplot(data=dm[dm$concentration>0,]) + geom_violin(aes(y=value, x=factor(taxon), weight=concentration, fill=group), scale="width") + facet_grid(variable~., scales="free") + scale_fill_brewer("Taxon", palette="Set1") + coord_flip()
                                                                                                                                                                                                             
 axis.text <- expression(italic("Pegantha"), "Appendicularians", "h15", italic("S. rhodoloma"), "vsh", italic("S. bitentaculata"), italic("L. tetraphylla"), "Doliolids", italic("V. parallelum"), italic("H. californiensis"), italic("A. elegans"), italic("M. atlantica"), "Mertensiid", italic("N. bijuga"), italic("H. beehlri"), italic("Sphaeronectes"), "Beroida", "Larval Lobata", "Prayidae", italic("T. inconstans"), italic("O. maculata"), italic("L. rosea"), italic("Aglantha"), "Diphyidae", paste(italic("Haliscera")," sp.2"), paste(italic("Solmaris"), " sp.2"), italic("R. velatum"), italic("H. conica"))
-                                                                                                                                                                                                            
-pd <- ggplot(data=d) + geom_violin(aes(x=factor(taxon), y=depth, weight=concentration, fill=group), colour=NA, scale="width") + coord_flip() + scale_fill_brewer("Taxon", palette="Set1") + scale_x_discrete("", labels=rev(axis.text)) + theme_bw() + theme(legend.position="none", plot.margin=unit(c(1,0,0.5,0), "lines")) + labs(y="Depth (m)")
-                                                                                                                                                                                                            
-pt <- ggplot(data=d) + geom_violin(aes(x=factor(taxon), y=temp, weight=concentration, fill=group), colour=NA, scale="width") + coord_flip() + scale_fill_brewer("Taxon", palette="Set1") + plottheme + labs(y=expression(paste("Temp. (",degree,"C)")))
-                                                                                                                                                                                                            
-po <- ggplot(data=d) + geom_violin(aes(x=factor(taxon), y=oxygen, weight=concentration, fill=group), colour=NA, scale="width") + coord_flip() + labs(x="") + scale_fill_brewer("Taxon", palette="Set1") + plottheme + labs(y=expression(paste("Oxygen (ml ",L^-1,")")))
-                                                                                                                                                                                                            
-pf <- ggplot(data=d) + geom_violin(aes(x=factor(taxon), y=fluoro, weight=concentration, fill=group), colour=NA, scale="width") + coord_flip() + scale_fill_brewer("Taxon", palette="Set1") + plottheme + labs(y="Fluoro (V)")
-                                                                                                                                                                                                            
-ps <- ggplot(data=d) + geom_violin(aes(x=factor(taxon), y=salinity, weight=concentration, fill=group), colour=NA, scale="width") + coord_flip() + labs(x="") + scale_fill_brewer("Taxon", palette="Set1") + plottheme + theme(plot.margin=unit(c(1,1,0.5,0), "lines")) + labs(y="Salinity")
-                                                                                                                                                                                                            
-                                                                                                                                                                                                            pdf("plots/boxplots_violin.pdf", height=8.5, width=11)
-                                                                                                                                                                                                            grid.arrange(pd, pt, po, pf, ps, nrow=1, widths=c(1.6,1,1,1,1.09))
-                                                                                                                                                                                                            dev.off()
+
+pd <- ggplot(data=d) + geom_violin(aes(x=factor(taxon), y=depth, weight=concentration, fill=group), colour=NA, scale="width") + coord_flip() + 
+  scale_fill_brewer("Taxon", palette="Set1") + scale_x_discrete("", labels=rev(axis.text)) + theme_bw() + theme(legend.position="none", plot.margin=unit(c(1,0,0.5,0), "lines")) + 
+  labs(y="Depth (m)")
+
+pt <- ggplot(data=d) + geom_violin(aes(x=factor(taxon), y=temp, weight=concentration, fill=group), colour=NA, scale="width") + coord_flip() + 
+  scale_fill_brewer("Taxon", palette="Set1") + plottheme + labs(y=expression(paste("Temp. (",degree,"C)")))
+
+po <- ggplot(data=d) + geom_violin(aes(x=factor(taxon), y=oxygen, weight=concentration, fill=group), colour=NA, scale="width") + coord_flip() + 
+  labs(x="") + scale_fill_brewer("Taxon", palette="Set1") + plottheme + labs(y=expression(paste("Oxygen (ml ",L^-1,")")))
+
+pf <- ggplot(data=d) + geom_violin(aes(x=factor(taxon), y=fluoro, weight=concentration, fill=group), colour=NA, scale="width") + coord_flip() + 
+  scale_fill_brewer("Taxon", palette="Set1") + plottheme + labs(y="Fluoro (V)")
+
+ps <- ggplot(data=d) + geom_violin(aes(x=factor(taxon), y=salinity, weight=concentration, fill=group), colour=NA, scale="width") + coord_flip() + 
+  labs(x="") + scale_fill_brewer("Taxon", palette="Set1") + plottheme + theme(plot.margin=unit(c(1,1,0.5,0), "lines")) + labs(y="Salinity")
+
+
+pdf("plots/boxplots_violin.pdf", height=8.5, width=11)
+grid.arrange(pd, pt, po, pf, ps, nrow=1, widths=c(1.6,1,1,1,1.09))
+
+dev.off()
                                                                                                                                                                                                             
                                                                                                                                                                                                             
                                                                                                                                                                                                             
