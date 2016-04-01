@@ -51,6 +51,9 @@ phy <- ddply(phy, ~transect, function(x, lonR=lonRef) {
   return(x)
 }, .progress="text")
 
+# phy$dist <- phy$dist/1.157
+# d$dist <- d$dist/1.157 # some weird correction - Jan 2016
+
 
 # Spectral colour map from ColorBrewer
 spectral <- function(n=6) {
@@ -63,7 +66,7 @@ spectral <- function(n=6) {
 ##{ Create interpolated physical variables plots ----------------------------
 
 # where's the pycnocline
-ggplot(phy) + geom_point(aes(x=long, y=-depth, colour=c(0,abs(diff(swRho))))) + facet_grid(transect~.) + scale_colour_gradient("Pycnocline strength", limits=c(0,0.12), low="white", high="black") + theme_bw()
+p <- ggplot(phy) + geom_point(aes(x=long, y=-depth, colour=c(0,abs(diff(swRho))))) + facet_grid(transect~.) + scale_colour_gradient("Pycnocline strength", limits=c(0,0.12), low="white", high="black") + theme_bw()
 
 # temperature
 tplot <- ggplot(ti) + geom_tile(aes(x=dist/1000, y=-depth, fill=temp)) + geom_contour(aes(x=dist/1000, y=-depth, z=temp), colour="black", size=0.5, alpha=0.5, breaks=c(10, 13, 16)) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth (m)") + scale_fill_gradientn(expression(paste("Temp. (",degree,"C)")), colours=spectral(), na.value=NA) + theme_bw()
@@ -83,7 +86,7 @@ splot <- ggplot(si) + geom_tile(aes(x=dist/1000, y=-depth, fill=salinity)) + geo
 ggplot(phy) + geom_point(aes(x=long, y=-depth, colour=salinity)) + facet_grid(transect~.) + scale_colour_gradientn(colours=spectral()) + labs(x="Longitude", y="Depth (m)") + theme_bw()
 
 # salinity on top of sampling tracks (fig 2 modification)
-splot <- ggplot() + geom_tile(aes(x=dist/1000, y=-depth, fill=salinity), data=si) + geom_contour(aes(x=dist/1000, y=-depth, z=salinity), colour="black", size=1, alpha=0.7, breaks=c("33.3", "33.45"), data=si) + geom_point(aes(x=dist/1000, y=-depth), colour="grey80", alpha=0.35, size=0.75, data=phy) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth (m)") + scale_fill_gradientn("Salinity", na.value=NA, colours=spectral()) + theme_bw() + theme(legend.position=c(.1, .35))
+# splot <- ggplot() + geom_tile(aes(x=dist/1000, y=-depth, fill=salinity), data=si) + geom_contour(aes(x=dist/1000, y=-depth, z=salinity), colour="black", size=1, alpha=0.7, breaks=c("33.3", "33.45"), data=si) + geom_point(aes(x=dist/1000, y=-depth), colour="grey80", alpha=0.35, size=0.75, data=phy) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth (m)") + scale_fill_gradientn("Salinity", na.value=NA, colours=spectral()) + theme_bw() + theme(legend.position=c(.1, .35))
 
 # fluorometry
 fplot <- ggplot(fi) + geom_tile(aes(x=dist/1000, y=-depth, fill=fluoro)) + geom_contour(aes(x=dist/1000, y=-depth, z=fluoro), colour="black", size=0.5, alpha=0.5, breaks=c("0.2", "0.4", "0.6", "0.8")) + facet_grid(transect~.) + labs(x="Distance (km)", y="Depth (m)") + scale_fill_gradientn("Fluoro. (V)", na.value=NA, colours=spectral()) + theme_bw()
@@ -113,7 +116,7 @@ res/sum(res)
 # Plots for the paper
 
 # solmundella - temperature
-Solmundella <-  plot + 
+Solmundella <- tplot + 
   geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.5, data=d[d$taxon=="h6_Solmundella" & d$concentration > 0,]) + 
   facet_grid(transect~.,) + scale_size_area("Density", max_size=10) + 
   labs(title=expression(paste(italic("Solmundella bitentaculata")))) + 
@@ -321,5 +324,58 @@ d2$group2 <- factor(d2$group2, levels=c("Solmaris", "Hydromedusae", "Siphonophor
 
 # }
 
+## { TEMPORARY CODE to plot 4 taxa on top of salinity -----------------------------------
+si <- si[si$transect==2,]
+phy <- phy[phy$transect==2,]
+d <- d[d$transect==2,]
 
+mindist <- min(si[!is.na(si$salinity),]$dist)
+
+d$dist <- d$dist - mindist
+si$dist <- si$dist - mindist
+phy$dist <- phy$dist - mindist
+
+splot <- ggplot(si) + geom_tile(aes(x=dist/1000, y=-depth, fill=salinity)) + geom_contour(aes(x=dist/1000, y=-depth, z=salinity), colour="black", size=1, alpha=0.7, breaks=c("33.3", "33.45")) + labs(x="Distance (km)", y="Depth (m)") + scale_fill_gradientn("Salinity", na.value=NA, colours=spectral()) + theme_bw() + scale_x_continuous(limits=c(-5.5, 72)) + scale_y_continuous(limits=c(-138,0))
+
+Solmaris <- splot + 
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.4, data=d[d$taxon=="Solmaris" & d$concentration > 0,]) +
+  scale_size_area("Density", max_size=15) + 
+  labs(title=expression(paste(italic("Solmaris rhodoloma")))) + 
+  theme(legend.position=c(.07, .35), axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank()) +
+  guides(size=guide_legend(order=1), fill="none")
+
+Liriope <- splot + 
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.4, data=d[d$taxon=="h5_Liriope" & d$concentration > 0,]) +
+  scale_size_area("Density", max_size=9) + 
+  labs(title=expression(paste(italic("Liriope tetraphylla")))) +
+  theme(legend.position=c(.06, .35)) +  
+  guides(size=guide_legend(order=1), fill="none")
+
+
+Sphaeronectes <- splot + 
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.4, data=d[d$taxon=="Sphaeronectes" & d$concentration > 0,]) +
+  scale_size_area("Density", max_size=7) + 
+  labs(title=expression(paste(italic("Sphaeronectes")," sp."))) + 
+  theme(legend.position=c(.06, .5), axis.title=element_blank(), axis.text=element_blank(), axis.ticks=element_blank()) + 
+  guides(size=guide_legend(order=1), fill="none")
+
+Ocyropsis <- splot +
+  geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.4, data=d[d$taxon=="Ocyropsis maculata" & d$concentration > 0,]) + 
+  scale_size_area("Density", max_size=4) + 
+  labs(title=expression(paste(italic("Ocyropsis maculata")))) + 
+  theme(legend.position=c(.06, .45), axis.title.y=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank()) + guides(size=guide_legend(order=1), fill="none")
+
+pdf("plots/bubble/Solmaris_Liriope_Sphaeronectes_Ocyropsis_Salinity.pdf", height=8.75, width=12.5)
+grid.arrange(Solmaris, Sphaeronectes, Liriope, Ocyropsis, nrow=2, ncol=2)  
+dev.off()
+
+# one more - appendicularians
+apps <- splot + geom_point(aes(x=dist/1000, y=-depth, size=concentration), alpha=0.5, data=d[d$taxon=="appendicularians" & d$concentration > 0,]) + scale_size_area("Density", max_size=9) + labs(title="Appendicularians") + theme_bw() + theme(legend.position=c(0.06, 0.45))
+
+apps <- apps + scale_x_continuous(limits=c(11, 89))
+
+ggsave("plots/bubble/Appendicularians_salinity_tr2.pdf", apps, height=4, width=11)
+
+
+# }
 
